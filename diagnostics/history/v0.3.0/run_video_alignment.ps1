@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
-$simTools = 'D:/modelsim/win64'
+. (Join-Path $PSScriptRoot '../../tool_paths.ps1')
 $simDir = Join-Path ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../output'))) 'modelsim_video_r2_s4'
 $lib = (Join-Path $simDir 'video_work').Replace('\','/')
 New-Item -ItemType Directory -Path $simDir -Force | Out-Null

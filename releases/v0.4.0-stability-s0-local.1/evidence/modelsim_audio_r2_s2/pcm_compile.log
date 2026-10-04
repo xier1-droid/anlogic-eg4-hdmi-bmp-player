@@ -1,0 +1,10 @@
+Model Technology ModelSim SE-64 vlog 10.6e Compiler 2018.06 Jun 23 2018
+Start time: 03:00:40 on Oct 05,2026
+vlog -work C:/Users/tht/Desktop/demo_v_0_3/diagnostics/output/modelsim_audio_r2_s2/pcm_work -sv -l C:\Users\tht\Desktop\demo_v_0_3\diagnostics\output\modelsim_audio_r2_s2/pcm_compile.log user_source/hdl_source/audio/pcm_test_tone.v diagnostics/history/v0.3.0/tb_pcm_test_tone.sv 
+-- Compiling module pcm_test_tone
+-- Compiling module tb_pcm_test_tone
+
+Top level modules:
+	tb_pcm_test_tone
+End time: 03:00:40 on Oct 05,2026, Elapsed time: 0:00:00
+Errors: 0, Warnings: 0

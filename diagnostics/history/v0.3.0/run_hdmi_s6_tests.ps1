@@ -1,8 +1,7 @@
 param([ValidateSet('s6','s7','s8','s9')][string]$Stage = 's6')
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
-$simTools = 'D:/modelsim/win64'
-$vendor = 'D:/TD/anlogic/TD6.2.1/sim_release/eg4'
+. (Join-Path $PSScriptRoot '../../tool_paths.ps1')
 $simDir = Join-Path ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../output'))) "modelsim_hdmi_r2_$Stage"
 $lib = (Join-Path $simDir "${Stage}_work").Replace('\','/')
 New-Item -ItemType Directory -Path $simDir -Force | Out-Null
@@ -34,14 +33,14 @@ try {
                 throw "S6 simulation failed: $test"
             }
         }
-        & python -X utf8 "$repoRoot/diagnostics/history/v0.3.0/check_hdmi_packets.py" tone_packets.txt
+        & $pythonExe -X utf8 "$repoRoot/diagnostics/history/v0.3.0/check_hdmi_packets.py" tone_packets.txt
         if ($LASTEXITCODE -ne 0) { throw 'S6 packet reference failed' }
         if ($Stage -eq 's6') {
             $nonzero = Get-Content tone_packets.txt | Where-Object { $_ -like 'A *' -and $_ -ne 'A 0000 0000' }
             if ($nonzero) { throw 'S6 PCM is not silent' }
             Write-Output 'PASS S6 all accepted and decoded PCM samples are zero'
         } elseif ($Stage -eq 's7') {
-            & python -X utf8 "$repoRoot/diagnostics/history/v0.3.0/check_s7_tone.py" tone_packets.txt
+            & $pythonExe -X utf8 "$repoRoot/diagnostics/history/v0.3.0/check_s7_tone.py" tone_packets.txt
             if ($LASTEXITCODE -ne 0) { throw 'S7 independent tone reference failed' }
         }
     } finally { Pop-Location }

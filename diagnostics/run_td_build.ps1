@@ -1,14 +1,18 @@
 param(
     [string]$BuildName = 'audio_s0_local1',
-    [string]$TdRoot = 'D:/TD/anlogic/TD6.2.1'
+    [string]$TdRoot = ''
 )
 $ErrorActionPreference = 'Stop'
+$tdCandidates = @($TdRoot, $env:TD_ROOT, 'E:/TD', 'D:/TD/anlogic/TD6.2.1') | Where-Object { $_ }
+$TdRoot = $tdCandidates | Where-Object { Test-Path (Join-Path $_ 'bin/td_commands_prompt.exe') } | Select-Object -First 1
+if (-not $TdRoot) { throw 'TD installation not found; pass -TdRoot <TD root>' }
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $projectDir = Join-Path $repoRoot 'TD_project'
 $utf8 = [Text.UTF8Encoding]::new($false)
 # TD writes the literal attribute value UsedInP&R, unlike standard XML.
 $projectText = Get-Content -LiteralPath (Join-Path $projectDir 'demo.al') -Encoding UTF8 -Raw
 [xml]$project = $projectText.Replace('UsedInP&R', 'UsedInP&amp;R')
+$project.Project.SetAttribute('Path', $projectDir.Replace('\', '/'))
 
 # Use the GUI project as the source of truth for each command-line run.
 foreach ($entry in $project.SelectNodes('/Project/Source_Files/*/File')) {

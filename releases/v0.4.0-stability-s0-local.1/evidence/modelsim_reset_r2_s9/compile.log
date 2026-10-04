@@ -1,0 +1,76 @@
+Model Technology ModelSim SE-64 vlog 10.6e Compiler 2018.06 Jun 23 2018
+Start time: 03:01:24 on Oct 05,2026
+vlog -sv -work C:/Users/tht/Desktop/demo_v_0_3/diagnostics/output/modelsim_reset_r2_s9/reset_work "+incdir+user_source/hdl_source/SD" -l C:\Users\tht\Desktop\demo_v_0_3\diagnostics\output\modelsim_reset_r2_s9/compile.log C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\switch_mode_control.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\ax_debounce.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\bmp_read.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\color_bar.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\frame_fifo_read.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\frame_fifo_write.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\frame_read_write.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\sd_card_bmp.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\sd_card_cmd.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\sd_card_sec_read_write.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\sd_card_top.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\seg_decoder.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\seg7_panel.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\seg_scan.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\spi_master.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\video_define.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\video_delay.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\video_timing_data.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\include\global_def.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\hdmi_phy_warpper.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\lane_lvds_10_1.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\top_tf_hdmi_audio.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\dual_key_event_router.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\key_gesture_control.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\media_display_control.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\media_player_control.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\media_policy.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\key_press_debounce.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\SD\mode_key_control.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\audio\pcm_test_tone.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\hdmi_audio\hdmi_audio_acr_packetizer.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\hdmi_audio\hdmi_audio_infoframe_packetizer.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\hdmi_audio\hdmi_audio_packet_scheduler.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\hdmi_audio\hdmi_audio_sample_packetizer.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\hdmi_audio\hdmi_audio_symbol_core.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\hdmi_audio\hdmi_bch8.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\hdmi_audio\hdmi_data_island_mapper.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\hdmi_audio\hdmi_data_island_scheduler.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\hdmi_audio\hdmi_terc4_encoder.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\hdmi_audio\hdmi_tmds_channel_encoder.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\hdmi_audio\media_hdmi_audio_bridge.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\audio\pcm_media_tone.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\audio\media_commit_cdc.v C:\Users\tht\Desktop\demo_v_0_3\TD_project\..\user_source\hdl_source\reset_sync.v E:\TD\sim_release\eg4/eg_logic_io.v E:\TD\sim_release\eg4/eg_phy_glbl.v diagnostics/history/v0.3.0/tb_s9_reset.sv 
+-- Compiling module switch_mode_control
+-- Compiling module ax_debounce
+-- Compiling module bmp_read
+-- Compiling module color_bar
+-- Compiling module frame_fifo_read
+-- Compiling module frame_fifo_write
+-- Compiling module frame_read_write
+-- Compiling module sd_card_bmp
+-- Compiling module sd_card_cmd
+-- Compiling module sd_card_sec_read_write
+-- Compiling module sd_card_top
+-- Compiling module seg_decoder
+-- Compiling module seg7_panel
+-- Compiling module seg_scan
+-- Compiling module spi_master
+-- Compiling module video_delay
+-- Compiling module video_timing_data
+-- Compiling module hdmi_phy_wrapper
+-- Compiling module lane_lvds_10_1
+-- Compiling module top
+-- Compiling module dual_key_event_router
+-- Compiling module key_gesture_control
+-- Compiling module media_display_control
+-- Compiling module media_player_control
+-- Compiling module media_policy
+-- Compiling module key_press_debounce
+-- Compiling module mode_key_control
+-- Compiling module pcm_test_tone
+-- Compiling module hdmi_audio_acr_packetizer
+-- Compiling module hdmi_audio_infoframe_packetizer
+-- Compiling module hdmi_audio_packet_scheduler
+-- Compiling module hdmi_audio_sample_packetizer
+-- Compiling module hdmi_audio_symbol_core
+-- Compiling module hdmi_bch8
+-- Compiling module hdmi_data_island_mapper
+-- Compiling module hdmi_data_island_scheduler
+-- Compiling module hdmi_terc4_encoder
+-- Compiling module hdmi_tmds_channel_encoder
+-- Compiling module media_hdmi_audio_bridge
+-- Compiling module pcm_media_tone
+-- Compiling module media_commit_cdc
+-- Compiling module reset_sync
+-- Compiling module EG_LOGIC_IDELAY
+-- Compiling module EG_LOGIC_IDDR
+-- Compiling module EG_LOGIC_ODDR
+-- Compiling module EG_LOGIC_IDDRx2
+-- Compiling module EG_LOGIC_ODELAY
+-- Compiling module EG_LOGIC_ODDRx2
+-- Compiling module EG_LOGIC_ODDRx2l
+-- Compiling module glbl
+-- Compiling module tb_s9_reset
+-- Compiling module reset_observer
+-- Compiling module sys_pll
+-- Compiling module video_pll
+-- Compiling module sdram
+-- Compiling module rfifo_32_32_512
+-- Compiling module wfifo_32_32_512
+
+Top level modules:
+	ax_debounce
+	key_gesture_control
+	media_policy
+	pcm_test_tone
+	EG_LOGIC_IDELAY
+	EG_LOGIC_IDDR
+	EG_LOGIC_IDDRx2
+	EG_LOGIC_ODELAY
+	EG_LOGIC_ODDRx2
+	EG_LOGIC_ODDRx2l
+	glbl
+	tb_s9_reset
+End time: 03:01:24 on Oct 05,2026, Elapsed time: 0:00:00
+Errors: 0, Warnings: 0

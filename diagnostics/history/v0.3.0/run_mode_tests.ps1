@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$simTools = 'D:/modelsim/win64'
+. (Join-Path $PSScriptRoot '../../tool_paths.ps1')
 $simDir = Join-Path ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../output'))) 'modelsim_check'
 $simLib = (Join-Path $simDir 'mode_work').Replace('\', '/')
 Push-Location ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')))

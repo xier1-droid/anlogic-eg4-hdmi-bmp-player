@@ -1,5 +1,19 @@
 # 当前交接记录
 
+## 当前任务：稳定性S0待上板
+
+提交署名已由用户确认：Tht <2501340506@qq.com>，仅通过本次命令参数使用，不修改全局Git配置。S0本地提交及annotated标签 `v0.4.0-stability-s0-local.1` 对应本轮候选、文档和验证证据；未推送。板级标签仍待用户验收。
+
+2026-10-05，用户授权执行[稳定性与SD恢复计划](docs/系统稳定性增强分阶段计划.md)，分支 `feature/system-stability-v0.4.0`，基线main/e76be02。当前S0八个ModelSim入口全部通过，零错误零警告；TD6.2.168116综合/布局布线/bitgen通过。S1未开始，未推送GitHub；每个含新bit阶段必须等用户上板通过才推进。
+
+执行前工作区干净；此前观察的release工程修改/日志未出现在本次status中，没有删除或覆盖。仅改验证入口/文档，生产RTL、TD_project/demo.al、引脚及约束未改。工具实际为F:/modelsim/win64、E:/TD、用户Python3，通过diagnostics/tool_paths.ps1与环境变量集中定位；新增run_stability_baseline.ps1。新生成bit不同于v0.3.0，独立固定在releases/v0.4.0-stability-s0-local.1，不沿用旧板级结论。
+
+下一步：等待用户完成[S0上板清单](releases/v0.4.0-stability-s0-local.1/BOARD_VALIDATION.md)。通过后建立board标签，推送已验收S0节点，再开始S1；失败保留候选、生成新的local修订，不移动旧标签。恢复使用已验收v0.3.0固定bit。
+
+后续注意：半帧失败必须先取消写事务、等突发结束、清写FIFO并确认空闲后才能重试，S2检测先独立验证，S3完成取消后集成。裸扇区无文件EOF，像素计数/CRC不能证明任意逻辑截断；参考恢复FSM默认重试2次且缺少取消握手，需适配。UART/OSD/Flash/快启不在本轮范围。SD卡0/卡2仍存在，S4处理；全局STA仍未收敛。最终用户验收后才将完成计划、HANDOFF和验证快照归档并更新ARCHIVE_INDEX。
+
+## 以下为上一任务历史记录
+
 更新2026-10-05。当前任务：将feature/hdmi-audio-v0.3.0合并到main并更新文档。文档迁移、链接修复和诊断归档已完成；用户已手动删除_cleanup，已核实目录不存在。目录整理此前已提交并推送开发分支。本轮基于最新origin/main无冲突合并开发分支，保留双方历史，更新当前状态文档后推送main。
 
 ## 已完成

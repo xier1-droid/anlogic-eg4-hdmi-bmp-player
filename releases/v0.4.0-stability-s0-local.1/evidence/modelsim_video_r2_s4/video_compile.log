@@ -1,0 +1,15 @@
+Model Technology ModelSim SE-64 vlog 10.6e Compiler 2018.06 Jun 23 2018
+Start time: 03:00:53 on Oct 05,2026
+vlog -work C:/Users/tht/Desktop/demo_v_0_3/diagnostics/output/modelsim_video_r2_s4/video_work -sv "+incdir+user_source/hdl_source/SD" -l C:\Users\tht\Desktop\demo_v_0_3\diagnostics\output\modelsim_video_r2_s4/video_compile.log user_source/hdl_source/SD/color_bar.v user_source/hdl_source/SD/video_timing_data.v user_source/hdl_source/SD/video_delay.v C:\Users\tht\Desktop\demo_v_0_3\diagnostics\output\modelsim_video_r2_s4\s1_color_bar.v C:\Users\tht\Desktop\demo_v_0_3\diagnostics\output\modelsim_video_r2_s4\s1_video_timing_data.v C:\Users\tht\Desktop\demo_v_0_3\diagnostics\output\modelsim_video_r2_s4\s1_video_delay.v diagnostics/history/v0.3.0/tb_video_alignment.sv 
+-- Compiling module color_bar
+-- Compiling module video_timing_data
+-- Compiling module video_delay
+-- Compiling module s1_color_bar
+-- Compiling module s1_video_timing_data
+-- Compiling module s1_video_delay
+-- Compiling module tb_video_alignment
+
+Top level modules:
+	tb_video_alignment
+End time: 03:00:53 on Oct 05,2026, Elapsed time: 0:00:00
+Errors: 0, Warnings: 0

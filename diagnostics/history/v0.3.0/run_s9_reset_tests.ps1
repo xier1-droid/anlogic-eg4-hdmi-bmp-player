@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
-$simTools = 'D:/modelsim/win64'
+. (Join-Path $PSScriptRoot '../../tool_paths.ps1')
 $simDir = Join-Path ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../output'))) 'modelsim_reset_r2_s9'
 $lib = (Join-Path $simDir 'reset_work').Replace('\','/')
 New-Item -ItemType Directory -Path $simDir -Force | Out-Null
@@ -18,7 +18,7 @@ try {
         if ((Split-Path $path -Leaf) -notin $modeled) { Join-Path "$repoRoot/TD_project" $path }
     })
     & "$simTools/vlog.exe" -sv -work $lib '+incdir+user_source/hdl_source/SD' -l "$simDir/compile.log" @rtl `
-        D:/TD/anlogic/TD6.2.1/sim_release/eg4/eg_logic_io.v D:/TD/anlogic/TD6.2.1/sim_release/eg4/eg_phy_glbl.v diagnostics/history/v0.3.0/tb_s9_reset.sv
+        "$vendor/eg_logic_io.v" "$vendor/eg_phy_glbl.v" diagnostics/history/v0.3.0/tb_s9_reset.sv
     if ($LASTEXITCODE -ne 0) { throw 'reset top compile failed' }
     & "$simTools/vsim.exe" -c -quiet -voptargs=+acc -lib $lib tb_s9_reset glbl -l "$simDir/reset.log" -do 'run -all; quit -f'
     $log = Get-Content "$simDir/reset.log" -Raw

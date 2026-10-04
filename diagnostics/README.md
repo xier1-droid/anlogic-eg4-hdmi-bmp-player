@@ -1,5 +1,7 @@
 # 构建与诊断归档
 
+稳定性S0入口：`powershell -NoProfile -ExecutionPolicy Bypass -File diagnostics/run_stability_baseline.ps1`，顺序运行八项原回归，汇总到diagnostics/output/stability_s0。工具路径集中在tool_paths.ps1，可设置MODELSIM_BIN、TD_ROOT、PYTHON_EXE；当前探测F:/modelsim/win64、E:/TD、用户Python3。构建支持-TdRoot或TD_ROOT。testbench逻辑未改。新任务SD恢复已获授权，以下延期说明属于v0.3.0边界。
+
 本目录根部只保留构建入口与历史索引；已完成阶段的测试统一归档，新运行结果单独存放。
 
 ```text

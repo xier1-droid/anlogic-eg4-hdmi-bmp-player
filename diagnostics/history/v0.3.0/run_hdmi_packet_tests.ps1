@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
-$simTools = 'D:/modelsim/win64'
+. (Join-Path $PSScriptRoot '../../tool_paths.ps1')
 $simDir = Join-Path ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../output'))) 'modelsim_hdmi_r2_s5'
 $lib = (Join-Path $simDir 'hdmi_work').Replace('\','/')
 New-Item -ItemType Directory -Path $simDir -Force | Out-Null
@@ -30,7 +30,7 @@ try {
                 throw "HDMI simulation failed: $pattern"
             }
         }
-        & python -X utf8 "$repoRoot/diagnostics/history/v0.3.0/check_hdmi_packets.py" primitives.txt tone_packets.txt pattern_packets.txt
+        & $pythonExe -X utf8 "$repoRoot/diagnostics/history/v0.3.0/check_hdmi_packets.py" primitives.txt tone_packets.txt pattern_packets.txt
         if ($LASTEXITCODE -ne 0) { throw 'Independent packet reference failed' }
     } finally { Pop-Location }
 } finally { Pop-Location }

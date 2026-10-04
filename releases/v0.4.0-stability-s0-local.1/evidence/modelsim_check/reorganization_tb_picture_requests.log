@@ -1,0 +1,40 @@
+# vsim -c -quiet -voptargs="+acc" -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/modelsim_check/work tb_picture_requests -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\modelsim_check\reorganization_tb_picture_requests.log -do "run -all; quit -f" 
+# Start time: 01:52:34 on Oct 05,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Note: (vopt-143) Recognized 1 FSM in module "bmp_read(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "sd_card_cmd(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "sd_card_sec_read_write(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "spi_master(fast)".
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# run -all
+# PASS first image retries after header rejection and commits only on success
+# PASS rapid KEY2 requests coalesce into current plus one pending load
+# PASS independent KEY1/KEY2 requests use committed index and next priority
+# PASS four-image wrap and 20 rounds of back-to-back loads
+# PASS rejected headers preserve image and pending requests, then recover
+# PASS real writes wait for SDRAM completion
+# PASS held direction keys fire once, rearm and queue while busy
+# PASS all reserved modes gate new direction loads and KEY4 toggles once
+# PASS switching back to MAN preserves current and pending manual loads
+# PASS AUTO expiry yields to real debounced direction press
+# PASS simultaneous pending consumption and new event capture
+# PASS KEY4 wins over AUTO expiry and returns to MAN
+# PASS mode change cancels coincident expiry and AUTO resumes after full interval
+# PASS delayed display ack preserves old image and drains pending after adoption
+# PASS S8 74 display commits delivered once with matching picture and cue
+# ** Note: $finish    : diagnostics/history/v0.3.0/tb_picture_requests.sv(330)
+#    Time: 1800130 ns  Iteration: 1  Instance: /tb_picture_requests
+# End time: 01:52:35 on Oct 05,2026, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 0

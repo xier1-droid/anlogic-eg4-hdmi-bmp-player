@@ -1,0 +1,50 @@
+Model Technology ModelSim SE-64 vlog 10.6e Compiler 2018.06 Jun 23 2018
+Start time: 03:00:58 on Oct 05,2026
+vlog -sv -work C:/Users/tht/Desktop/demo_v_0_3/diagnostics/output/modelsim_hdmi_r2_s9/s9_work "+incdir+user_source/hdl_source/SD" -l C:\Users\tht\Desktop\demo_v_0_3\diagnostics\output\modelsim_hdmi_r2_s9/compile.log C:\Users\tht\Desktop\demo_v_0_3\user_source\hdl_source\hdmi_audio\hdmi_audio_acr_packetizer.v C:\Users\tht\Desktop\demo_v_0_3\user_source\hdl_source\hdmi_audio\hdmi_audio_infoframe_packetizer.v C:\Users\tht\Desktop\demo_v_0_3\user_source\hdl_source\hdmi_audio\hdmi_audio_packet_scheduler.v C:\Users\tht\Desktop\demo_v_0_3\user_source\hdl_source\hdmi_audio\hdmi_audio_sample_packetizer.v C:\Users\tht\Desktop\demo_v_0_3\user_source\hdl_source\hdmi_audio\hdmi_audio_symbol_core.v C:\Users\tht\Desktop\demo_v_0_3\user_source\hdl_source\hdmi_audio\hdmi_bch8.v C:\Users\tht\Desktop\demo_v_0_3\user_source\hdl_source\hdmi_audio\hdmi_data_island_mapper.v C:\Users\tht\Desktop\demo_v_0_3\user_source\hdl_source\hdmi_audio\hdmi_data_island_scheduler.v C:\Users\tht\Desktop\demo_v_0_3\user_source\hdl_source\hdmi_audio\hdmi_terc4_encoder.v C:\Users\tht\Desktop\demo_v_0_3\user_source\hdl_source\hdmi_audio\hdmi_tmds_channel_encoder.v C:\Users\tht\Desktop\demo_v_0_3\user_source\hdl_source\hdmi_audio\media_hdmi_audio_bridge.v user_source/hdl_source/reset_sync.v user_source/hdl_source/audio/media_commit_cdc.v user_source/hdl_source/audio/pcm_media_tone.v user_source/hdl_source/audio/pcm_test_tone.v user_source/hdl_source/SD/color_bar.v user_source/hdl_source/SD/video_timing_data.v user_source/hdl_source/SD/video_delay.v user_source/hdl_source/hdmi_phy_warpper.v user_source/hdl_source/lane_lvds_10_1.v E:\TD\sim_release\eg4/eg_logic_io.v E:\TD\sim_release\eg4/eg_phy_glbl.v diagnostics/history/v0.3.0/tb_hdmi_packets.sv diagnostics/history/v0.3.0/tb_hdmi_s6_phy.sv diagnostics/history/v0.3.0/tb_pcm_media_tone.sv diagnostics/history/v0.3.0/tb_media_commit_cdc.sv 
+-- Compiling module hdmi_audio_acr_packetizer
+-- Compiling module hdmi_audio_infoframe_packetizer
+-- Compiling module hdmi_audio_packet_scheduler
+-- Compiling module hdmi_audio_sample_packetizer
+-- Compiling module hdmi_audio_symbol_core
+-- Compiling module hdmi_bch8
+-- Compiling module hdmi_data_island_mapper
+-- Compiling module hdmi_data_island_scheduler
+-- Compiling module hdmi_terc4_encoder
+-- Compiling module hdmi_tmds_channel_encoder
+-- Compiling module media_hdmi_audio_bridge
+-- Compiling module reset_sync
+-- Compiling module media_commit_cdc
+-- Compiling module pcm_media_tone
+-- Compiling module pcm_test_tone
+-- Compiling module color_bar
+-- Compiling module video_timing_data
+-- Compiling module video_delay
+-- Compiling module hdmi_phy_wrapper
+-- Compiling module lane_lvds_10_1
+-- Compiling module EG_LOGIC_IDELAY
+-- Compiling module EG_LOGIC_IDDR
+-- Compiling module EG_LOGIC_ODDR
+-- Compiling module EG_LOGIC_IDDRx2
+-- Compiling module EG_LOGIC_ODELAY
+-- Compiling module EG_LOGIC_ODDRx2
+-- Compiling module EG_LOGIC_ODDRx2l
+-- Compiling module glbl
+-- Compiling module tb_hdmi_packets
+-- Compiling module tb_hdmi_s6_phy
+-- Compiling module tb_pcm_media_tone
+-- Compiling module tb_media_commit_cdc
+
+Top level modules:
+	EG_LOGIC_IDELAY
+	EG_LOGIC_IDDR
+	EG_LOGIC_IDDRx2
+	EG_LOGIC_ODELAY
+	EG_LOGIC_ODDRx2
+	EG_LOGIC_ODDRx2l
+	glbl
+	tb_hdmi_packets
+	tb_hdmi_s6_phy
+	tb_pcm_media_tone
+	tb_media_commit_cdc
+End time: 03:00:58 on Oct 05,2026, Elapsed time: 0:00:00
+Errors: 0, Warnings: 0

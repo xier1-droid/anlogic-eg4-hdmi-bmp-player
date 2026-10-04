@@ -1,5 +1,12 @@
 # 版本更新说明
 
+## v0.4.0-stability-s0-local.1 — 2026-10-05（仅本地，待上板）
+
+- 开始稳定性与SD恢复任务；逐阶段本地验证、用户上板验收后推进和上传。
+- 八个回归入口适配当前工具路径，支持MODELSIM_BIN、TD_ROOT、PYTHON_EXE；新增统一基线入口，TD生成工程定位到当前工作区。RTL/约束不变。
+- ModelSim八项通过，TD重建完成；候选与证据单独固定，不覆盖v0.3.0。SD缺陷未修，STA仍未收敛。
+- [计划](docs/系统稳定性增强分阶段计划.md) · [候选](releases/v0.4.0-stability-s0-local.1/README.md)。
+
 ## 主分支合并与目录整理 — 2026-10-05
 
 - 按用户要求将feature/hdmi-audio-v0.3.0合并到main，保留主分支和开发分支历史。
