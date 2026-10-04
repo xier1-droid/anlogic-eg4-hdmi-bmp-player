@@ -1,6 +1,6 @@
 # 安路 EG4 HDMI 图片播放器
 
-当前开发任务：系统稳定性增强，分支 `feature/system-stability-v0.4.0`。S0本地回归完成，待用户上板；S1未开始，未上传GitHub。[阶段计划](docs/系统稳定性增强分阶段计划.md) · [S0候选与上板清单](releases/v0.4.0-stability-s0-local.1/BOARD_VALIDATION.md)。正式下载仍为已验收v0.3.0。
+当前开发任务：系统稳定性增强，分支 `feature/system-stability-v0.4.0`。用户确认S0上板通过，开始S1。[阶段计划](docs/系统稳定性增强分阶段计划.md) · [S0验收](docs/S0稳定性基线上板验收.md)。正式下载仍为已验收v0.3.0。
 
 目录入口：[统一文档](docs/README.md) · [构建与诊断归档](diagnostics/README.md)。原docx已合并为docs；测试入口见诊断归档。
 
