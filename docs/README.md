@@ -7,6 +7,7 @@
 | 内容 | 入口 |
 |---|---|
 | 项目使用、构建与下载 | [项目 README](../README.md) |
+| v0.17.0 山区防灾避险课堂（选题方案与实施计划） | [方案书](选题方案/01_方案书.md) · [技术实现 v1.0](选题方案/02_技术实现.md) · [实现里程碑](选题方案/03_实现里程碑.md) |
 | 当前验证结论与边界 | [VALIDATION_STATUS.md](VALIDATION_STATUS.md) |
 | v0.13.0 圆形音频可视化 | [结项归档](history/2026-10-12/circular-audio-visualizer/README.md) · [正式版](../releases/v0.13.0/README.md) · [最终验证](../releases/v0.13.0/FINAL_VALIDATION.md) |
 | FAT32 v0.7.0 正式发布 | [结项归档](history/2026-10-08/fat32-filesystem/README.md) · [正式版](../releases/v0.7.0/README.md) |
