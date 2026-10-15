@@ -22,7 +22,8 @@ module fat32_bmp_reader #(
  output write_req,input write_req_ack,input write_ready,
  output bmp_data_wr_en,output [23:0] bmp_data,
  output sd_sec_read,output [31:0] sd_sec_read_addr,
- input [7:0] sd_sec_read_data,input sd_sec_read_data_valid,sd_sec_read_end,sd_sec_read_failed
+ input [7:0] sd_sec_read_data,input sd_sec_read_data_valid,sd_sec_read_end,sd_sec_read_failed,
+ output [7:0] bmp_alpha  // alpha (scene T) beside bmp_data; FF for 24bpp
 );
  localparam IDLE=0,SCAN=1,SELECT=2,HEADER_RESET=3,HEADER_REQ=4,
  HEADER_WAIT=5,HEADER_CHECK=6,SCAN_FINISH=7,WRITE_WAIT=8,
@@ -126,7 +127,7 @@ reg [2:0] header_shift_count;   // header_lba is shifted one bit per cycle
  .sector_byte(sector_byte),.sector_index(sector_index),
  .sd_sec_read(sd_sec_read),.sd_sec_read_addr(sd_sec_read_addr),.sd_sec_read_data(sd_sec_read_data),
  .sd_sec_read_data_valid(sd_sec_read_data_valid),.sd_sec_read_end(sd_sec_read_end),.sd_sec_read_failed(sd_sec_read_failed));
- bmp_header_check #(.ALLOW_32(0),.RANGE_DIMENSIONS(SCALE_ENABLE)) preflight(
+ bmp_header_check #(.ALLOW_32(1),.RANGE_DIMENSIONS(SCALE_ENABLE)) preflight(
  .clk(clk),.rst(rst || state==HEADER_RESET),.file_valid(state==HEADER_WAIT && sector_valid),
  .file_byte(sector_byte),.file_byte_offset({23'd0,sector_index}),.bmp_width(bmp_width),.bmp_height(bmp_height),
  .file_len(header_file_len),.pixel_offset(),.width(),.height(),.required_end(required_end),.header_match(header_match),
@@ -136,16 +137,16 @@ reg [2:0] header_shift_count;   // header_lba is shifted one bit per cycle
  .clk(clk),.rst(rst || state==WRITE_WAIT || load_cancel),.file_start(file_go),.file_size(task_size),
  .file_valid(stream_valid && state==READ_FILE),.file_byte(stream_byte),.file_byte_offset(stream_offset),
  .file_end(stream_done),.upstream_error(stream_error),.data_permit(data_permit),
- .pixel_valid(pixel_valid),.pixel_ready(pixel_ready),.pixel_rgb(bmp_data),.done(decode_done),.error(decode_error));
+ .pixel_valid(pixel_valid),.pixel_ready(pixel_ready),.pixel_rgb(bmp_data),.done(decode_done),.error(decode_error),.pixel_alpha(bmp_alpha));
  end else begin:g_fixed
  assign data_permit=1'b1;
- bmp24_decoder #(.RUNTIME_DIMENSIONS(1),.ALLOW_32(0)) decoder(
+ bmp24_decoder #(.RUNTIME_DIMENSIONS(1),.ALLOW_32(1)) decoder(
  .clk(clk),.rst(rst || state==WRITE_WAIT || load_cancel),.expected_width(bmp_width),.expected_height(bmp_height),
  .file_start(file_go),.file_size(task_size),.file_valid(stream_valid && state==READ_FILE),.file_byte(stream_byte),
  .file_byte_offset(stream_offset),.file_end(stream_done),.upstream_error(stream_error),
  .header_accepted(),.pixel_valid(pixel_valid),.pixel_rgb(bmp_data),.pixel_x(),.pixel_y(),
  .frame_commit(),.bmp_done(decode_done),.bmp_error(decode_error),
- .pixel_ready(1'b1),.file_ready(),.image_width(),.image_height());
+ .pixel_ready(1'b1),.file_ready(),.image_width(),.image_height(),.pixel_alpha(bmp_alpha));
  end endgenerate
  localparam integer WAIT_CYCLES=(CLK_FREQ_HZ/1000)*TIMEOUT_MS;
  reg [31:0] ack_wait;

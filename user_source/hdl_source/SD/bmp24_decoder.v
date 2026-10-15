@@ -19,7 +19,9 @@ module bmp24_decoder #(
     output reg [23:0] pixel_rgb, output reg [15:0] pixel_x, pixel_y,
     output reg frame_commit, output reg bmp_done, output reg [2:0] bmp_error,
     input wire pixel_ready, output wire file_ready,
-    output wire [15:0] image_width, image_height
+    output wire [15:0] image_width, image_height,
+    // 32bpp: BMP alpha byte (scene T). 24bpp: constant FF.
+    output reg [7:0] pixel_alpha
 );
  wire [15:0] tw=RUNTIME_DIMENSIONS?expected_width:EXPECTED_WIDTH;
  wire [15:0] th=RUNTIME_DIMENSIONS?expected_height:EXPECTED_HEIGHT;
@@ -39,7 +41,7 @@ module bmp24_decoder #(
  reg header_good;
  reg pixels_started;
  reg [1:0] phase;
- reg [7:0] blue,green;
+ reg [7:0] blue,green,red;
  wire take_byte = file_valid && file_ready;
  // The header uses offsets 0..53 only. Capture its small address during the
  // upstream FETCH cycle; 63 is an inert address for all non-header bytes.
@@ -76,7 +78,7 @@ module bmp24_decoder #(
    active<=0;checked<=0;end_pending<=0;end_count_ok<=0;end_row_ok<=0;size_reg<=0;header_good<=0;pixels_started<=0;
    header_accepted<=0;pixel_valid<=0;frame_commit<=0;bmp_done<=0;bmp_error<=0;
    pixel_rgb<=0;pixel_x<=0;pixel_y<=0;row_byte<=0;row<=0;col<=0;pixel_count<=0;phase<=0;
-   blue<=0;green<=0;
+   blue<=0;green<=0;red<=0;pixel_alpha<=8'hFF;
   end else begin
    header_accepted<=0;frame_commit<=0;bmp_done<=0;
    if(!FLOW_CONTROL || pixel_ready) pixel_valid<=0;
@@ -94,8 +96,9 @@ module bmp24_decoder #(
      if(row_byte < row_payload) begin
       if(phase==0)blue<=file_byte;
       if(phase==1)green<=file_byte;
-      if(phase==2)begin
-       pixel_rgb<={file_byte,green,blue};pixel_valid<=1;
+      if(phase==2)red<=file_byte;
+      if((!is_32 && phase==2)||(is_32 && phase==3))begin
+       pixel_rgb<={is_32?red:file_byte,green,blue};pixel_alpha<=is_32?file_byte:8'hFF;pixel_valid<=1;
        pixel_x<=col;pixel_y<=height-1-row;pixel_count<=pixel_count+1;col<=col+1;
       end
       if((!is_32 && phase==2)||(is_32 && phase==3))phase<=0;else phase<=phase+1;

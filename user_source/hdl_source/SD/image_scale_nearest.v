@@ -6,7 +6,9 @@ module image_scale_nearest (
  input in_valid, output in_ready,
  input [23:0] in_rgb, input [15:0] in_x,in_y,
  output out_valid, input out_ready, output [23:0] out_rgb,
- output reg done
+ output reg done,
+ // Alpha (scene T) travels with RGB through the same line RAM entry.
+ input [7:0] in_alpha, output [7:0] out_alpha
 );
  localparam IDLE=0,ASPECT=1,ASPECT_DIV=2,X_DIV=3,Y_DIV=4,SETUP=5,
             ROW=6,CAPTURE=7,FETCH=8,EMIT=9,DRAIN=10;
@@ -20,8 +22,8 @@ module image_scale_nearest (
  reg [10:0] xq,xr,yq,yr,sx,xrem,sy,yrem;
  reg [10:0] buffered_y;
  reg row_valid;
- reg [23:0] line [0:1919];
- reg [23:0] ram_pixel;
+ reg [31:0] line [0:1919];
+ reg [31:0] ram_pixel;
  // Preserve a combinational delay on the measured short BRAM data path.
  // INIT and EQN both describe identity; this does not add a clock of latency.
  wire [23:0] ram_input_rgb;
@@ -36,9 +38,10 @@ module image_scale_nearest (
  wire [11:0] yborrow={1'b0,yrem}+{1'b0,dh}-{1'b0,yr};
  assign in_ready=state==CAPTURE || state==DRAIN;
  assign out_valid=state==EMIT;
- assign out_rgb=pixel_black ? 24'd0 : ram_pixel;
+ assign out_rgb=pixel_black ? 24'd0 : ram_pixel[31:8];
+ assign out_alpha=pixel_black ? 8'hFF : ram_pixel[7:0];
  always @(posedge clk) begin
-  if(in_valid && in_ready && state==CAPTURE) line[in_x[10:0]]<=ram_input_rgb;
+  if(in_valid && in_ready && state==CAPTURE) line[in_x[10:0]]<={ram_input_rgb,in_alpha};
   if(state==FETCH) ram_pixel<=line[sx];
  end
  always @(posedge clk or posedge rst) begin
