@@ -17,7 +17,6 @@ module video_delay
 	output                      vs_r,                 // vertical synchronization
 	output                      de_r,                 // video valid
 	output[DATA_WIDTH - 1:0]    vout_data,          // video data
-	output                     de_pix,             // de aligned with vout_data (before SYNC_EXTRA)
 	output [9:0]               video_x_r
 
 );
@@ -36,7 +35,6 @@ reg primed;
 
 assign read_en = de_d[18];
 assign de_r = de_d[20+SYNC_EXTRA];
-assign de_pix = de_d[20];
 assign vout_data = vout_data_r;
 assign {video_x_r,hs_r,vs_r} = primed ? delay_q : 12'd0;
 always @(posedge video_clk) begin

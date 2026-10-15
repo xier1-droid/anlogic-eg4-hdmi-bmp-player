@@ -4,20 +4,22 @@
 // hazard_layer, as wired in top. The DUT must issue the same read_en and
 // reproduce the reference x/hs/vs/de exactly two clocks later, with
 // rgb_out = hazard(reference pixel) on those same clocks (from reset on).
-// de_pix must equal the reference de_r, and the layer's x/y (counted from
-// de_pix and a vs-derived frame_start) must match the reference raster.
+// The layer's de is read_en delayed two clocks, as in top; it must equal the
+// reference de_r, and the layer's x/y (counted from it and a vs-derived
+// frame_start) must match the reference raster.
 // The read FIFO is modelled as non-show-ahead: data the clock after read_en.
 module tb_m3_chain;
  `include "hazard_model.svh"
  reg clk=0,rst=1;always #5 clk=~clk;
  reg hs=1,vs=1,de=0;reg [9:0] x=0;reg [31:0] read_data=0;reg fs=0;
  reg [7:0] t_now=0;reg [1:0] stage=0,alert=0;reg en=0,thumb=0;reg [5:0] fc=0;
- wire ref_en,ref_hs,ref_vs,ref_de,dut_en,dut_hs,dut_vs,dut_de,dut_de_pix;wire [9:0] ref_x,dut_x;
+ wire ref_en,ref_hs,ref_vs,ref_de,dut_en,dut_hs,dut_vs,dut_de;reg [1:0] de_pix_d=0;wire dut_de_pix=de_pix_d[1];wire [9:0] ref_x,dut_x;
  wire [31:0] ref_pixel,dut_pixel;wire [23:0] dut_rgb;
  video_delay_base #(.DATA_WIDTH(32)) u_ref(.video_clk(clk),.rst(rst),.read_en(ref_en),.read_data(read_data),
   .hs(hs),.vs(vs),.de(de),.video_x(x),.hs_r(ref_hs),.vs_r(ref_vs),.de_r(ref_de),.vout_data(ref_pixel),.video_x_r(ref_x));
  video_delay #(.DATA_WIDTH(32),.SYNC_EXTRA(2)) u_delay(.video_clk(clk),.rst(rst),.read_en(dut_en),.read_data(read_data),
-  .hs(hs),.vs(vs),.de(de),.video_x(x),.hs_r(dut_hs),.vs_r(dut_vs),.de_r(dut_de),.vout_data(dut_pixel),.de_pix(dut_de_pix),.video_x_r(dut_x));
+  .hs(hs),.vs(vs),.de(de),.video_x(x),.hs_r(dut_hs),.vs_r(dut_vs),.de_r(dut_de),.vout_data(dut_pixel),.video_x_r(dut_x));
+ always @(posedge clk or posedge rst)if(rst)de_pix_d<=0;else de_pix_d<={de_pix_d[0],dut_en};
  hazard_layer u_hazard(.clk(clk),.rst(rst),.rgb_in(dut_pixel[31:8]),.t_in(dut_pixel[7:0]),.de(dut_de_pix),.frame_start(fs),.t_now(t_now),
   .stage(stage),.alert_level(alert),.enable(en),.thumbnail(thumb),.frame_cnt(fc),.rgb_out(dut_rgb));
  // Reference sync one and two clocks back. hazard_layer samples a pixel one

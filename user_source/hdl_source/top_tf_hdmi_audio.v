@@ -369,11 +369,16 @@ video_delay #(.DATA_WIDTH(32),.SYNC_EXTRA(2)) video_delay_m0(
     .vs_r              (vs),
     .de_r              (de),
     .vout_data         (scene_pixel),
-    .de_pix            (scene_de),
     .video_x_r         (video_x)
 );
 
 // M3: hazard layer before brightness/contrast, bypassed for thumbnails.
+// scene_de marks scene_pixel: video_delay registers the word read two clocks
+// after read_en, so de for the pixel is read_en delayed by two.
+reg [1:0] scene_de_d;
+always @(posedge video_clk or posedge rst_video)
+ if(rst_video)scene_de_d<=2'b00;else scene_de_d<={scene_de_d[0],video_read_en};
+assign scene_de=scene_de_d[1];
 wire [5:0] hazard_frame_cnt;wire [7:0] hazard_t_now;wire [1:0] hazard_stage,hazard_alert;
 wire hazard_enable;
 generate if(HAZARD_TEST_SOURCE) begin:g_hazard_test
