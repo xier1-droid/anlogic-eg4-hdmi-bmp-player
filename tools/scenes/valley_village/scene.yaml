@@ -1,0 +1,51 @@
+# 河谷村（AI 生成的虚构航拍图，tools/Photo/phase1–4）。坐标为 640x480 像素，原点左上。
+# 准备：py -I tools/scenes/valley_village/prepare_valley_village.py
+# 生成：py -I tools/make_scene_pack.py tools/scenes/valley_village/scene.yaml
+# 每个阶段的 T 按该阶段自己的底图标注（各变体之间地物有几个像素的偏移）。
+name: valley_village
+size: [640, 480]
+base: pic1.png
+output: out
+
+stages:
+  - name: 降雨预警          # PIC1：乌云压顶，不着色
+    image: pic1.png
+    sources: []
+
+  - name: 裂缝出现          # PIC2：西北坡滑坡体后缘和右侧缘拉裂，向村子方向延伸
+    image: pic2.png
+    sources:
+      - type: polyline
+        width: 3
+        lines:
+          - {points: [[96, 14], [112, 10], [130, 12], [146, 22]], t0: 0, t1: 70}                 # 后缘弧形主裂缝
+          - {points: [[146, 22], [160, 44], [176, 64], [192, 88], [204, 112]], t0: 50, t1: 170}  # 右侧缘
+          - {points: [[204, 112], [218, 128], [230, 146]], t0: 160, t1: 230}                       # 伸向村后
+          - {points: [[96, 14], [92, 34], [100, 56]], t0: 80, t1: 160}                             # 左侧缘
+          - {points: [[160, 44], [178, 40], [196, 46]], t0: 100, t1: 180}                          # 坡顶树林中的分叉
+
+  - name: 山洪暴发          # PIC3：支沟泥石流先冲进村后，主河洪水从北向南涨满河道再漫上西岸农田
+    image: pic3.png
+    sources:
+      - type: seeds         # 支沟：沿沟道冲下，在村后散开成堆积扇
+        points: [[120, 50]]
+        mask: gully_mask.png
+        t0: 0
+        t1: 200
+      - type: seeds         # 主河
+        points: [[392, 0], [404, 0], [416, 0], [428, 0], [440, 0], [452, 0]]   # 整个河宽同时来水，前沿横贯河道
+        mask: flood_mask.png
+        dem: flood_dem.png
+        climb: 0.5        # 向两岸的爬升代价：先涨满河道，再自北向南漫上西岸
+        t0: 20
+        t1: 239
+
+  - name: 避险撤离          # PIC4：东路过石桥上东侧台地，西南路沿田间小路上西南山丘
+    image: pic4.png
+    sources:
+      - type: polyline
+        width: 4
+        lines:
+          - {points: [[252, 214], [290, 196], [340, 186], [380, 180], [420, 178], [460, 178], [500, 170], [530, 150], [562, 130], [578, 122]], t0: 0, t1: 200}
+          - {points: [[262, 262], [286, 276], [306, 300], [326, 330], [344, 356], [352, 380], [340, 398], [310, 405], [280, 402], [250, 392], [224, 380], [200, 366], [176, 358], [156, 364]], t0: 0, t1: 200}
+    spots: [[588, 118, 9], [148, 366, 9]]

@@ -22,19 +22,29 @@ T_NONE = 255         # never covered
 EXPECTED_TIMES = (0, 120, 239)
 
 # ---------------------------------------------------------------------------
-# hazard_layer reference model (§4.2). Stage index 0..3 is 阶段 1..4.
-# Bit-exact contract for the RTL:
-#   covered = T < 240 && T <= t_now
-#   front   = covered && (t_now - T) < 6
-#   spot    = T == 250
-#   mix 3/4 = (a>>2) + (c>>1) + (c>>2)   per channel
-#   mix 1/2 = (a>>1) + (c>>1)            per channel
-#   blink_fast = frame_cnt[FAST_BLINK_BIT[alert_level]], blink_slow = frame_cnt[5]
-# Stage 0 does not colour covered/front pixels; refuge points blink in every stage.
+# hazard_layer reference model (§4.2, v2 effects). Stage index 0..3 is 阶段 1..4.
+# Bit-exact contract for the RTL (tools/scenes/README.md):
+#   covered = T < 240 && T <= t_now;  age = t_now - T (8 bit)
+#   front   = covered && age < 6;     spot = T == 250
+#   f = frame_cnt (6 bit), fast = f[FAST_BLINK_BIT[alert]], slow = f[5]
+#   blend k (quarters of colour c), per channel:
+#     k=1: (a>>1)+(a>>2)+(c>>2)  k=2: (a>>1)+(c>>1)  k=3: (a>>2)+(c>>1)+(c>>2)
+#   stage 0 rain (x,y = active pixel position):
+#     col = (x + (y>>2)) mod 1024, h = (((col*157) mod 2048) >> 3) ^ (col mod 256)
+#     lit = h < 4 + (t_now>>5) && ((y - 8f + 4col) mod 32) < 12 -> blend 2 RAIN
+#   stage 1 crack: body blend 3 CRACK; front fast ? CRACK_TIP : blend 3 CRACK
+#   stage 2 flood: front blend (fast ? 2 : 1) FOAM; body blend k with k=1 for
+#     age<24, 2 for age<64, else 3, colour RIPPLE when ((T - (f>>1)) mod 16) < 2
+#     else MUD
+#   stage 3 route: front fast ? ROUTE_TIP : ROUTE_TIP_OFF; body DASH when
+#     ((T - (f>>1)) mod 8) < 3 else blend 3 ROUTE
+#   priority: covered (stages 1-3) > spot && slow (SPOT) > rain > rgb
 # ---------------------------------------------------------------------------
-HAZ_COLOR = (None, (0x60, 0x38, 0x18), (0x20, 0x60, 0xFF), (0x20, 0xC0, 0x40))
-FRONT_COLOR = (None, (0xFF, 0xE0, 0x00), (0xFF, 0xFF, 0xFF), (0x40, 0xFF, 0x40))
-HAZ_ALPHA_34 = (False, True, False, True)   # True: 3/4, False: 1/2
+CRACK, CRACK_TIP = (0x18, 0x0E, 0x06), (0xFF, 0xD0, 0x00)
+MUD, RIPPLE, FOAM = (0x8C, 0x6A, 0x3C), (0xC4, 0xA8, 0x74), (0xF0, 0xE8, 0xD6)
+ROUTE, DASH = (0x20, 0xC8, 0x48), (0xAA, 0xFF, 0xBE)
+ROUTE_TIP, ROUTE_TIP_OFF = (0xFF, 0xFF, 0xFF), (0x40, 0xFF, 0x40)
+RAIN = (0xC8, 0xD2, 0xDC)
 SPOT_COLOR = (0x00, 0xFF, 0x00)
 FRONT_WIDTH = 6
 FAST_BLINK_BIT = (4, 4, 3, 2)   # 60 fps: ~1.9, 1.9, 3.75, 7.5 Hz
@@ -46,30 +56,59 @@ def blink_phase(frame_cnt, alert_level):
     return (frame_cnt >> FAST_BLINK_BIT[alert_level]) & 1, (frame_cnt >> SLOW_BLINK_BIT) & 1
 
 
-def mix(a, c, alpha_34):
-    a = a.astype(np.uint16)
-    c = np.asarray(c, np.uint16)
-    if alpha_34:
-        return ((a >> 2) + (c >> 1) + (c >> 2)).astype(np.uint8)
-    return ((a >> 1) + (c >> 1)).astype(np.uint8)
+def blend(a, c, k):
+    """a: Nx3 uint8, c: colour, k: quarters of c (scalar or N-vector, 1..3)."""
+    a = a.astype(np.int32)
+    c = np.asarray(c, np.int32)
+    k = np.broadcast_to(np.asarray(k)[..., None] if np.ndim(k) else k, a.shape)
+    out = np.where(k == 1, (a >> 1) + (a >> 2) + (c >> 2),
+                   np.where(k == 2, (a >> 1) + (c >> 1), (a >> 2) + (c >> 1) + (c >> 2)))
+    return out.astype(np.uint8)
 
 
-def hazard_layer_model(rgb, T, t_now, stage, blink_fast, blink_slow, enable=True, thumbnail=False):
-    """rgb: HxWx3 uint8, T: HxW uint8. Returns the HxWx3 uint8 layer output."""
+def rain_mask(x, y, t_now, frame_cnt):
+    col = (x + (y >> 2)) & 1023
+    h = (((col * 157) & 2047) >> 3) ^ (col & 255)
+    return (h < 4 + (t_now >> 5)) & (((y - 8 * frame_cnt + 4 * col) & 31) < 12)
+
+
+def hazard_layer_model(rgb, T, t_now, stage, frame_cnt, alert_level=None, enable=True, thumbnail=False,
+                       x=None, y=None):
+    """rgb: HxWx3 uint8, T: HxW uint8; x/y default to the pixel grid.
+    Returns the HxWx3 uint8 layer output."""
     out = rgb.copy()
     if not enable or thumbnail:
         return out
-    T = T.astype(np.int16)
+    if alert_level is None:
+        alert_level = stage
+    if x is None:
+        y, x = np.mgrid[0:T.shape[0], 0:T.shape[1]]
+    fast, slow = blink_phase(frame_cnt, alert_level)
+    T = T.astype(np.int32)
     covered = (T < 240) & (T <= t_now)
-    front = covered & ((t_now - T) < FRONT_WIDTH)
-    spot = T == T_SPOT
-    if blink_slow:
-        out[spot] = SPOT_COLOR
-    haz = HAZ_COLOR[stage]
-    if haz is not None:
-        body = covered & ~front
-        out[body] = mix(rgb[body], haz, HAZ_ALPHA_34[stage])
-        out[front] = FRONT_COLOR[stage] if blink_fast else mix(rgb[front], haz, True)
+    age = (t_now - T) & 255
+    front = covered & (age < FRONT_WIDTH)
+    body = covered & ~front
+    if stage == 0:
+        m = rain_mask(x, y, t_now, frame_cnt)
+        out[m] = blend(rgb[m], RAIN, 2)
+    if slow:
+        out[T == T_SPOT] = SPOT_COLOR
+    if stage == 1:
+        out[body] = blend(rgb[body], CRACK, 3)
+        out[front] = CRACK_TIP if fast else blend(rgb[front], CRACK, 3)
+    elif stage == 2:
+        out[front] = blend(rgb[front], FOAM, 2 if fast else 1)
+        k = np.where(age < 24, 1, np.where(age < 64, 2, 3))
+        ripple = ((T - (frame_cnt >> 1)) & 15) < 2
+        for colour, m in ((RIPPLE, body & ripple), (MUD, body & ~ripple)):
+            out[m] = blend(rgb[m], colour, k[m])
+    elif stage == 3:
+        out[front] = ROUTE_TIP if fast else ROUTE_TIP_OFF
+        dash = body & (((T - (frame_cnt >> 1)) & 7) < 3)
+        out[dash] = DASH
+        m = body & ~dash
+        out[m] = blend(rgb[m], ROUTE, 3)
     return out
 
 
@@ -293,7 +332,8 @@ def main():
         row = []
         for t in EXPECTED_TIMES:
             for phase in (1, 0):
-                exp = hazard_layer_model(rgb, T, t, n, phase, phase)
+                # on: frame_cnt=0x3F (all blink bits 1), off: 0x00
+                exp = hazard_layer_model(rgb, T, t, n, 0x3F if phase else 0x00)
                 Image.fromarray(exp).save(out / 'expected' / f'PIC{n + 1}_t{t:03d}_{"on" if phase else "off"}.png')
                 if phase or t == T_MAX:
                     row.append(exp)

@@ -21,7 +21,7 @@ py -I tools/make_scene_pack.py tools/scenes/demo_village/scene.yaml
 | 路径 | 内容 |
 |---|---|
 | `sd/PIC1.BMP` … `sd/PIC4.BMP` | 直接拷到 SD 卡根目录。32bpp、40 字节 BITMAPINFOHEADER、compression=0、BGRA 自下而上、alpha=T |
-| `expected/PICn_tTTT_on.png` / `_off.png` | `hazard_layer` 参考输出：t=0/120/239，闪烁亮相（on，blink_fast=blink_slow=1）和暗相（off，均为 0） |
+| `expected/PICn_tTTT_on.png` / `_off.png` | `hazard_layer` 参考输出：t=0/120/239，frame_cnt=0x3F（on，闪烁亮相）和 0x00（off，暗相） |
 | `tmap/PICn_T.png` | T 可视化：白色表示永不覆盖；深蓝到浅蓝表示从早到晚到达；红色表示避险点 |
 | `overview.png` | 目视总览，半尺寸。每行是一个阶段，各列依次为：t=0 亮相、t=120 亮相、t=239 亮相、t=239 暗相、T 图 |
 
@@ -53,31 +53,28 @@ T 来源（`sources` 的每一项）。`t0`/`t1` 可选，默认值为 0/239，�
 
 ## hazard_layer 参考模型（M3 RTL 按这里逐位实现）
 
-`make_scene_pack.hazard_layer_model()` 和 `blink_phase()` 可以直接 import，供 M3 测试台生成激励。阶段号 stage 取 0–3，对应阶段 1–4。
+`make_scene_pack.hazard_layer_model(rgb, T, t_now, stage, frame_cnt, alert_level=stage, enable, thumbnail)` 和 `blink_phase()` 可以直接 import，供 M3 测试台生成激励。阶段号 stage 取 0–3，对应阶段 1–4。v2 效果（2026-10-16）以 make_scene_pack.py 中的注释为准，概要如下：
 
 ```
-covered = T < 240 && T <= t_now
-front   = covered && (t_now - T) < 6
-spot    = T == 250
-mix3/4(a,c) = (a>>2) + (c>>1) + (c>>2)      每个通道分别计算
-mix1/2(a,c) = (a>>1) + (c>>1)
-out = !en              ? rgb
-    : front && 有灾害色 ? (blink_fast ? FRONT : mix3/4(rgb, HAZ))
-    : covered && 有灾害色 ? mix_α(rgb, HAZ)
-    : spot             ? (blink_slow ? 00FF00 : rgb)
-    :                    rgb
+covered = T < 240 && T <= t_now ;  age = t_now - T（8 位）
+front   = covered && age < 6    ;  spot = T == 250
+f = frame_cnt（6 位）; fast = f[FAST_BLINK_BIT[alert]] ; slow = f[5]
+blend k（k 个 1/4 的颜色 c），每个通道：
+  k=1: (a>>1)+(a>>2)+(c>>2)   k=2: (a>>1)+(c>>1)   k=3: (a>>2)+(c>>1)+(c>>2)
+优先级：covered（阶段 2–4）> spot && slow（00FF00）> 雨丝（阶段 1）> 原色；de=0 时一律原色
 ```
 
-| stage | 阶段 | HAZ | α | FRONT |
+| stage | 阶段 | 本体 | 前沿（age<6） | 动画 |
 |---|---|---|---|---|
-| 0 | 降雨预警 | 不着色（covered/front 保持原色） | — | — |
-| 1 | 裂缝 | 60 38 18（深褐） | 3/4 | FF E0 00（亮黄） |
-| 2 | 山洪 | 20 60 FF（蓝） | 1/2 | FF FF FF（白） |
-| 3 | 撤离 | 20 C0 40（绿） | 3/4 | 40 FF 40（亮绿） |
+| 0 | 降雨预警 | — | — | 雨丝：col=(x+(y>>2)) mod 1024，h=(((col·157) mod 2048)>>3) ^ (col mod 256)；h < 4+(t>>5) 且 ((y−8f+4col) mod 32) < 12 时 blend 2 C8D2DC。斜向下落，t 越大越密 |
+| 1 | 裂缝 | blend 3 180E06（近黑） | fast ? FFD000 : 本体 | — |
+| 2 | 山洪 | 浑水 8C6A3C，按淹没时长加深：age<24 blend 1，<64 blend 2，其余 blend 3 | blend (fast ? 2 : 1) F0E8D6（浪花） | 波纹：((T−(f>>1)) mod 16) < 2 的像素颜色换成 C4A874，向下游移动 |
+| 3 | 撤离 | blend 3 20C848 | fast ? FFFFFF : 40FF40 | 流动虚线：((T−(f>>1)) mod 8) < 3 的像素为 AAFFBE，朝避险点移动 |
 
-- 闪烁：`blink_fast = frame_cnt[FAST_BLINK_BIT[alert_level]]`，各级取 bit 4/4/3/2，按 60fps 约为 1.9/1.9/3.75/7.5Hz；`blink_slow = frame_cnt[5]`，约 0.94Hz。阶段 1–4 的 alert_level 依次为 0–3。
-- 技术文档 §4.2 只写了颜色名称和"2Hz 到 8Hz"。上面的 RGB 值和分频位是 M2 选定的具体值，M3 RTL 以本节为准。
-- 避险点（T=250）与 covered 互斥，在所有阶段都会闪烁，包括阶段 1。
+- 闪烁：`fast` 各级取 bit 4/4/3/2，按 60fps 约为 1.9/1.9/3.75/7.5Hz；`slow` 取 bit 5，约 0.94Hz。阶段 1–4 的 alert_level 依次为 0–3。
+- x/y 是像素在有效区内的坐标，由 hazard_layer 根据 de 和 frame_start 自行计数。
+- v1（m3-local.1）的配色是：深褐 603818 / 蓝 2060FF / 绿 20C040，前沿为单色闪烁，没有动画。v2 按河谷村写实底图重新选色，洪水改为浑黄泥水色。
+- 避险点（T=250）与 covered 互斥，在所有阶段都会闪烁。
 
 ## 示意村 demo_village
 
@@ -99,3 +96,20 @@ out = !en              ? rgb
 | PIC4 避险撤离 | 两条撤离路线（polyline，宽 5，t 从 0 到 200）+ 两个避险点 | 绿色路线从村子伸向高地，避险点绿色闪烁 |
 
 > 阶段 3 的灾害色由阶段统一决定（蓝色），所以第三张图只表现水体。如果画滑坡体，它也会被染成蓝色。
+
+## 河谷村 valley_village（板测用卡）
+
+底图由用户用生图 AI 生成（虚构村庄，原图在 tools/Photo/，不入库），`prepare_valley_village.py` 缩放为 640×480 的 pic1–4.png，并生成山洪用的掩膜和代价场。四张图各自对应一个阶段，地物之间有几个像素的偏移，所以每个阶段的 T 都标注在它自己那张图上。
+
+| 文件 | 说明 |
+|---|---|
+| `scene.yaml` | 裂缝、撤离路线、避险点坐标，以及山洪的种子点 |
+| `prepare_valley_village.py` | 从 tools/Photo 生成 pic1–4.png、flood_dem.png、flood_mask.png、gully_mask.png；河道中线、洪水最大范围、支沟走廊的多边形写在脚本里，边缘用固定种子的平滑噪声做出起伏 |
+
+| 阶段 | 底图 | T 来源 | 效果 |
+|---|---|---|---|
+| PIC1 降雨预警 | 乌云 | 无 | 雨丝越下越密 |
+| PIC2 裂缝出现 | 晴 | 折线，宽 3：西北坡滑坡体后缘弧形 → 右侧缘 → 伸向村后，另有左侧缘和坡顶分叉 | 近黑裂缝延伸，尖端亮黄闪烁 |
+| PIC3 山洪暴发 | 雾、浑水 | 支沟走廊种子（沿沟冲下，在村后散开成扇）+ 主河整排种子（先涨满河道，再自北向南漫上西岸农田，直到桥边最低的几户） | 浑水逐渐加深，波纹向下游移动，前沿浪花 |
+| PIC4 避险撤离 | 薄雾 | 两条折线，宽 4（东线过石桥上台地，西南线沿田间小路上山丘）+ 两处避险棚 | 流动绿色虚线，避险点慢闪 |
+
