@@ -1,0 +1,42 @@
+# 示意村（虚构地形，避开地图版权）。坐标为像素，原点左上，x 向右、y 向下。
+# 生成：py -I tools/make_scene_pack.py tools/scenes/demo_village/scene.yaml
+# 底图：py -I tools/scenes/demo_village/draw_demo_village.py（读取本文件的裂缝、路线和避险点）
+name: demo_village
+size: [640, 480]          # 与 HDMI 640x480 一致，板上 1:1 不缩放
+base: base.png
+output: out               # 相对本文件；生成物不入库
+
+stages:
+  - name: 降雨预警         # PIC1：阶段 1 不着色，T 全为 255
+    sources: []
+
+  - name: 裂缝出现         # PIC2：T 沿裂缝累计长度
+    sources:
+      - type: polyline
+        width: 6
+        lines:
+          - {points: [[196, 178], [205, 204], [212, 228], [214, 252], [208, 270]], t0: 0, t1: 200}
+          - {points: [[205, 204], [222, 197], [238, 201]], t0: 52, t1: 140}
+          - {points: [[212, 228], [196, 240], [186, 256]], t0: 110, t1: 200}
+          - {points: [[196, 178], [186, 162]], t0: 200, t1: 239}
+
+  - name: 山洪暴发         # PIC3：手绘支沟山洪 + 上游种子沿谷底扩散（阶段 3 统一蓝色）
+    sources:
+      - type: paint       # 越黑越早到达，纯白不覆盖
+        file: gully_flood.png
+      - type: seeds
+        points: [[430, 2], [428, 12]]
+        dem: dem.png
+        max_level: 62     # 高于此高度的坡体和高地不会被淹
+        climb: 3.0        # 上坡代价，让水优先沿谷底走
+        t0: 0
+        t1: 239
+
+  - name: 避险撤离         # PIC4：T 沿撤离路线，避险点 250
+    sources:
+      - type: polyline
+        width: 5
+        lines:
+          - {points: [[318, 300], [347, 300], [400, 297], [452, 284], [500, 265], [540, 254]], t0: 0, t1: 200}
+          - {points: [[256, 338], [230, 368], [182, 394], [132, 410], [104, 416]], t0: 0, t1: 200}
+    spots: [[548, 250, 7], [95, 418, 7]]   # [x, y, 半径]

@@ -1,3 +1,30 @@
+# 当前交接：v0.17.0 山区防灾避险课堂 M2 场景包工具完成（2026-10-15）
+
+- 当前任务：v0.17.0 山区防灾避险课堂，分支 feature/mountain-escape-classroom，计划见 docs/山区避险课堂分阶段修改计划.md。M1（32bpp 像素通路）在另一会话中进行，状态以那边的记录为准。
+- 已完成：
+  - M2 工具：`tools/make_scene_pack.py`，按 scene.yaml 生成 32bpp PIC1–4.BMP（40 字节头、compression=0、BGRA 自下而上、alpha=T）。
+  - 每张 BMP 写完后读回自检：bmp_header_check 的各项条件，加像素逐一比对。
+  - hazard_layer 参考模型和 expected PNG（t=0/120/239 × on/off）、T 图和总览图。
+  - 示意村 `tools/scenes/demo_village/`；使用说明 `tools/scenes/README.md`，其中有 M3 要逐位实现的配色和闪烁约定。
+  - 验证：
+    - 参考模型与 §4.2 的逐行转写比对，0 处不一致；
+    - 4 张 BMP 各 1228854 字节，自检通过；
+    - 篡改表头的四种情况都被拦下；
+    - 重复生成的文件逐字节一致。
+  - 未改 RTL；按计划不建标签。
+- 卡住的问题：无。
+- 下一步计划：
+  - 用户目视确认 `tools/scenes/demo_village/out/overview.png` 和 expected；
+  - M1 候选上板时，把 `out/sd/PIC1–4.BMP` 拷到卡上验证 32bpp 显示；
+  - M3 import `make_scene_pack.hazard_layer_model` 生成激励和标准答案。
+- 踩过的坑：
+  - 本机 `py` 启动器只有 Python 3.13，没有装 Pillow/numpy/PyYAML。本次用 scoop Python 3.11.9 带 `-I` 运行。要用 `py -I`，需要先在 3.13 里 pip 安装这三个包。
+  - Git Bash 控制台打印中文会乱码，所以工具输出只打印阶段号。
+  - 阶段 3 统一染蓝色，示意村第三张图不画滑坡体。
+  - 生成物 `tools/scenes/*/out/` 已被 .gitignore 忽略。
+
+## 历史交接
+
 # 当前交接：v0.17.0 山区防灾避险课堂 M0 计划与基线（2026-10-15）
 
 - 当前任务：v0.17.0 山区防灾避险课堂；基线 v0.16.0（main 1818adc，14190 LUT/54 BRAM9K/13 DSP，Setup +0.144ns、Hold +0.003ns）。分支 feature/mountain-escape-classroom，计划 docs/山区避险课堂分阶段修改计划.md，标签 v0.17.0-plan.1。
