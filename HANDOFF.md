@@ -1,3 +1,13 @@
+# 当前交接：v0.17.0 M1 board.1 通过，暂停（2026-10-15）
+
+- 当前任务：v0.17.0 山区防灾避险课堂；M1 32bpp 像素通路已验收，分支 feature/mountain-escape-classroom。
+- 已完成：用户对 m1-local.1 反馈“板测功能通过”（整体反馈），记录 releases/v0.17.0/m1-local.1/BOARD_RESULT.md，标签 v0.17.0-m1-board.1；推送分支及 v0.17.0-m1-local.1、v0.17.0-m1-board.1。32 位测试卡为示意村 PIC1–4（已加 tb_m1_card_files 逐像素仿真）。复用原 bit，未重建。
+- 卡住的问题：无。
+- 下一步计划：用户要求先不开始 M3，等待用户指示。M3 hazard_layer 的启动提示见 docs/选题方案/03_实现里程碑.md，配色与闪烁约定见 tools/scenes/README.md。M2 expected 的目视确认仍待用户反馈。
+- 踩过的坑：用户反馈为整体“功能通过”，运行方式、时长、24 位原卡、混合卡、加载时间均未说明，按整体记录。
+
+## 历史交接
+
 # 当前交接：v0.17.0 M1 local.1 已固定，等待板测（2026-10-15）
 
 - 当前任务：v0.17.0 M1 32bpp 像素通路；候选 releases/v0.17.0/m1-local.1，标签 v0.17.0-m1-local.1，分支 feature/mountain-escape-classroom。
