@@ -1,5 +1,6 @@
 # v0.17.0 开发中（未发布）
 
+- M3 local.1：显示链路插入 hazard_layer（亮度/对比度之前、缩略图旁路），按 T 与临时自增 t 合成灾害图层；video_delay 新增 SYNC_EXTRA 对齐同步。14608 LUT（+384）、56 BRAM9K、13 DSP，Setup +0.103ns、Hold +0.011ns；T×t 穷举与 44 帧 expected 逐像素比对、链路对齐、生产顶层与 18 项受影响回归通过。固定 releases/v0.17.0/m3-local.1，待板测。
 - M2 验收通过：示意村 32 位 BMP 在 M1 板上显示正常（m1-board.1）；用户目视 expected 后认可，按整体记录。
 
 - M1 board.1：用户确认 m1-local.1 板测功能通过（整体反馈，32 位测试卡为示意村 PIC1–4），复用原 bit。

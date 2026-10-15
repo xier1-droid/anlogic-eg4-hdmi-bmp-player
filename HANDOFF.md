@@ -1,3 +1,20 @@
+# 当前交接：v0.17.0 M3 local.1 已固定，等待板测（2026-10-15）
+
+- 当前任务：v0.17.0 M3 hazard_layer；候选 releases/v0.17.0/m3-local.1，标签 v0.17.0-m3-local.1，分支 feature/mountain-escape-classroom。
+- 已完成：
+  - 新增 scene/hazard_layer.v（2 拍，按 tools/scenes/README.md 逐位实现）与临时 scene/hazard_test_source.v（t 每 2 帧 +1 循环 0..239，stage=显示图片序号 audio_image，alert=stage；顶层参数 HAZARD_TEST_SOURCE 隔离）。插在 video_delay 之后、亮度/对比度之前，pixel_descriptor[17] 缩略图旁路。video_delay 新增 SYNC_EXTRA（默认 0 不变），顶层 DATA_WIDTH=32、SYNC_EXTRA=2。
+  - mountain_attempt03：14608 LUT（+384）、56 BRAM9K、13 DSP，Setup +0.103ns、Hold +0.011ns，video_clk +1.941ns；审计 14 类同 M1；104 个输入逐字节一致，bit 664544 字节。
+  - 测试 run_m3.ps1（m3_hazard3）与 run_m3_regression.ps1（m3r4，18 项）全部通过，详见候选 README。
+- 卡住的问题：无本地阻塞；尚未上板。
+- 下一步计划：用户按 releases/v0.17.0/m3-local.1/BOARD_VALIDATION.md 1–10 项板测（卡 B 用 tools/scenes/demo_village/out/sd/PIC1–4，与仿真用卡逐字节一致）；通过后记录 m3-board.1、推送分支与 M3 标签，再进入 M4（scenario_fsm 替换 hazard_test_source）。
+- 踩过的坑：
+  - lut_reduction/run_batch2.ps1 在 v0.16.0 源码上也失败（pcm_media_tone 复位期 13 处不一致），既有问题；M3 改用 tb_m3_video_delay_equiv。
+  - Git Bash 里给 vsim 传 `-G/路径=值` 会被 MSYS 改写成 Windows 路径，参数静默不生效；需要加 `MSYS_NO_PATHCONV=1`。PowerShell 脚本内调用不受影响（mut_sync1 实际生效）。
+  - 回归运行时不要另开监视器 tail 汇总文件：Add-Content 会因文件被占用失败，导致子项被跳过（m3r1、m3r3 作废）。
+  - PowerShell 中找不到 `python`；run_m3.ps1 默认回退到 scoop Python（$env:USERPROFILE/scoop/apps/python/current），也可用 -Python 指定。
+
+## 历史交接
+
 # 当前交接：v0.17.0 M1、M2 均已验收，等待进入 M3（2026-10-15）
 
 - 当前任务：v0.17.0 山区防灾避险课堂，分支 feature/mountain-escape-classroom。

@@ -1,0 +1,28 @@
+# v0.17.0 M3 local.1 候选：hazard_layer 灾害图层
+
+- 基线：v0.16.0（main 1818adc）。上一阶段：m1-local.1（已板测通过，v0.17.0-m1-board.1）。回退：releases/v0.17.0/m1-local.1/demo.bit，或 releases/v0.16.0/demo.bit。分支 feature/mountain-escape-classroom。构建 diagnostics/output/mountain_attempt03，选项与 M1、v0.16.0 相同（HighFanoutOptimization、strategy 5、opt_timing high、post_place_opt high）；约束、时钟、引脚未改。
+- 上板文件：本目录 demo.bit（664544 字节，与构建产物逐字节一致）。
+- 改动（相对 M1 多 5 个生产输入，见 sources/；sources/ 同时保留 M1 改过的 5 个文件，以便相对 v0.16.0 还原）：
+  - 新增 `scene/hazard_layer.v`：按 tools/scenes/README.md 的约定逐位实现 §4.2。第 1 级把像素归为"原色 / 混合 1/2 / 混合 3/4 / 常色"四种形式中的一种，并选出对应的颜色常量；第 2 级每个通道做一次 8 位加法。共 2 拍，不用 DSP。
+  - 新增 `scene/hazard_test_source.v`：M3 临时驱动，M4 会换成 scenario_fsm。t 每 2 帧加 1，在 0..239 之间循环；stage 取当前显示的图片序号（`audio_image`，在显示提交后更新）；alert_level 等于 stage；frame_cnt 为 6 位帧计数。所有输出只在 frame_start 时更新。由顶层参数 `HAZARD_TEST_SOURCE`（默认 1）隔离。
+  - `video_delay.v`：新增参数 `SYNC_EXTRA`（默认 0，行为不变），只延长 x/hs/vs/de 的延迟，像素读出时序不变。顶层使用 `DATA_WIDTH=32, SYNC_EXTRA=2`。
+  - `top_tf_hdmi_audio.v`：读取完整 32 位 `{RGB,T}`，经 hazard_layer 送入 `vout_data_raw`，位于亮度/对比度之前；缩略图（`pixel_descriptor[17]`）旁路。下游接口与 M1 相同。
+  - `TD_project/demo.al`：加入两个新文件。
+- 资源/时序：14608 LUT（M1 14224，+384；v0.16.0 14190）、8372 寄存器、56 BRAM9K、0 BRAM32K、13 DSP。Setup +0.103ns、Hold +0.011ns，0 违例端点；video_clk 域 Setup 裕量 +1.941ns（M1 为 +2.348ns）。时序审计 14 类与 M1 逐项相同。
+  - 布局后 hazard_layer 占 126 LUT（104 LUT + 22 进位链），测试源占 20；其余增量主要在 SD 域：sd_card_bmp 综合后 +129、布局后 +245，其中 bmp_read 分别为 +119 和 +220。这些模块的源码与 m1-local.1 逐字节相同，所以增量来自 TD 对整个设计重新优化和打包的结果变化，不是功能变化；具体原因没有逐条路径分析。各模块的对比见 reports/demo_phy.area 与 m1-local.1 的同名文件。
+- 验证（validation/）：
+  - 新增 `m3_hazard3`（run_m3.ps1）：
+    - 重新生成示意村场景包，PIC1–4 与 `tools/scenes/demo_village/out/sd` 中的文件逐字节一致（板测卡就是被仿真的那份）；24 张 expected PNG 与 `hazard_layer_model` 逐像素一致。
+    - `tb_m3_hazard_sweep`：每个阶段遍历 T 0..255 × t_now 0..255，共 262144 个向量；rgb、alert_level、frame_cnt、enable、thumbnail 随机。答案来自 Python 参考模型。
+    - `tb_m3_hazard_card`：44 帧 640×480（4 张图 × t=0/120/239 × 闪烁亮暗两相，3 组混合闪烁相位，enable=0 和缩略图旁路），共 13516800 个像素逐一比对。
+    - `tb_m3_chain`：以 v0.16.0 的 video_delay 为参照，read_en 完全相同；x/hs/vs/de 晚 2 拍逐拍一致；像素等于参照像素经模型处理后的结果。从复位开始逐拍检查，包括第二次复位。
+    - `tb_m3_test_source`：1000 帧，t 每 2 帧加 1、239 回绕 2 次，stage 只在 frame_start 时变化。
+    - `tb_m3_top`：生产顶层，从帧读出的 32 位字一直检查到亮度/对比度输出（128/128 为恒等）。覆盖 4 个阶段、缩略图旁路、24 位 T=FF、首图提交前黑屏，共 35840 个像素。
+    - 变异体：前沿宽度改为 5、闪烁取错位、SYNC_EXTRA=1，三个都被检出。
+  - 受影响回归 `m3r4`（run_m3_regression.ps1，18 项）：即 M1 的 17 项，加 video_delay 默认参数与优化前参照逐拍等价。生产顶层（336271 像素/1148 样本/43 警告）、预览（165 帧/105578 刷新/26 警告）、完整系统（591 帧/365203 刷新/183705600 转场像素/32 警告）、PCM 9279/9279 样本，与 M1 逐项相同。
+- 已知限制：
+  - 仅本地仿真与 TD 通过，尚未上板。
+  - t 由临时测试源驱动，没有按键或音频控制，切图时 t 不清零。这些在 M4 由 scenario_fsm 实现。
+  - 原计划回归中的 `lut_reduction/run_batch2.ps1`，在未修改的 v0.16.0 源码上也会失败：其中 pcm_media_tone 的一半在复位期间有 13 处不一致，是既有问题，与 M3 无关，未计入本阶段。M3 改用只比对 video_delay 的 `tb_m3_video_delay_equiv`。
+  - `diagnostics/bmp_decoder/run_sim.ps1` 的既有问题同 M1，未计入。
+- 板测：按 BOARD_VALIDATION.md 第 1–10 项进行，请反馈候选名及实际通过/异常的项目。用户确认前不建 board 标签、不进入 M4。
