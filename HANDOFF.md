@@ -1,3 +1,20 @@
+# 当前交接：v0.17.0 M1 local.1 已固定，等待板测（2026-10-15）
+
+- 当前任务：v0.17.0 M1 32bpp 像素通路；候选 releases/v0.17.0/m1-local.1，标签 v0.17.0-m1-local.1，分支 feature/mountain-escape-classroom。
+- 已完成：
+  - 加载链路携带 alpha：32bpp BMP 的 A 作为 T 写入 SDRAM 像素低 8 位，24bpp 与黑边写 FF；改 5 个 SD 文件，RGB 端口保持 24 位，另加 8 位 alpha 端口。显示侧仍只读 [31:8]。
+  - mountain_attempt02：14224 LUT（+34）、56 BRAM9K（+2）、13 DSP，Setup +0.104ns、Hold +0.011ns；时序审计 14 类同 v0.16.0；102 个输入逐字节一致，bit 664544 字节。
+  - 新测试 diagnostics/mountain_scene（run_m1.ps1）：24/32bpp 缩放逐像素比对 RGB+T 9 组、FAT32 读取 32bpp PIC1 的 SDRAM 字 8 组，两个变异体检出。受影响回归 17 项（run_m1_regression.ps1 -Prefix m1r3）全部通过，生产顶层/预览/完整系统/PCM 统计与 v0.16.0 逐项相同。
+- 卡住的问题：无本地阻塞；尚未上板，不建 board 标签、不进入 M3。
+- 下一步计划：用户按 releases/v0.17.0/m1-local.1/BOARD_VALIDATION.md 1–9 项板测（卡 A 原 24 位素材，卡 B 示意村 32 位 PIC1–4，生成方法见 M2 交接）；通过后记录 m1-board.1 并推送分支与 M1 标签，再进入 M3。
+- 踩过的坑：
+  - VS Code 插件 sterben.fpga-support 的 digital-server.exe 一度提交约 45GB 内存，系统可用虚拟内存降到 0.8GB，ModelSim 报 vopt-4 内存分配失败、TD 布局崩溃（attempt01）。重启后恢复；长跑前先查空闲虚拟内存。
+  - diagnostics/bmp_decoder/run_sim.ps1 在 v0.16.0 源码上同样失败（640×480 depth=24 err=3），既有问题，不在 v0.16.0 证据集中，未计入。
+  - FAT32 用例 format_32bit 原断言 32bpp 被拒，现改为 16bpp；生产文件为 CRLF，perl 编辑要匹配 \r\n。
+  - run_production.ps1 的 -Tests 是字符串数组，powershell -File 无法传入，回归脚本里用 -Command 调用以保证 tb_pcm_preview_rescan 与 tb_pcm_production 同批编译。
+
+## 历史交接
+
 # 当前交接：v0.17.0 山区防灾避险课堂 M2 场景包工具完成（2026-10-15）
 
 - 当前任务：v0.17.0 山区防灾避险课堂，分支 feature/mountain-escape-classroom，计划见 docs/山区避险课堂分阶段修改计划.md。M1（32bpp 像素通路）在另一会话中进行，状态以那边的记录为准。

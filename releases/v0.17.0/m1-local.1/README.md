@@ -1,0 +1,21 @@
+# v0.17.0 M1 local.1 候选：32bpp 像素通路
+
+- 基线：v0.16.0（main 1818adc）；回退 releases/v0.16.0/demo.bit。分支 feature/mountain-escape-classroom，构建 diagnostics/output/mountain_attempt02（HighFanoutOptimization、strategy 5、opt_timing high、post_place_opt high，与 v0.16.0 相同；约束、时钟、引脚未改）。
+- 上板文件：本目录 demo.bit（664544 字节，与构建产物逐字节一致）。
+- 改动（5 个生产文件，见 sources/）：
+  - `bmp24_decoder`：32bpp 时 phase 2 锁存 R，phase 3 连同 A 一起输出；新增 `pixel_alpha`，24bpp 固定 FF。
+  - `image_scale_nearest`：行缓存 24→32 位，A 与 RGB 存在同一项；黑边 A=FF。
+  - `bmp_scale_stream`：解码器 `ALLOW_32=1`；寄存边界和两个输出槽一起携带 A。
+  - `fat32_bmp_reader`：preflight 和 g_fixed 解码器 `ALLOW_32=1`；新增 `bmp_alpha` 端口。
+  - `sd_card_bmp`：`write_data={bmp_data,bmp_alpha}`（原为 `{bmp_data,8'h00}`）。
+  - RGB 端口保持 24 位，另加 8 位 alpha 端口，承载内容与技术文档"全链路 32 位"相同，现有测试台接口不变。显示侧仍只读 `video_read_data[31:8]`，T 尚未使用。
+- 资源/时序：14224 LUT（v0.16.0 14190，+34）、8276 寄存器、56 BRAM9K（+2，与预算一致）、0 BRAM32K、13 DSP；Setup +0.104ns、Hold +0.011ns，0 违例端点。时序审计 14 类与 v0.16.0 逐项相同。
+- 验证（validation/，130 份通过日志）：
+  - 新增 `m1_alpha1`：24/32bpp × 1:1/放大/缩小/竖图/3×91 共 9 组，逐像素比对 RGB 与 T；FAT32 读取器在 32bpp PIC1 下扫描通过、逐像素比对 SDRAM 字 `{R,G,B,T}`（定长/缩放 × 碎片/连续 × ByteGap 0/2，共 8 组）。两个故意变异体（黑边 A=00、A 取 R）均在首个像素被检出。
+  - 回归：缩放 2 项、FAT32 读取 42 项 × ByteGap 0/2、缩放读取、5 种格式/超时/边界模式、21 项基础回归、帧路径、双写入、缩略图物理存储、生产 PCM + `tb_pcm_preview_rescan`、生产顶层、真实 SDRAM 预览与完整系统。生产顶层（336271 像素/1148 样本/43 警告）、预览（165 帧/105578 刷新/26 警告）、完整系统（591 帧/365203 刷新/183705600 转场像素/32 警告）及 PCM 9279/9280 样本与 v0.16.0 逐项相同。
+  - 测试台调整：`format_32bit` 用例原本断言 32bpp 被拒；32bpp 现已支持，改用 16bpp 检查"不支持的位深被拒"（3 宽图两种位深行跨度都是 12 字节，改成 32 会构成合法文件）。同一测试台空接新增 `bmp_alpha` 端口。
+- 已知限制：
+  - 仅本地仿真与 TD 通过，尚未上板。
+  - `diagnostics/bmp_decoder/run_sim.ps1`（tb_bmp24_decoder 640×480）在未修改的 v0.16.0 源码上同样失败（normal depth=24 err=3），属于既有问题，未计入本阶段，也不在 v0.16.0 证据集中。
+  - mountain_attempt01 在布局阶段因本机虚拟内存耗尽（VS Code 插件 digital-server 占用约 45GB 提交内存）失败，与设计无关；释放内存后 attempt02 使用相同输入通过。
+- 板测：按 BOARD_VALIDATION.md 1–9 项，请反馈候选名及实际通过/异常项。用户确认前不建 board 标签、不进入 M3。
