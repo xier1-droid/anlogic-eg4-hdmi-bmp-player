@@ -1,3 +1,15 @@
+# 当前交接：v0.17.0 M1、M2 均已验收，等待进入 M3（2026-10-15）
+
+- 当前任务：v0.17.0 山区防灾避险课堂，分支 feature/mountain-escape-classroom。
+- 已完成：
+  - M1 已通过 v0.17.0-m1-board.1。
+  - M2 场景包工具（图像部分）验收通过：示意村 PIC1–4 在 m1-local.1 上显示正常；用户目视 expected 后反馈"暂时看起来比较正常，先算做通过"，按整体记录，未逐项评价配色和闪烁。M2 按计划不建标签。
+- 卡住的问题：无。
+- 下一步计划：等待用户指示开始 M3 hazard_layer。M3 按 tools/scenes/README.md 中的配色和闪烁约定逐位实现，激励和标准答案用 make_scene_pack.hazard_layer_model 生成。如果用户要调整配色，在 M3 之前改工具常量并重新生成。
+- 踩过的坑：py 启动器指向的 Python 3.13 没有装 Pillow/numpy/PyYAML，实际用 scoop Python 3.11 加 -I 运行；要统一用 `py -I`，需要用户自行 pip 安装这三个包。
+
+## 历史交接
+
 # 当前交接：v0.17.0 M1 board.1 通过，暂停（2026-10-15）
 
 - 当前任务：v0.17.0 山区防灾避险课堂；M1 32bpp 像素通路已验收，分支 feature/mountain-escape-classroom。

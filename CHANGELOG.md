@@ -1,5 +1,7 @@
 # v0.17.0 开发中（未发布）
 
+- M2 验收通过：示意村 32 位 BMP 在 M1 板上显示正常（m1-board.1）；用户目视 expected 后认可，按整体记录。
+
 - M1 board.1：用户确认 m1-local.1 板测功能通过（整体反馈，32 位测试卡为示意村 PIC1–4），复用原 bit。
 - M1 local.1：BMP 加载链路携带 alpha，32bpp 的 A 作为 T 写入 SDRAM 像素低 8 位，24bpp 与黑边写 FF；显示侧暂不使用。14224 LUT（+34）、56 BRAM9K（+2）、13 DSP，Setup +0.104ns、Hold +0.011ns；新增 32bpp 逐像素测试与 17 项受影响回归通过。固定 releases/v0.17.0/m1-local.1，待板测。
 - M2：场景包工具（图像部分）`tools/make_scene_pack.py` 与示意村 `tools/scenes/demo_village/`：按 scene.yaml 生成 32bpp PIC1–4.BMP（alpha=T，读回自检），以及 hazard_layer 参考模型和 expected PNG（t=0/120/239 × 闪烁两相）。纯 PC 工具，无标签，未改 RTL；待用户目视确认和 M1 板上显示。
