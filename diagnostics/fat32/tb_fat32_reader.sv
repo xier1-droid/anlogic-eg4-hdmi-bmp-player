@@ -40,7 +40,7 @@ module tb_fat32_reader;
       .load_done(load_done),.load_error(load_error),.bmp_error(bmp_error),.fat_error(fat_error),.state_code(),
       .write_req(write_req),.write_req_ack(ack),.write_ready(write_ready),.bmp_data_wr_en(pixel_valid),.bmp_data(pixel_rgb),
       .sd_sec_read(raw_req),.sd_sec_read_addr(raw_lba),.sd_sec_read_data(raw_byte),
-      .sd_sec_read_data_valid(raw_valid),.sd_sec_read_end(raw_end),.sd_sec_read_failed(raw_failed));
+      .sd_sec_read_data_valid(raw_valid),.sd_sec_read_end(raw_end),.sd_sec_read_failed(raw_failed),.bmp_alpha());
     always @(negedge clk)begin
       if(rst || !write_req)begin ack=0;delay_ack=0;end
       else begin delay_ack=delay_ack+1;if(delay_ack==40 && TEST_MODE!=4)ack=1;end
@@ -96,7 +96,9 @@ module tb_fat32_reader;
       if(TEST_MODE>=1 && TEST_MODE<=3)begin
         if(first_slot<0)$fatal(1,"missing mutation target");
         if(TEST_MODE==1)media[first_slot*512+18]=2;
-        if(TEST_MODE==2)media[first_slot*512+28]=32;
+        // v0.17.0: 32bpp is a supported format (3-wide rows are 12 bytes in
+        // both depths, so bitcount=32 would form a valid file). Use 16bpp.
+        if(TEST_MODE==2)media[first_slot*512+28]=16;
         if(TEST_MODE==3)media[first_slot*512+2]=1;
       end
       repeat(4)@(negedge clk);rst=0;@(negedge clk);
