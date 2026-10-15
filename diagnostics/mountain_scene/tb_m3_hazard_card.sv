@@ -1,16 +1,18 @@
 `timescale 1ns/1ps
 // M3: stream the demo village PIC1-4 {RGB,T} through hazard_layer one pixel
 // per clock in display order (top row first) and compare every output with the
-// make_scene_pack expected frame: t=0/120/239 x blink on/off, mixed blink
-// phases, enable=0 and thumbnail bypass (cases.txt).
+// make_scene_pack expected frame: t=0/120/239 x frame_cnt 3F/00, other frame
+// counters at t=160, enable=0 and thumbnail bypass (cases.txt). Lines carry de
+// with an 8-clock gap and each frame starts with frame_start, so the layer's
+// own x/y match the image.
 module tb_m3_hazard_card;
  parameter FILE_DIR=".";
  parameter VEC_DIR=".";
  localparam W=640,H=480,N=W*H;
  reg clk=0,rst=1;always #5 clk=~clk;
- reg [23:0] rgb=0;reg [7:0] T=255,t_now=0;reg [1:0] stage=0;reg en=0,thumb=0;reg [5:0] fc=0;
+ reg [23:0] rgb=0;reg [7:0] T=255,t_now=0;reg [1:0] stage=0;reg en=0,thumb=0;reg [5:0] fc=0;reg de=0,fs=0;
  wire [23:0] out;
- hazard_layer dut(.clk(clk),.rst(rst),.rgb_in(rgb),.t_in(T),.t_now(t_now),.stage(stage),.alert_level(stage),
+ hazard_layer dut(.clk(clk),.rst(rst),.rgb_in(rgb),.t_in(T),.de(de),.frame_start(fs),.t_now(t_now),.stage(stage),.alert_level(stage),
   .enable(en),.thumbnail(thumb),.frame_cnt(fc),.rgb_out(out));
  reg [7:0] bmp[0:4*N+53];reg [7:0] exp[0:3*N-1];
  integer fd,n,loaded=0,pic,t,f,e_en,e_th,offset,count,changed,frames=0;
@@ -42,20 +44,22 @@ module tb_m3_hazard_card;
    // Frame parameters change in blanking, as hazard_test_source does.
    repeat(4)@(negedge clk);
    stage=pic-1;t_now=t;fc=f;en=e_en;thumb=e_th;count=0;changes=0;
+   fs=1;@(negedge clk);fs=0;repeat(3)@(negedge clk);
    for(integer i=0;i<N;i++)begin
+    if(i%W==0 && i)repeat(8)begin @(negedge clk);idx[1]=idx[0];live[1]=live[0];live[0]=0;de=0;end
     @(negedge clk);
     idx[1]=idx[0];live[1]=live[0];
     base=offset+((H-1-i/W)*W+i%W)*4;   // bottom-up BMP rows
-    rgb={bmp[base+2],bmp[base+1],bmp[base]};T=bmp[base+3];idx[0]=i;live[0]=1;
+    de=1;rgb={bmp[base+2],bmp[base+1],bmp[base]};T=bmp[base+3];idx[0]=i;live[0]=1;
     if({exp[i*3],exp[i*3+1],exp[i*3+2]}!==rgb)changes++;
    end
-   @(negedge clk);idx[1]=idx[0];live[1]=live[0];live[0]=0;
+   @(negedge clk);idx[1]=idx[0];live[1]=live[0];live[0]=0;de=0;
    @(negedge clk);live[1]=0;
    if(count!=N)$fatal(1,"%0s count %0d",name,count);
    frames++;
    $display("PASS %0s stage=%0d t=%0d frame_cnt=%02h en=%0d thumb=%0d recoloured=%0d",name,pic-1,t,f,e_en,e_th,changes);
   end
-  if(frames!=44)$fatal(1,"card frames %0d",frames);
+  if(frames!=52)$fatal(1,"card frames %0d",frames);
   $display("PASS hazard card frames=%0d pixels=%0d",frames,frames*N);$finish;
  end
 endmodule

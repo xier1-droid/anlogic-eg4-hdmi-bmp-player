@@ -1,5 +1,5 @@
-param([string]$RunName='m3_hazard1',[string]$Python='')
-# M3 hazard_layer: regenerate the demo village scene pack, build vectors from
+param([string]$RunName='m3_hazard1',[string]$Python='',[string]$SceneName='valley_village')
+# M3 hazard_layer: regenerate the board card's scene pack (-SceneName), build vectors from
 # the M2 reference model, then run the exhaustive T x t sweep, the card frames
 # against the expected PNGs, the display-chain alignment against the v0.16.0
 # video_delay, the temporary t/stage driver, the production top wiring, and
@@ -16,19 +16,19 @@ $python=$Python
 if(!$python){$python=(Get-Command python -ErrorAction SilentlyContinue).Source}
 if(!$python){$python="$env:USERPROFILE/scoop/apps/python/current/python.exe"}
 $scene="$out/scene".Replace('\','/');$vec="$out/vectors".Replace('\','/')
-& $python -I "$root/tools/make_scene_pack.py" "$root/tools/scenes/demo_village/scene.yaml" --out $scene *> "$out/scene.log"
+& $python -I "$root/tools/make_scene_pack.py" "$root/tools/scenes/$SceneName/scene.yaml" --out $scene *> "$out/scene.log"
 if($LASTEXITCODE){throw 'scene pack generation failed'}
 # The card the board test uses must be the one simulated.
-$card="$root/tools/scenes/demo_village/out/sd"
+$card="$root/tools/scenes/$SceneName/out/sd"
 foreach($n in 1..4){
  $a=[IO.File]::ReadAllBytes("$scene/sd/PIC$n.BMP")
  if(Test-Path "$card/PIC$n.BMP"){
   $b=[IO.File]::ReadAllBytes("$card/PIC$n.BMP")
   $same=$a.Length -eq $b.Length
   for($i=0;$same -and $i -lt $a.Length;$i++){if($a[$i] -ne $b[$i]){$same=$false}}
-  $line="PIC$n.BMP $($a.Length) bytes, tools/scenes/demo_village/out/sd copy: $(if($same){'byte-identical'}else{'DIFFERENT'})"
+  $line="PIC$n.BMP $($a.Length) bytes, tools/scenes/$SceneName/out/sd copy: $(if($same){'byte-identical'}else{'DIFFERENT'})"
   if(!$same){throw $line}
- } else {$line="PIC$n.BMP $($a.Length) bytes, no tools/scenes/demo_village/out/sd copy"}
+ } else {$line="PIC$n.BMP $($a.Length) bytes, no tools/scenes/$SceneName/out/sd copy"}
  Add-Content "$out/card_compare.log" $line;Write-Output $line
 }
 & $python -I "$root/diagnostics/mountain_scene/make_hazard_vectors.py" $scene $vec *> "$out/vectors.log"
@@ -59,14 +59,15 @@ Compile $lib ($units+$tbs) "$out/compile.log"
 Push-Location $out
 try {
  Check (Run $lib 'tb_m3_hazard_sweep' 'tb_m3_hazard_sweep' 'PASS hazard sweep' @("-gVEC_DIR=$vec")) 'tb_m3_hazard_sweep'
- Check (Run $lib 'tb_m3_hazard_card' 'tb_m3_hazard_card' 'PASS hazard card frames=44' @("-gVEC_DIR=$vec","-gFILE_DIR=$scene/sd")) 'tb_m3_hazard_card'
+ Check (Run $lib 'tb_m3_hazard_card' 'tb_m3_hazard_card' 'PASS hazard card frames=52' @("-gVEC_DIR=$vec","-gFILE_DIR=$scene/sd")) 'tb_m3_hazard_card'
  Check (Run $lib 'tb_m3_chain' 'tb_m3_chain' 'PASS M3 chain' @()) 'tb_m3_chain'
  Check (Run $lib 'tb_m3_test_source' 'tb_m3_test_source' 'PASS hazard test source' @()) 'tb_m3_test_source'
 
  # Mutants: each must be rejected by the named test.
  $hl=Get-Content "$root/user_source/hdl_source/scene/hazard_layer.v" -Raw
  $mutants=@(
-  @('mut_front5',$hl.Replace("(t_now-t_in)<8'd6","(t_now-t_in)<8'd5"),'tb_m3_hazard_sweep',@("-gVEC_DIR=$vec")),
+  @('mut_front5',$hl.Replace("age<8'd6","age<8'd5"),'tb_m3_hazard_sweep',@("-gVEC_DIR=$vec")),
+  @('mut_rain',$hl.Replace("drop<5'd12","drop<5'd11"),'tb_m3_hazard_card',@("-gVEC_DIR=$vec","-gFILE_DIR=$scene/sd")),
   @('mut_blink_bit',$hl.Replace("frame_cnt[3] : frame_cnt[4]","frame_cnt[4] : frame_cnt[4]"),'tb_m3_hazard_sweep',@("-gVEC_DIR=$vec")),
   @('mut_sync1',$hl,'tb_m3_chain',@('-G/tb_m3_chain/u_delay/SYNC_EXTRA=1'))
  )

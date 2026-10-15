@@ -33,7 +33,7 @@ for name in inputs:
 # Final-source runs for this candidate: marker each log must contain.
 pre, hz = a.prefix, a.hazard
 logs = {f'{hz}/tb_m3_hazard_sweep.log': 'PASS hazard sweep vectors=262144',
-        f'{hz}/tb_m3_hazard_card.log': 'PASS hazard card frames=44',
+        f'{hz}/tb_m3_hazard_card.log': 'PASS hazard card frames=52',
         f'{hz}/tb_m3_chain.log': 'PASS M3 chain',
         f'{hz}/tb_m3_test_source.log': 'PASS hazard test source',
         f'{hz}/tb_m3_top.log': 'PASS M3 production top'}
@@ -58,7 +58,7 @@ for name, marker in logs.items():
     text = (output / name).read_text(errors='replace')
     assert marker in text and 'Errors: 0,' in text and not re.search(r'\*\* (Fatal|Error)', text), name
 # Mutant runs must have failed; they are kept as detection evidence.
-mutants = {f'{hz}/mut_front5.log', f'{hz}/mut_blink_bit.log', f'{hz}/mut_sync1.log'}
+mutants = {f'{hz}/mut_front5.log', f'{hz}/mut_rain.log', f'{hz}/mut_blink_bit.log', f'{hz}/mut_sync1.log'}
 for name in mutants:
     assert '** Fatal' in (output / name).read_text(errors='replace'), f'Mutant not detected: {name}'
 evidence = [f'{hz}/card_compare.log', f'{hz}/vectors.log', f'{pre}_summary.log']

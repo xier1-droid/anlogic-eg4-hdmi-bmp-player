@@ -2,7 +2,8 @@
 // M3 production top wiring: drive the raw video timing and the frame reader's
 // 32-bit {RGB,T} words, and check the brightness/contrast output (identity at
 // 128/128) against hazard(pixel(x,y)) at adjust_x/adjust_y. Covers the T byte
-// select, SYNC_EXTRA alignment through the whole sideband, thumbnail bypass,
+// select, SYNC_EXTRA alignment through the whole sideband, the layer's x/y
+// (rain) against adjust_x/adjust_y, thumbnail bypass,
 // 24-bit T=FF pixels and the black screen before display_valid.
 module tb_m3_top;
  `include "hazard_model.svh"
@@ -27,7 +28,7 @@ module tb_m3_top;
   #1;
   if(dut.adjust_de)begin
    w=word(dut.adjust_x,dut.adjust_y);
-   want=!dut.adjust_valid ? 24'd0 : hazard_model(w[31:8],w[7:0],t_now,stage,stage,1'b1,descriptor[17],fc);
+   want=!dut.adjust_valid ? 24'd0 : hazard_model(w[31:8],w[7:0],t_now,stage,stage,1'b1,descriptor[17],fc,dut.adjust_x,dut.adjust_y);
    if(dut.adjusted_rgb!==want)$fatal(1,"x=%0d y=%0d got %h expected %h (word %h)",dut.adjust_x,dut.adjust_y,dut.adjusted_rgb,want,w);
    if(want!==w[31:8])recoloured++;
    checks++;
@@ -50,6 +51,7 @@ module tb_m3_top;
   force dut.hazard_t_now=t_now;force dut.hazard_stage=stage;force dut.hazard_alert=stage;force dut.hazard_frame_cnt=fc;
   repeat(10)@(negedge pix);rst=0;
   frame(8);                                        // stage 0, t=0: refuge pixels only
+  t_now=239;fc=6'h2a;frame(40);                    // stage 0 rain at full density
   stage=1;t_now=120;fc=6'h3f;frame(8);
   stage=2;t_now=200;fc=6'h00;frame(8);
   stage=3;t_now=239;fc=6'h04;frame(8);
@@ -57,7 +59,7 @@ module tb_m3_top;
   descriptor=0;plain=1;frame(8);                    // 24-bit image: T=FF
   plain=0;valid_picture=0;frame(8);                 // before first commit: black
   if(dut.hazard_enable!==1'b1)$fatal(1,"hazard test source not enabled");
-  if(checks<7*8*640-640 || recoloured==0)$fatal(1,"missing observations checks=%0d recoloured=%0d",checks,recoloured);
+  if(checks<7*8*640+40*640-640 || recoloured==0)$fatal(1,"missing observations checks=%0d recoloured=%0d",checks,recoloured);
   $display("PASS M3 production top checks=%0d recoloured=%0d",checks,recoloured);$finish;
  end
  initial begin #100000000;$fatal(1,"top watchdog");end
