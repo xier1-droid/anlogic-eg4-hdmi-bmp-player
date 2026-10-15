@@ -10,10 +10,10 @@ import subprocess
 
 p = argparse.ArgumentParser()
 p.add_argument('build')
-p.add_argument('--candidate', default='m3-local.1')
+p.add_argument('--candidate', default='m3-local.2')
 p.add_argument('--baseline', default='v0.16.0')
-p.add_argument('--hazard', default='m3_hazard3')
-p.add_argument('--prefix', default='m3r4')
+p.add_argument('--hazard', default='m3v2_hazard4')
+p.add_argument('--prefix', default='m3v2r2')
 a = p.parse_args()
 root = Path(__file__).resolve().parents[2]
 output = root / 'diagnostics/output'

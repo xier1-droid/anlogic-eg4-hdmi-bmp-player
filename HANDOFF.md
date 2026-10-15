@@ -1,3 +1,23 @@
+# 当前交接：v0.17.0 M3 local.2 已固定，等待板测（2026-10-16）
+
+- 当前任务：v0.17.0 M3 hazard_layer；候选 releases/v0.17.0/m3-local.2，标签 v0.17.0-m3-local.2（取代未上板的 local.1），分支 feature/mountain-escape-classroom。
+- 已完成：
+  - 切图 t 清零：hazard_test_source 接 audio_update，每次显示提交后的首个 frame_start 置 t=0、更新 stage。
+  - 河谷村场景 tools/scenes/valley_village（prepare_valley_village.py 从 tools/Photo 生成 pic1–4 与山洪掩膜；scene.yaml 为各阶段标注）。
+  - v2 效果：make_scene_pack.hazard_layer_model 新签名 (rgb,T,t_now,stage,frame_cnt,alert,enable,thumbnail,x,y)；RTL 内部按 de/frame_start 计数 x/y（顶层 de = read_en 延迟 2 拍）。
+  - mountain_attempt17 通过；m3v2_hazard4 与 m3v2r2（18 项）全部通过，详见候选 README。
+- 卡住的问题：无本地阻塞；尚未上板。
+- 下一步计划：
+  - 用户按 releases/v0.17.0/m3-local.2/BOARD_VALIDATION.md 1–11 项板测，卡 B 用 tools/scenes/valley_village/out/sd/PIC1–4；通过后记录 m3-board.1、推送分支与 M3 标签。
+  - 然后进入 M4：scenario_fsm 替换测试源，并按已确认的 OSD 布局（右上标题/预警色块/进度条、底部字幕、左下图例，场景模式下隐藏左上状态栏、移开音频环）推进；文案属于 M5。
+- 踩过的坑：
+  - TD 6.2.1 在本设计上不稳定：Hold Fix 阶段会内部崩溃（minidump），部分布局策略报 `PHY-8103 ERROR: x_offset.size() <= 0` 后仍出 bit。16 次中仅 1 次干净。出候选要准备多跑几种 pr_strategy（2–11），只接受 0 ERROR 且 Setup/Hold 非负的构建。
+  - 给 video_delay 新增端口会让 v0.3.0 的 tb_hdmi_s6_phy 产生未连接端口警告，four_bank 回归因此失败；不要改共享模块的端口，在顶层派生信号。
+  - PowerShell 变量名不区分大小写：run_m3.ps1 的参数 $Scene 曾被同名的 $scene（输出目录）覆盖，参数已改名 $SceneName。
+  - 中途修改源码后要停掉用旧源码启动的构建，避免把旧 bit 当候选（attempt14–16 已停止）。
+
+## 历史交接
+
 # 当前交接：v0.17.0 M3 local.1 已固定，等待板测（2026-10-15）
 
 - 当前任务：v0.17.0 M3 hazard_layer；候选 releases/v0.17.0/m3-local.1，标签 v0.17.0-m3-local.1，分支 feature/mountain-escape-classroom。
