@@ -355,7 +355,7 @@ video_timing_data video_timing_data_m0(
 
 // The pixel keeps the original read timing and passes the 2-clock hazard
 // layer; SYNC_EXTRA=2 delays x/hs/vs/de to meet it at vout_data_raw.
-wire [31:0] scene_pixel;
+wire [31:0] scene_pixel;wire scene_de;
 video_delay #(.DATA_WIDTH(32),.SYNC_EXTRA(2)) video_delay_m0(
     .video_clk         (video_clk),
     .rst               (rst_video),
@@ -369,6 +369,7 @@ video_delay #(.DATA_WIDTH(32),.SYNC_EXTRA(2)) video_delay_m0(
     .vs_r              (vs),
     .de_r              (de),
     .vout_data         (scene_pixel),
+    .de_pix            (scene_de),
     .video_x_r         (video_x)
 );
 
@@ -376,7 +377,7 @@ video_delay #(.DATA_WIDTH(32),.SYNC_EXTRA(2)) video_delay_m0(
 wire [5:0] hazard_frame_cnt;wire [7:0] hazard_t_now;wire [1:0] hazard_stage,hazard_alert;
 wire hazard_enable;
 generate if(HAZARD_TEST_SOURCE) begin:g_hazard_test
- hazard_test_source u_hazard_test_source(.clk(video_clk),.rst(rst_video),.frame_start(sub_frame_start),
+ hazard_test_source u_hazard_test_source(.clk(video_clk),.rst(rst_video),.frame_start(sub_frame_start),.media_update(audio_update),
   .image_index(audio_image),.frame_cnt(hazard_frame_cnt),.t_now(hazard_t_now),.stage(hazard_stage),
   .alert_level(hazard_alert));
  assign hazard_enable=1'b1;
@@ -384,6 +385,7 @@ end else begin:g_no_hazard_source
  assign {hazard_frame_cnt,hazard_t_now,hazard_stage,hazard_alert,hazard_enable}=19'd0;
 end endgenerate
 hazard_layer u_hazard_layer(.clk(video_clk),.rst(rst_video),.rgb_in(scene_pixel[31:8]),.t_in(scene_pixel[7:0]),
+ .de(scene_de),.frame_start(sub_frame_start),
  .t_now(hazard_t_now),.stage(hazard_stage),.alert_level(hazard_alert),.enable(hazard_enable),
  .thumbnail(preview_pixel),.frame_cnt(hazard_frame_cnt),.rgb_out(vout_data_raw));
 
