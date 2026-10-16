@@ -330,8 +330,54 @@ def graded_t(shape, src, hit):
     return np.where(hit, np.floor(t0 + (t1 - t0) * np.clip(f, 0, 1)), T_NONE).astype(np.uint8)
 
 
+def rockfall_lines(src):
+    """Random downhill rock paths: start inside `starts` box, end near `foot`
+    y, wander sideways; each path gets its own start/end time (so rocks set
+    off at different moments and fall at different speeds) and width."""
+    rng = np.random.default_rng(src.get('seed', 1))
+    (sx0, sy0), (sx1, sy1) = src['starts']
+    fy0, fy1 = src['foot']
+    lines = []
+    for _ in range(src['count']):
+        x, y = rng.uniform(sx0, sx1), rng.uniform(sy0, sy1)
+        end = rng.uniform(fy0, fy1)
+        pts = [[x, y]]
+        for k in range(1, 5):
+            yk = y + (end - y) * k / 4
+            x += rng.uniform(-1, 1) * src.get('wander', 8)
+            pts.append([x, yk])
+        t0 = int(rng.uniform(0, src.get('start_spread', 70)))
+        t1 = int(min(239, t0 + rng.uniform(*src.get('fall', (150, 230)))))
+        w = float(rng.uniform(src.get('width_min', 3), src.get('width_max', 6)))
+        lines.append({'points': pts, 't0': t0, 't1': t1, 'width': w})
+    return lines
+
+
+def dust_levels(shape, src):
+    """Dust cloud, 4 densities (0 thin .. 3 dense): a blurred polygon gives
+    soft edges, a vertical ramp keeps it densest at the foot, smooth noise
+    breaks it into billows. Pixels below the thinnest level are left out."""
+    from PIL import ImageFilter
+    area = polygon_t(shape, {**src, 't0': 0}) < 240
+    ys = np.nonzero(area)[0]
+    soft = np.asarray(Image.fromarray(area.astype(np.uint8) * 255).filter(
+        ImageFilter.GaussianBlur(src.get('soft', 10))), np.float64) / 255
+    yy = np.mgrid[0:shape[0], 0:shape[1]][0]
+    low = np.clip((yy - ys.min()) / max(1, ys.max() - ys.min()), 0, 1)   # 0 top, 1 foot
+    n = smooth_noise(shape, src.get('cell', 20), src.get('seed', 1))
+    f = soft * (0.45 * low + 0.55 * n)
+    lv = np.floor((f - 0.18) / 0.12).astype(np.int32)
+    return np.where(f >= 0.18, np.clip(lv, 0, 3), -1)
+
+
 def source_t(shape, src, base_dir):
     kind = src['type']
+    if kind == 'rockfall':
+        out = np.full(shape, T_NONE, np.uint8)
+        for line in rockfall_lines(src):
+            t = polyline_t(shape, {'width': line.pop('width'), 'accel': True, 'lines': [line]})
+            out = np.where(t < 240, np.minimum(out, t), out)
+        return out
     if kind == 'crack':
         return crack_t(shape, src)
     if kind == 'patches':
@@ -366,9 +412,13 @@ def stage_t3(shape, stage, base_dir):
     reach = {}
     routes = []
     for src in stage.get('sources') or []:
+        region = src.get('region', 0)
+        if src['type'] == 'dust':        # special codes: time 60..63 = dust density 0..3
+            lv = dust_levels(shape, src)
+            T[lv >= 0] = (region << 6) | (v3.SPECIAL + lv[lv >= 0])
+            continue
         t = source_t(shape, src, base_dir)
         hit = t < 240
-        region = src.get('region', 0)
         T[hit] = (region << 6) | np.minimum(t[hit] >> 2, v3.TIME_MAX)
         reach[region] = reach.get(region, np.zeros(shape, bool)) | hit
         if region == v3.EVAC_ROUTE and src['type'] == 'polyline':

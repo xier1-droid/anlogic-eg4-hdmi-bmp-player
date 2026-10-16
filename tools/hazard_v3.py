@@ -13,6 +13,7 @@ HAZARDS = {'none': 0, 'landslide': 1, 'debris_flow': 2, 'flood': 3, 'earthquake'
 ROLES = {'none': 0, 'cause': 1, 'onset': 2, 'aftermath': 3, 'evacuation': 4}
 T_NONE = 255
 TIME_MAX = 59
+SPECIAL = 60            # time 60..63: per-region special codes, never "covered"
 
 # Evacuation regions.
 EVAC_ROUTE, EVAC_DANGER, EVAC_REFUGE = 0, 1, 2
@@ -24,6 +25,7 @@ LS_CRACK, LS_SCARP, LS_BODY, LS_ROCKS = 0, 1, 2, 3
 LS_DEPOSIT, LS_SCAR = 0, 1
 LS_BODY_FROM = 96       # t_now when the slide body starts to move (rock paths join it)
 LS_ROCKS_FROM = 120     # t_now when rocks start rolling
+LS_DUST_FROM = 196      # t_now when dust starts rising at the slope foot (dense first)
 
 RAIN_NEAR, RAIN_FAR = (0xC8, 0xD2, 0xDC), (0xA8, 0xB4, 0xC0)
 ZONE = (0xFF, 0xD0, 0x00)
@@ -156,8 +158,20 @@ def render(rgb, T, hazard, role, t_now, fc, x=None, y=None):
         path = layer & (region == LS_ROCKS)
         sunk = path & (t_now + 16 >= LS_BODY_FROM + (y >> 2))
         out[sunk] = blend(rgb[sunk], SLIDE_DARK, 2)
+        # Dust at the slope foot (soil region, special codes 60..63 = density
+        # 0..3): denser codes appear first, then thinner ones further up; a
+        # 1-px grain drifts upward over a light haze.
+        dust = layer & (region == LS_SCARP) & (time >= SPECIAL)
+        level = time - SPECIAL
+        shown = dust & (t_now >= LS_DUST_FROM + ((3 - level) << 3))
+        haze = shown & (level == 3)
+        out[haze] = blend(out[haze], DUST, 1)
+        grain = shown & (hash8(x, (y + (fc >> 1)) & 255) < 12 + (level << 4))
+        out[grain] = blend(out[grain], DUST, 2)
         # Falling rocks: times along each path grow with sqrt(distance), so a
-        # rock at constant phase speed accelerates downhill. Two rocks per path.
+        # rock at constant phase speed accelerates downhill. Two rocks per path;
+        # paths start and end at different times, so rocks set off at
+        # different moments and fall at different speeds.
         if t_now >= LS_ROCKS_FROM:
             p = (fc >> 1) & 63
             lead = ((time - p) & 63) == 0
