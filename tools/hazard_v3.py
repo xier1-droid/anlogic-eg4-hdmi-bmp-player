@@ -23,9 +23,9 @@ CAUSE_ZONE = 0          # outline of the hazard-prone area
 # slide body, rockfall paths. Aftermath: deposit, scar.
 LS_CRACK, LS_SCARP, LS_BODY, LS_ROCKS = 0, 1, 2, 3
 LS_DEPOSIT, LS_SCAR = 0, 1
-LS_BODY_FROM = 96       # t_now when the slide body starts to move (rock paths join it)
-LS_ROCKS_FROM = 120     # t_now when rocks start rolling
-LS_DUST_FROM = 196      # t_now when dust starts rising at the slope foot (dense first)
+LS_BODY_FROM = 64       # t_now when the slide body starts to move (rock paths join it)
+LS_ROCKS_FROM = 80      # t_now when rocks start rolling
+LS_DUST_FROM = 140      # t_now when dust starts rising at the slope foot (dense first)
 
 RAIN_NEAR, RAIN_FAR = (0xC8, 0xD2, 0xDC), (0xA8, 0xB4, 0xC0)
 ZONE = (0xFF, 0xD0, 0x00)
@@ -163,10 +163,12 @@ def render(rgb, T, hazard, role, t_now, fc, x=None, y=None):
         # 1-px grain drifts upward over a light haze.
         dust = layer & (region == LS_SCARP) & (time >= SPECIAL)
         level = time - SPECIAL
-        shown = dust & (t_now >= LS_DUST_FROM + ((3 - level) << 3))
+        # Levels open 16 steps apart; the grain thickens for ~64 steps after.
+        shown = dust & (t_now >= LS_DUST_FROM + ((3 - level) << 4))
         haze = shown & (level == 3)
         out[haze] = blend(out[haze], DUST, 1)
-        grain = shown & (hash8(x, (y + (fc >> 1)) & 255) < 12 + (level << 4))
+        grow = np.minimum(np.maximum(t_now - LS_DUST_FROM, 0) >> 2, 16)
+        grain = shown & (hash8(x, (y + (fc >> 1)) & 255) < 4 + (level << 4) + grow)
         out[grain] = blend(out[grain], DUST, 2)
         # Falling rocks: times along each path grow with sqrt(distance), so a
         # rock at constant phase speed accelerates downhill. Two rocks per path;
