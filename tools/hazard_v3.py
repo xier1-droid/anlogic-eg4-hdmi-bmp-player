@@ -18,7 +18,7 @@ TIME_MAX = 59
 EVAC_ROUTE, EVAC_DANGER, EVAC_REFUGE = 0, 1, 2
 # Cause regions.
 CAUSE_ZONE = 0          # outline of the hazard-prone area
-# Landslide onset regions: crack, main scarp (grows downhill from the crack),
+# Landslide onset regions: cracks, fresh soil (scarp, bare patches, toe),
 # slide body, rockfall paths. Aftermath: deposit, scar.
 LS_CRACK, LS_SCARP, LS_BODY, LS_ROCKS = 0, 1, 2, 3
 LS_DEPOSIT, LS_SCAR = 0, 1
@@ -136,31 +136,34 @@ def render(rgb, T, hazard, role, t_now, fc, x=None, y=None):
         out[refuge] = REFUGE
 
     elif hazard == 'landslide' and role == 'onset':
+        # Realistic close-up, no warning colours. All shapes come from the
+        # scene tool; here pixels only appear by time and take a tint that
+        # keeps part of the base texture.
+        # Cracks (main scarp crown, transverse and flank cracks): dark.
         crack = covered & (region == LS_CRACK)
-        tip = crack & (age < 2) & (fast == 1)
-        out[crack & ~tip] = blend(rgb[crack & ~tip], CRACK, 3)
-        out[tip] = blend(rgb[tip], CRACK_TIP, 2)
-        # Main scarp: fresh soil exposed below the crack, growing downhill as
-        # the body drops away; a darker lip marks its growing lower edge.
-        scarp = covered & (region == LS_SCARP)
-        lip = scarp & (age < 2)
-        out[scarp & ~lip] = blend(rgb[scarp & ~lip], SOIL, 3)
-        out[lip] = blend(rgb[lip], SLIDE_DARK, 2)
-        # Slide body (rock paths are part of it) darkens as it sinks; the base
-        # image's own stones stay visible through the blend.
+        out[crack] = blend(rgb[crack], CRACK, np.where(age[crack] < 2, 2, 3))
+        # Fresh soil (main scarp, bare patches, toe bulge): lighter earth.
+        # Late, small exposures (bare patches, toe) stay light; the main scarp,
+        # exposed early, deepens to k=2.
+        soil = covered & (region == LS_SCARP)
+        out[soil] = blend(rgb[soil], SOIL, np.where(age[soil] < 12, 1, 2))
+        # Slide body: each pixel starts to sink at its own time, top first;
+        # it darkens in two steps so the front stays soft.
+        body = covered & (region == LS_BODY)
+        out[body] = blend(rgb[body], SLIDE_DARK, np.where(age[body] < 4, 1, 2))
+        # Rock paths lie inside the body and sink with it: approximate the
+        # body's top-down front by row, LS_BODY_FROM + y/4 - 16.
         path = layer & (region == LS_ROCKS)
-        body = (covered & (region == LS_BODY)) | (path & (t_now >= LS_BODY_FROM))
-        body_age = np.where(region == LS_ROCKS, (t6 - (LS_BODY_FROM >> 2)) & 63, age)
-        k = np.where(body_age < 12, 1, 2)
-        out[body] = blend(rgb[body], SLIDE_DARK, k[body])
-        # Rocks: two per path, rolling down every 128 frames once the slide moves.
+        sunk = path & (t_now + 16 >= LS_BODY_FROM + (y >> 2))
+        out[sunk] = blend(rgb[sunk], SLIDE_DARK, 2)
+        # Falling rocks: times along each path grow with sqrt(distance), so a
+        # rock at constant phase speed accelerates downhill. Two rocks per path.
         if t_now >= LS_ROCKS_FROM:
             p = (fc >> 1) & 63
-            lead = ((time - p) & 63) < 2
-            lead |= ((time - p - 30) & 63) < 2
-            trail = ((((p - time) & 63) - 1) & 63) < 3
-            trail |= ((((p + 30 - time) & 63) - 1) & 63) < 3
-            out[path & trail & ~lead] = blend(out[path & trail & ~lead], DUST, 2)
+            lead = ((time - p) & 63) == 0
+            lead |= ((time - p - 32) & 63) == 0
+            puff = (((p - time) & 63) == 1) | (((p + 32 - time) & 63) == 1)
+            out[path & puff & ~lead] = blend(out[path & puff & ~lead], DUST, 1)
             out[path & lead] = ROCK
 
     elif hazard == 'landslide' and role == 'aftermath':

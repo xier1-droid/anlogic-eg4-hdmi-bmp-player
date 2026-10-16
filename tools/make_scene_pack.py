@@ -166,7 +166,10 @@ def polyline_t(shape, src):
             px, py = xx[ya:yb, xa:xb] - x0, yy[ya:yb, xa:xb] - y0
             u = np.clip((px * dx + py * dy) / (L * L), 0, 1)
             dist = np.hypot(px - u * dx, py - u * dy)
-            t = t0 + (t1 - t0) * (c + u * L) / total
+            if src.get('accel'):          # falling body: distance grows with time squared
+                t = t0 + (t1 - t0) * np.sqrt((c + u * L) / total)
+            else:
+                t = t0 + (t1 - t0) * (c + u * L) / total
             t = np.where(dist <= r, t, np.inf)
             view = best[ya:yb, xa:xb]
             np.minimum(view, t, out=view)
@@ -242,6 +245,8 @@ def polygon_t(shape, src, outline=False):
     hit = np.asarray(m) > 0
     if src.get('rough') and not outline:
         hit = rough(hit, src['rough'], src.get('seed', 1))
+    if src.get('grade') == 'down':
+        return graded_t(shape, src, hit)
     return np.where(hit, src.get('t0', 0), T_NONE).astype(np.uint8)
 
 
@@ -256,8 +261,84 @@ def rough(mask, amp, seed):
     return soft + noise * 0.8 > 128
 
 
+def smooth_noise(shape, cell, seed):
+    """Fixed-seed value noise in [0,1), bicubic between cell-sized lattice points."""
+    h, w = shape
+    rng = np.random.default_rng(seed)
+    lat = (rng.random((h // cell + 3, w // cell + 3)) * 255).astype(np.uint8)
+    n = np.asarray(Image.fromarray(lat).resize(((w // cell + 3) * cell, (h // cell + 3) * cell), Image.BICUBIC),
+                   np.float64)[cell:cell + h, cell:cell + w]
+    return np.clip(n / 255.0, 0, 0.999)
+
+
+def crack_t(shape, src):
+    """Natural cracks: each line is densified, wanders sideways with smooth
+    noise (jitter px), and its width varies between width_min and width_max;
+    T grows along the line from t0 to t1."""
+    h, w = shape
+    best = np.full(shape, np.inf)
+    rng = np.random.default_rng(src.get('seed', 1))
+    yy, xx = np.mgrid[0:h, 0:w]
+    for line in src['lines']:
+        t0, t1 = time_range({**src, **line})
+        pts = np.asarray(line['points'], float)
+        seg = np.diff(pts, axis=0)
+        lens = np.hypot(seg[:, 0], seg[:, 1])
+        total = lens.sum()
+        n = max(2, int(total / 1.5))
+        s = np.linspace(0, total, n)
+        cum = np.concatenate(([0.0], np.cumsum(lens)))
+        k = np.clip(np.searchsorted(cum, s, side='right') - 1, 0, len(seg) - 1)
+        u = (s - cum[k]) / np.maximum(lens[k], 1e-9)
+        px = pts[k, 0] + u * seg[k, 0]
+        py = pts[k, 1] + u * seg[k, 1]
+        nx, ny = -seg[k, 1] / np.maximum(lens[k], 1e-9), seg[k, 0] / np.maximum(lens[k], 1e-9)
+        ph = rng.random(6) * 2 * np.pi
+        off = sum(np.sin(s / per + ph[i]) / (i + 1) for i, per in enumerate((23.0, 9.0, 4.0)))
+        off = src.get('jitter', 3) * off / 1.8
+        wv = sum(np.sin(s / per + ph[3 + i]) for i, per in enumerate((17.0, 6.0)))
+        wmin, wmax = src.get('width_min', 1.0), src.get('width_max', 3.0)
+        r = (wmin + (wmax - wmin) * (wv + 2) / 4) / 2
+        cx, cy = px + nx * off, py + ny * off
+        taper = np.minimum(1, np.minimum(s, total - s) / 6 + 0.35)   # thin ends
+        for x0, y0, rr, sv in zip(cx, cy, r * taper, s):
+            xa, xb = int(max(0, x0 - rr - 1)), int(min(w, x0 + rr + 2))
+            ya, yb = int(max(0, y0 - rr - 1)), int(min(h, y0 + rr + 2))
+            if xa >= xb or ya >= yb:
+                continue
+            d = np.hypot(xx[ya:yb, xa:xb] - x0, yy[ya:yb, xa:xb] - y0)
+            t = np.where(d <= max(rr, 0.5), t0 + (t1 - t0) * sv / total, np.inf)
+            view = best[ya:yb, xa:xb]
+            np.minimum(view, t, out=view)
+    out = np.full(shape, T_NONE, np.uint8)
+    hit = np.isfinite(best)
+    out[hit] = np.floor(best[hit]).astype(np.uint8)
+    return out
+
+
+def graded_t(shape, src, hit):
+    """Times for an area that moves from its top edge down (grade: down),
+    broken up by smooth noise so it does not advance as a straight front."""
+    t0, t1 = time_range(src)
+    ys = np.nonzero(hit)[0]
+    if not len(ys):
+        return np.full(shape, T_NONE, np.uint8)
+    yy = np.mgrid[0:shape[0], 0:shape[1]][0]
+    down = (yy - ys.min()) / max(1, ys.max() - ys.min())
+    mix = src.get('noise', 0.35)
+    f = (1 - mix) * down + mix * smooth_noise(shape, src.get('cell', 24), src.get('seed', 1))
+    return np.where(hit, np.floor(t0 + (t1 - t0) * np.clip(f, 0, 1)), T_NONE).astype(np.uint8)
+
+
 def source_t(shape, src, base_dir):
     kind = src['type']
+    if kind == 'crack':
+        return crack_t(shape, src)
+    if kind == 'patches':
+        # Bare-ground patches inside a polygon where smooth noise is high.
+        area = polygon_t(shape, {**src, 't0': 0}) < 240
+        n = smooth_noise(shape, src.get('cell', 10), src.get('seed', 1))
+        return graded_t(shape, src, area & (n > src.get('threshold', 0.7)))
     if kind == 'paint':
         return paint_t(shape, src, base_dir)
     if kind == 'polyline':
@@ -270,6 +351,8 @@ def source_t(shape, src, base_dir):
         hit = load_gray(base_dir / src['file'], shape) >= 128
         if src.get('rough'):
             hit = rough(hit, src['rough'], src.get('seed', 1))
+        if src.get('grade') == 'down':
+            return graded_t(shape, src, hit)
         return np.where(hit, src.get('t0', 0), T_NONE).astype(np.uint8)
     raise SystemExit(f'unknown source type: {kind}')
 

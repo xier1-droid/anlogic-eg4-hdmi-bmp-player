@@ -7,7 +7,7 @@ PHOTO_DIR defaults to tools/Photo/landslide and must hold PIC1.png .. PIC4.png
   pic1.png .. pic4.png   640x480 base maps (Lanczos)
   deposit_mask.png       PIC3 runout fan: slope foot over the terraces, the
                          houses below the scar and the road (white = reached)
-  scarp_mask.png         PIC2 main scarp: a 16 px strip below the crack arc
+  scarp_mask.png         PIC2 main scarp: 6-20 px below the crack arc, ragged
 """
 from pathlib import Path
 import sys
@@ -19,7 +19,7 @@ W, H = 640, 480
 # PIC3 (same framing as PIC1): deposit fan below the scar.
 # PIC2 crack arc, west end to east end (scene.yaml uses the same points).
 CRACK = [(266, 98), (296, 78), (330, 64), (380, 58), (430, 64), (470, 80), (500, 102), (512, 124)]
-SCARP_DEPTH = 16
+SCARP_DEPTH = 14
 DEPOSIT = [(300, 232), (425, 232), (446, 270), (470, 318), (482, 368), (472, 402), (400, 408),
            (300, 398), (258, 372), (254, 320), (274, 270)]
 
@@ -39,9 +39,16 @@ def main():
     noise = np.random.default_rng(31).random((H // 16 + 2, W // 16 + 2)) * 255
     noise = np.asarray(Image.fromarray(noise.astype(np.uint8)).resize((W, H), Image.BICUBIC), np.float64) - 128
     Image.fromarray(np.where(soft + noise * 0.9 > 128, 255, 0).astype(np.uint8)).save(HERE / 'deposit_mask.png')
+    # Scarp: deepest in the middle of the arc, shallow at the ends, ragged
+    # lower edge.
     m = Image.new('L', (W, H), 0)
-    ImageDraw.Draw(m).polygon(CRACK + [(x, y + SCARP_DEPTH) for x, y in reversed(CRACK)], fill=255)
-    m.save(HERE / 'scarp_mask.png')
+    n = len(CRACK)
+    depth = [6 + SCARP_DEPTH * (1 - abs(2 * i / (n - 1) - 1)) for i in range(n)]
+    ImageDraw.Draw(m).polygon(CRACK + [(x, y + d) for (x, y), d in reversed(list(zip(CRACK, depth)))], fill=255)
+    soft = np.asarray(m.filter(ImageFilter.GaussianBlur(3)), np.float64)
+    noise = np.random.default_rng(37).random((H // 6 + 2, W // 6 + 2)) * 255
+    noise = np.asarray(Image.fromarray(noise.astype(np.uint8)).resize((W, H), Image.BICUBIC), np.float64) - 128
+    Image.fromarray(np.where(soft + noise * 0.9 > 128, 255, 0).astype(np.uint8)).save(HERE / 'scarp_mask.png')
     print('prepared pic1-4, deposit_mask, scarp_mask')
 
 
