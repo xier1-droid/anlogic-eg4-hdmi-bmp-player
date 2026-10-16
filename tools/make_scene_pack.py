@@ -258,15 +258,30 @@ def source_t(shape, src, base_dir):
 
 
 def stage_t3(shape, stage, base_dir):
-    """format 3: later sources overwrite earlier ones where they reach."""
+    """format 3: later sources overwrite earlier ones where they reach.
+    Evacuation stages must keep every route and refuge pixel outside the
+    danger region; any overlap stops the build."""
     T = np.full(shape, T_NONE, np.uint8)
+    reach = {}
     for src in stage.get('sources') or []:
         t = source_t(shape, src, base_dir)
         hit = t < 240
-        T[hit] = (src.get('region', 0) << 6) | np.minimum(t[hit] >> 2, v3.TIME_MAX)
+        region = src.get('region', 0)
+        T[hit] = (region << 6) | np.minimum(t[hit] >> 2, v3.TIME_MAX)
+        reach[region] = reach.get(region, np.zeros(shape, bool)) | hit
     yy, xx = np.mgrid[0:shape[0], 0:shape[1]]
+    refuge = np.zeros(shape, bool)
     for x, y, r in stage.get('spots') or []:
-        T[(xx - x) ** 2 + (yy - y) ** 2 <= r * r] = v3.encode(v3.EVAC_REFUGE, 0)
+        refuge |= (xx - x) ** 2 + (yy - y) ** 2 <= r * r
+    T[refuge] = v3.encode(v3.EVAC_REFUGE, 0)
+    if stage.get('role') == 'evacuation' and v3.EVAC_DANGER in reach:
+        danger = reach[v3.EVAC_DANGER]
+        for name, m in (('route', reach.get(v3.EVAC_ROUTE, np.zeros(shape, bool))), ('refuge', refuge)):
+            bad = m & danger
+            if bad.any():
+                ys, xs = np.nonzero(bad)
+                raise SystemExit(f'{stage.get("name", "evacuation")}: {name} enters the danger zone at '
+                                 f'{int(bad.sum())} px, x {xs.min()}..{xs.max()}, y {ys.min()}..{ys.max()}')
     return T
 
 
