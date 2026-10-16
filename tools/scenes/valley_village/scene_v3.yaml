@@ -1,0 +1,58 @@
+# 河谷村 format 3 试验卡（山洪：致因 → 发生 → 后果 → 撤离），用于检验新格式、新雨和统一撤离。
+# 生成：py -I tools/make_scene_pack.py tools/scenes/valley_village/scene_v3.yaml --gif
+# 底图与掩膜同 scene.yaml（先运行 prepare_valley_village.py）。
+name: valley_village_v3
+format: 3
+size: [640, 480]
+base: pic1.png
+output: out_v3
+
+stages:
+  - name: 致因：上游强降雨     # 雨 + 河道隐患区黄色虚线框
+    image: pic1.png
+    hazard: flood
+    role: cause
+    sources:
+      - {type: outline, region: 0, width: 3, points: [[384, 0], [366, 100], [340, 160], [332, 200], [318, 240], [300, 285], [288, 330], [296, 380], [322, 425], [342, 479], [492, 479], [482, 400], [474, 300], [470, 200], [466, 100], [456, 0]]}
+
+  - name: 发生：洪水涨满河道漫上岸
+    image: pic3.png
+    hazard: flood
+    role: onset
+    sources:
+      - type: seeds
+        region: 0
+        points: [[392, 0], [404, 0], [416, 0], [428, 0], [440, 0], [452, 0]]
+        mask: flood_mask.png
+        dem: flood_dem.png
+        climb: 0.5
+        t0: 0
+        t1: 239
+
+  - name: 后果：淹没范围
+    image: pic3.png
+    hazard: flood
+    role: aftermath
+    sources:
+      - type: seeds
+        region: 0
+        points: [[392, 0], [404, 0], [416, 0], [428, 0], [440, 0], [452, 0]]
+        mask: flood_mask.png
+        dem: flood_dem.png
+        climb: 0.5
+        t0: 0
+        t1: 239
+
+  - name: 撤离：避开河道，上两侧高地
+    image: pic4.png
+    hazard: flood
+    role: evacuation
+    sources:
+      - {type: mask, region: 1, file: flood_mask.png}     # 危险区：洪水最大范围
+      - type: polyline                                       # 路线压在危险区之上
+        region: 0
+        width: 4
+        lines:
+          - {points: [[252, 214], [290, 196], [340, 186], [380, 180], [420, 178], [460, 178], [500, 170], [530, 150], [562, 130], [578, 122]], t0: 0, t1: 200}
+          - {points: [[262, 262], [286, 276], [306, 300], [326, 330], [344, 356], [352, 380], [340, 398], [310, 405], [280, 402], [250, 392], [224, 380], [200, 366], [176, 358], [156, 364]], t0: 0, t1: 200}
+    spots: [[588, 118, 9], [148, 366, 9]]

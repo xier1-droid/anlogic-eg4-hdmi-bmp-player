@@ -9,12 +9,20 @@ images (02_技术实现.md §2.3, §2.4, §4.2, §5).
 Usage: py -I tools/make_scene_pack.py tools/scenes/demo_village/scene.yaml
 The reference model functions (hazard_layer_model, blink_phase) are importable
 for the M3 testbench generator.
+
+format: 3 scenes (cause -> hazard -> evacuation cards, tools/hazard_v3.py) give
+each stage `hazard` and `role` (written to BMP header bytes 6-7) and each
+source a `region`; T becomes region<<6 | time/4, 255 for no layer. Extra
+source types: polygon (filled), outline (polygon border), mask, all at t0.
+--gif writes one animated preview per stage (every 2nd frame, 8 s loop).
 """
 from pathlib import Path
-import argparse, heapq, math, struct
+import argparse, heapq, math, struct, sys
 import numpy as np
 import yaml
-from PIL import Image
+sys.path.insert(0, str(Path(__file__).resolve().parent))   # -I drops the script directory
+import hazard_v3 as v3  # noqa: E402
+from PIL import Image, ImageDraw
 
 T_MAX = 239          # 0..239: arrival time
 T_SPOT = 250         # refuge point, blinks
@@ -223,6 +231,45 @@ def seeds_t(shape, src, base_dir):
     return out
 
 
+def polygon_t(shape, src, outline=False):
+    m = Image.new('L', (shape[1], shape[0]), 0)
+    d = ImageDraw.Draw(m)
+    pts = [tuple(p) for p in src['points']]
+    if outline:
+        d.line(pts + [pts[0]], fill=255, width=src.get('width', 3))
+    else:
+        d.polygon(pts, fill=255)
+    return np.where(np.asarray(m) > 0, src.get('t0', 0), T_NONE).astype(np.uint8)
+
+
+def source_t(shape, src, base_dir):
+    kind = src['type']
+    if kind == 'paint':
+        return paint_t(shape, src, base_dir)
+    if kind == 'polyline':
+        return polyline_t(shape, src)
+    if kind == 'seeds':
+        return seeds_t(shape, src, base_dir)
+    if kind in ('polygon', 'outline'):
+        return polygon_t(shape, src, kind == 'outline')
+    if kind == 'mask':
+        return np.where(load_gray(base_dir / src['file'], shape) >= 128, src.get('t0', 0), T_NONE).astype(np.uint8)
+    raise SystemExit(f'unknown source type: {kind}')
+
+
+def stage_t3(shape, stage, base_dir):
+    """format 3: later sources overwrite earlier ones where they reach."""
+    T = np.full(shape, T_NONE, np.uint8)
+    for src in stage.get('sources') or []:
+        t = source_t(shape, src, base_dir)
+        hit = t < 240
+        T[hit] = (src.get('region', 0) << 6) | np.minimum(t[hit] >> 2, v3.TIME_MAX)
+    yy, xx = np.mgrid[0:shape[0], 0:shape[1]]
+    for x, y, r in stage.get('spots') or []:
+        T[(xx - x) ** 2 + (yy - y) ** 2 <= r * r] = v3.encode(v3.EVAC_REFUGE, 0)
+    return T
+
+
 def stage_t(shape, stage, base_dir):
     T = np.full(shape, T_NONE, np.uint8)
     for src in stage.get('sources') or []:
@@ -248,18 +295,20 @@ def stage_t(shape, stage, base_dir):
 HEADER_BYTES = 54
 
 
-def write_bmp32(path, rgb, T):
+def write_bmp32(path, rgb, T, kind=(0, 0)):
     h, w = T.shape
     px = np.empty((h, w, 4), np.uint8)
     px[..., 0], px[..., 1], px[..., 2], px[..., 3] = rgb[..., 2], rgb[..., 1], rgb[..., 0], T
     data = px[::-1].tobytes()     # bottom-up rows, width*4 needs no padding
-    head = struct.pack('<2sIHHI', b'BM', HEADER_BYTES + len(data), 0, 0, HEADER_BYTES)
+    head = struct.pack('<2sIBBHI', b'BM', HEADER_BYTES + len(data), kind[0], kind[1], 0, HEADER_BYTES)
     head += struct.pack('<IiiHHIIiiII', 40, w, h, 1, 32, 0, len(data), 3780, 3780, 0, 0)
     path.write_bytes(head + data)
 
 
-def check_bmp32(path, rgb, T):
+def check_bmp32(path, rgb, T, kind=(0, 0)):
     d = path.read_bytes()
+    if tuple(d[6:8]) != tuple(kind):
+        raise SystemExit(f'{path}: header type bytes {tuple(d[6:8])}, expected {kind}')
     magic, file_len, _, _, offset = struct.unpack_from('<2sIHHI', d, 0)
     dib, w, h, planes, bpp, comp = struct.unpack_from('<IiiHHI', d, 14)
     need = offset + w * 4 * h
@@ -290,6 +339,17 @@ def t_preview(T):
     return out
 
 
+def t_preview3(T):
+    """format 3: white none; one hue per region, darker = earlier."""
+    out = np.full(T.shape + (3,), 255, np.uint8)
+    hue = ((40, 90, 200), (210, 60, 40), (30, 170, 60), (150, 80, 180))
+    for r, c in enumerate(hue):
+        m = ((T >> 6) == r) & (T != T_NONE)
+        g = (T[m] & 63).astype(np.int32)
+        out[m] = np.stack([np.minimum(255, c[i] + g * 2) for i in range(3)], axis=-1)
+    return out
+
+
 def overview(rows, path):
     """rows: per stage list of HxWx3 images; written at half size in a grid."""
     h, w = rows[0][0].shape[:2]
@@ -305,6 +365,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument('scene', help='scene.yaml')
     ap.add_argument('--out', help='output directory (default: scene "output", relative to the yaml)')
+    ap.add_argument('--gif', action='store_true', help='format 3: also write gif/PICn.gif previews')
     a = ap.parse_args()
     scene_path = Path(a.scene)
     base_dir = scene_path.parent
@@ -315,6 +376,9 @@ def main():
     if len(stages) != 4:
         raise SystemExit('scene.yaml must define exactly 4 stages')
     out = Path(a.out) if a.out else base_dir / cfg.get('output', 'out')
+    fmt = cfg.get('format', 2)
+    if a.gif:
+        (out / 'gif').mkdir(parents=True, exist_ok=True)
     for sub in ('sd', 'expected', 'tmap'):
         (out / sub).mkdir(parents=True, exist_ok=True)
 
@@ -324,25 +388,44 @@ def main():
         if img.size != (w, h):
             raise SystemExit(f'stage {n + 1} image size {img.size}, scene is {w}x{h}')
         rgb = np.asarray(img, np.uint8)
-        T = stage_t(shape, stage, base_dir)
+        if fmt == 3:
+            hz, role = stage['hazard'], stage['role']
+            kind = (v3.HAZARDS[hz], v3.ROLES[role])
+            T = stage_t3(shape, stage, base_dir)
+            def model(t, fc, rgb=rgb, T=T, hz=hz, role=role):
+                return v3.render(rgb, T, hz, role, t, 0x3FF if fc else 0)
+        else:
+            kind = (0, 0)
+            T = stage_t(shape, stage, base_dir)
+            def model(t, fc, rgb=rgb, T=T, n=n):
+                return hazard_layer_model(rgb, T, t, n, 0x3F if fc else 0x00)
         bmp = out / 'sd' / f'PIC{n + 1}.BMP'
-        write_bmp32(bmp, rgb, T)
-        check_bmp32(bmp, rgb, T)
-        Image.fromarray(t_preview(T)).save(out / 'tmap' / f'PIC{n + 1}_T.png')
+        write_bmp32(bmp, rgb, T, kind)
+        check_bmp32(bmp, rgb, T, kind)
+        Image.fromarray(t_preview3(T) if fmt == 3 else t_preview(T)).save(out / 'tmap' / f'PIC{n + 1}_T.png')
+        if a.gif and fmt == 3:
+            frames = [Image.fromarray(v3.render(rgb, T, hz, role, k // 2 % 240, k & 1023)).convert(
+                'P', palette=Image.ADAPTIVE, colors=160) for k in range(0, 480, 2)]
+            frames[0].save(out / 'gif' / f'PIC{n + 1}.gif', save_all=True, append_images=frames[1:],
+                           duration=33, loop=0)
         row = []
         for t in EXPECTED_TIMES:
             for phase in (1, 0):
-                # on: frame_cnt=0x3F (all blink bits 1), off: 0x00
-                exp = hazard_layer_model(rgb, T, t, n, 0x3F if phase else 0x00)
+                # on: every blink bit 1 (frame_cnt 0x3F, or 0x3FF for format 3), off: 0
+                exp = model(t, phase)
                 Image.fromarray(exp).save(out / 'expected' / f'PIC{n + 1}_t{t:03d}_{"on" if phase else "off"}.png')
                 if phase or t == T_MAX:
                     row.append(exp)
         row.append(t_preview(T))
         rows.append(row)
-        cov = T < 240
-        tr = f'T {T[cov].min()}..{T[cov].max()}' if cov.any() else 'no hazard pixels'
-        print(f'{bmp}: {bmp.stat().st_size} bytes, stage {n + 1}: '
-              f'{int(cov.sum())} hazard px ({tr}), {int((T == T_SPOT).sum())} refuge px')
+        if fmt == 3:
+            regs = ', '.join(f'r{r} {int((((T >> 6) == r) & (T != T_NONE)).sum())} px' for r in range(4))
+            print(f'{bmp}: {bmp.stat().st_size} bytes, stage {n + 1} {hz}/{role}: {regs}')
+        else:
+            cov = T < 240
+            tr = f'T {T[cov].min()}..{T[cov].max()}' if cov.any() else 'no hazard pixels'
+            print(f'{bmp}: {bmp.stat().st_size} bytes, stage {n + 1}: '
+                  f'{int(cov.sum())} hazard px ({tr}), {int((T == T_SPOT).sum())} refuge px')
     overview(rows, out / 'overview.png')
     print(f'{out / "overview.png"}: columns t=0 on, t=120 on, t=239 on, t=239 off, T map')
 
