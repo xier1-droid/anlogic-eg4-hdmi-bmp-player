@@ -3,8 +3,8 @@
 Per image (BMP header bytes 6-7): hazard type and role. Per pixel (T byte):
 255 = no layer, otherwise region = T[7:6] (0-3) and time = T[5:0] (0-59, in
 units of 4 t_now steps). All effects use integer shifts, masks and adds so the
-RTL can match bit for bit. Draft: rain, evacuation and flood are defined;
-landslide, debris flow and earthquake follow once their base images exist.
+RTL can match bit for bit. Draft: rain, evacuation, flood and landslide
+are defined; debris flow and earthquake follow once their base images exist.
 """
 import numpy as np
 
@@ -18,6 +18,12 @@ TIME_MAX = 59
 EVAC_ROUTE, EVAC_DANGER, EVAC_REFUGE = 0, 1, 2
 # Cause regions.
 CAUSE_ZONE = 0          # outline of the hazard-prone area
+# Landslide onset regions: crack, main scarp (grows downhill from the crack),
+# slide body, rockfall paths. Aftermath: deposit, scar.
+LS_CRACK, LS_SCARP, LS_BODY, LS_ROCKS = 0, 1, 2, 3
+LS_DEPOSIT, LS_SCAR = 0, 1
+LS_BODY_FROM = 96       # t_now when the slide body starts to move (rock paths join it)
+LS_ROCKS_FROM = 120     # t_now when rocks start rolling
 
 RAIN_NEAR, RAIN_FAR = (0xC8, 0xD2, 0xDC), (0xA8, 0xB4, 0xC0)
 ZONE = (0xFF, 0xD0, 0x00)
@@ -26,6 +32,16 @@ ROUTE, DASH = (0x20, 0xC8, 0x48), (0xAA, 0xFF, 0xBE)
 ROUTE_TIP, ROUTE_TIP_OFF = (0xFF, 0xFF, 0xFF), (0x40, 0xFF, 0x40)
 REFUGE = (0x00, 0xFF, 0x00)
 MUD, RIPPLE, FOAM = (0x8C, 0x6A, 0x3C), (0xC4, 0xA8, 0x74), (0xF0, 0xE8, 0xD6)
+CRACK, CRACK_TIP = (0x18, 0x10, 0x08), (0xFF, 0xD0, 0x00)
+SLIDE_DARK, SOIL = (0x3A, 0x2C, 0x1E), (0x9A, 0x78, 0x50)
+ROCK, DUST = (0x50, 0x4C, 0x48), (0xB0, 0xA0, 0x88)
+DEPOSIT, STONE, DEPOSIT_EDGE = (0x7A, 0x5E, 0x40), (0x62, 0x5E, 0x58), (0xB8, 0x9C, 0x78)
+
+
+def hash8(a, b):
+    """8-bit spatial hash from shifts, xors and constant multiplies."""
+    h = (a * 73 + b * 151 + (a ^ b) * 37) & 255
+    return h ^ (h >> 4)
 
 
 def encode(region, time):
@@ -118,6 +134,53 @@ def render(rgb, T, hazard, role, t_now, fc, x=None, y=None):
         out[m] = blend(rgb[m], ROUTE, 3)
         refuge = layer & (region == EVAC_REFUGE) & (slow == 1)
         out[refuge] = REFUGE
+
+    elif hazard == 'landslide' and role == 'onset':
+        crack = covered & (region == LS_CRACK)
+        tip = crack & (age < 2) & (fast == 1)
+        out[crack & ~tip] = blend(rgb[crack & ~tip], CRACK, 3)
+        out[tip] = blend(rgb[tip], CRACK_TIP, 2)
+        # Main scarp: fresh soil exposed below the crack, growing downhill as
+        # the body drops away; a darker lip marks its growing lower edge.
+        scarp = covered & (region == LS_SCARP)
+        lip = scarp & (age < 2)
+        out[scarp & ~lip] = blend(rgb[scarp & ~lip], SOIL, 3)
+        out[lip] = blend(rgb[lip], SLIDE_DARK, 2)
+        # Slide body (rock paths are part of it) darkens as it sinks; the base
+        # image's own stones stay visible through the blend.
+        path = layer & (region == LS_ROCKS)
+        body = (covered & (region == LS_BODY)) | (path & (t_now >= LS_BODY_FROM))
+        body_age = np.where(region == LS_ROCKS, (t6 - (LS_BODY_FROM >> 2)) & 63, age)
+        k = np.where(body_age < 12, 1, 2)
+        out[body] = blend(rgb[body], SLIDE_DARK, k[body])
+        # Rocks: two per path, rolling down every 128 frames once the slide moves.
+        if t_now >= LS_ROCKS_FROM:
+            p = (fc >> 1) & 63
+            lead = ((time - p) & 63) < 2
+            lead |= ((time - p - 30) & 63) < 2
+            trail = ((((p - time) & 63) - 1) & 63) < 3
+            trail |= ((((p + 30 - time) & 63) - 1) & 63) < 3
+            out[path & trail & ~lead] = blend(out[path & trail & ~lead], DUST, 2)
+            out[path & lead] = ROCK
+
+    elif hazard == 'landslide' and role == 'aftermath':
+        # 1-px gravel from a spatial hash: dark stones and pale grit.
+        g = hash8(x, y)
+        stone, grit = g < 28, (g >= 28) & (g < 52)
+        # Scarp: fresh soil with gravel.
+        scar = layer & (region == LS_SCAR)
+        out[scar & ~stone] = blend(rgb[scar & ~stone], SOIL, 2)
+        out[scar & stone] = blend(rgb[scar & stone], STONE, 2)
+        # Deposit: mostly opaque earth (a quarter of the base texture shows),
+        # with gravel and a paler advancing edge.
+        dep = covered & (region == LS_DEPOSIT)
+        edge = dep & (age < 2)
+        body = dep & ~edge
+        m = body & ~stone & ~grit
+        out[m] = blend(rgb[m], DEPOSIT, 3)
+        out[body & stone] = blend(rgb[body & stone], STONE, 3)
+        out[body & grit] = blend(rgb[body & grit], DEPOSIT_EDGE, 3)
+        out[edge] = blend(rgb[edge], DEPOSIT_EDGE, 2)
 
     elif hazard == 'flood' and role in ('onset', 'aftermath'):
         if role == 'aftermath':

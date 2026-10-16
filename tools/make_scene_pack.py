@@ -239,7 +239,21 @@ def polygon_t(shape, src, outline=False):
         d.line(pts + [pts[0]], fill=255, width=src.get('width', 3))
     else:
         d.polygon(pts, fill=255)
-    return np.where(np.asarray(m) > 0, src.get('t0', 0), T_NONE).astype(np.uint8)
+    hit = np.asarray(m) > 0
+    if src.get('rough') and not outline:
+        hit = rough(hit, src['rough'], src.get('seed', 1))
+    return np.where(hit, src.get('t0', 0), T_NONE).astype(np.uint8)
+
+
+def rough(mask, amp, seed):
+    """Let a mask edge wander by about amp px with fixed-seed smooth noise."""
+    from PIL import ImageFilter
+    h, w = mask.shape
+    soft = np.asarray(Image.fromarray(mask.astype(np.uint8) * 255).filter(ImageFilter.GaussianBlur(amp)), np.float64)
+    rng = np.random.default_rng(seed)
+    noise = Image.fromarray((rng.random((h // 16 + 2, w // 16 + 2)) * 255).astype(np.uint8))
+    noise = np.asarray(noise.resize((w, h), Image.BICUBIC), np.float64) - 128
+    return soft + noise * 0.8 > 128
 
 
 def source_t(shape, src, base_dir):
@@ -253,22 +267,30 @@ def source_t(shape, src, base_dir):
     if kind in ('polygon', 'outline'):
         return polygon_t(shape, src, kind == 'outline')
     if kind == 'mask':
-        return np.where(load_gray(base_dir / src['file'], shape) >= 128, src.get('t0', 0), T_NONE).astype(np.uint8)
+        hit = load_gray(base_dir / src['file'], shape) >= 128
+        if src.get('rough'):
+            hit = rough(hit, src['rough'], src.get('seed', 1))
+        return np.where(hit, src.get('t0', 0), T_NONE).astype(np.uint8)
     raise SystemExit(f'unknown source type: {kind}')
 
 
 def stage_t3(shape, stage, base_dir):
     """format 3: later sources overwrite earlier ones where they reach.
-    Evacuation stages must keep every route and refuge pixel outside the
-    danger region; any overlap stops the build."""
+    Evacuation stages: refuges must lie outside the danger region; a route may
+    start inside it (homes at the slope foot) but once out must not re-enter.
+    A violation stops the build."""
     T = np.full(shape, T_NONE, np.uint8)
     reach = {}
+    routes = []
     for src in stage.get('sources') or []:
         t = source_t(shape, src, base_dir)
         hit = t < 240
         region = src.get('region', 0)
         T[hit] = (region << 6) | np.minimum(t[hit] >> 2, v3.TIME_MAX)
         reach[region] = reach.get(region, np.zeros(shape, bool)) | hit
+        if region == v3.EVAC_ROUTE and src['type'] == 'polyline':
+            for line in src['lines']:
+                routes.append(polyline_t(shape, {**src, 'lines': [line]}))
     yy, xx = np.mgrid[0:shape[0], 0:shape[1]]
     refuge = np.zeros(shape, bool)
     for x, y, r in stage.get('spots') or []:
@@ -276,12 +298,24 @@ def stage_t3(shape, stage, base_dir):
     T[refuge] = v3.encode(v3.EVAC_REFUGE, 0)
     if stage.get('role') == 'evacuation' and v3.EVAC_DANGER in reach:
         danger = reach[v3.EVAC_DANGER]
-        for name, m in (('route', reach.get(v3.EVAC_ROUTE, np.zeros(shape, bool))), ('refuge', refuge)):
-            bad = m & danger
-            if bad.any():
-                ys, xs = np.nonzero(bad)
-                raise SystemExit(f'{stage.get("name", "evacuation")}: {name} enters the danger zone at '
-                                 f'{int(bad.sum())} px, x {xs.min()}..{xs.max()}, y {ys.min()}..{ys.max()}')
+        name = stage.get('name', 'evacuation')
+
+        def fail(what, bad):
+            ys, xs = np.nonzero(bad)
+            raise SystemExit(f'{name}: {what} at {int(bad.sum())} px, '
+                             f'x {xs.min()}..{xs.max()}, y {ys.min()}..{ys.max()}')
+        if (refuge & danger).any():
+            fail('refuge inside the danger zone', refuge & danger)
+        for n, t in enumerate(routes):
+            on = t < 240
+            inside, outside = on & danger, on & ~danger
+            if outside.any() and inside.any():
+                # Pixels across the line width share times within a few steps.
+                late = inside & (t > t[outside].min() + 4)
+                if late.any():
+                    fail(f'route {n + 1} re-enters the danger zone after leaving it', late)
+            elif inside.any():
+                fail(f'route {n + 1} never leaves the danger zone', inside)
     return T
 
 
