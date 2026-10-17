@@ -37,6 +37,8 @@ parameter integer TIMESTAMP_ENABLE = 1;
 parameter integer TRANSITION_ENABLE = 1;
 parameter integer AUDIO_VIS_ENABLE = 1;
 parameter integer HAZARD_TEST_SOURCE = 1; // M3 temporary t/stage driver; M4 swaps in scenario_fsm
+parameter integer UART_LOG_ENABLE = 0;      // event log on uart_tx; off holds uart_tx idle high
+parameter integer UART_SUBTITLE_ENABLE = 0; // subtitle commands on uart_rx; off keeps the power-on subtitle
 parameter MEM_DATA_BITS = 32;
 parameter integer UART_CLK_FREQ_HZ = 100_000_000;
 parameter integer UART_BAUD_RATE = 115200;
@@ -162,6 +164,9 @@ wire sub_rx_valid, sub_rx_error, sub_reply_valid, sub_reply_last, sub_reply_read
 wire [119:0] sub_text_src, sub_text_pixel;
 wire [3:0] sub_length_src, sub_length_pixel;
 wire sub_enable_src, sub_enable_pixel, sub_text_changed, sub_frame_start;
+osd_pixel_position u_subtitle_position(.clk(video_clk),.rst(rst_video),.vs(vs),.de(de),
+ .line_y(),.frame_start(sub_frame_start),.first_active());
+generate if(UART_SUBTITLE_ENABLE) begin:g_uart_subtitle
 uart_rx_byte #(.CLKS_PER_BIT((UART_CLK_FREQ_HZ+UART_BAUD_RATE/2)/UART_BAUD_RATE)) u_uart_rx (
  .clk(sd_card_clk),.rst_n(~rst_sd),.rx(uart_rx),.data(sub_rx_data),
  .valid(sub_rx_valid),.framing_error(sub_rx_error));
@@ -170,16 +175,26 @@ subtitle_uart_controller u_subtitle_control(
  .rx_framing_error(sub_rx_error),.cfg_text(sub_text_src),.cfg_length(sub_length_src),
  .cfg_enable(sub_enable_src),.cfg_update_valid(),.reply_valid(sub_reply_valid),
  .reply_data(sub_reply_data),.reply_last(sub_reply_last),.reply_ready(sub_reply_ready));
-osd_pixel_position u_subtitle_position(.clk(video_clk),.rst(rst_video),.vs(vs),.de(de),
- .line_y(),.frame_start(sub_frame_start),.first_active());
 subtitle_frame_commit u_subtitle_commit(
  .src_clk(sd_card_clk),.src_rst(rst_sd),.src_text(sub_text_src),
  .src_length(sub_length_src),.src_enable(sub_enable_src),
  .dst_clk(video_clk),.dst_rst(rst_video),.frame_start(sub_frame_start),
  .dst_text(sub_text_pixel),.dst_length(sub_length_pixel),.dst_enable(sub_enable_pixel),
  .text_changed(sub_text_changed));
+end else begin:g_fixed_subtitle
+// subtitle_frame_commit's reset payload held forever: the picture of an idle
+// UART. Text matches DEFAULT_TEXT in subtitle_frame_commit/subtitle_uart_controller.
+assign sub_text_pixel = 120'h0000002041475046208c8b8b8a8389;
+assign sub_length_pixel = 4'd12;
+assign sub_enable_pixel = 1'b1;
+assign sub_text_changed = 1'b0;
+assign sub_reply_valid = 1'b0;
+assign sub_reply_data = 8'd0;
+assign sub_reply_last = 1'b0;
+end endgenerate
 
-uart_event_logger #(.CLK_FREQ_HZ(UART_CLK_FREQ_HZ), .BAUD_RATE(UART_BAUD_RATE), .REPLY_ENABLE(1)) u_uart_logger (
+generate if(UART_LOG_ENABLE) begin:g_uart_log
+uart_event_logger #(.CLK_FREQ_HZ(UART_CLK_FREQ_HZ), .BAUD_RATE(UART_BAUD_RATE), .REPLY_ENABLE(UART_SUBTITLE_ENABLE)) u_uart_logger (
     .clk(sd_card_clk), .rst(rst_sd), .events(uart_diagnostics[57:42]),
     .image_index(uart_diagnostics[41:40]), .sector(uart_diagnostics[39:8]),
     .error_code(uart_diagnostics[7:5]), .phase(uart_diagnostics[4:1]),
@@ -187,6 +202,11 @@ uart_event_logger #(.CLK_FREQ_HZ(UART_CLK_FREQ_HZ), .BAUD_RATE(UART_BAUD_RATE), 
     .reply_valid(sub_reply_valid), .reply_data(sub_reply_data),
     .reply_last(sub_reply_last), .reply_ready(sub_reply_ready)
 );
+end else begin:g_uart_idle
+// Without the logger, subtitle replies are dropped so commands never stall.
+assign uart_tx = 1'b1;
+assign sub_reply_ready = 1'b1;
+end endgenerate
 
 // SDRAM and TF initialization run independently. Only the first scan waits
 // for memory readiness; keep the SD controller out of this dependency loop.

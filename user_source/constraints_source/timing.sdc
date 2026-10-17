@@ -35,12 +35,17 @@ set_max_delay -from [get_clocks sd_card_clk] -to [get_ports sd_dclk] 5.000 -data
 set_output_delay -clock hdmi_5x_clk -max 0.000 [get_ports {HDMI_CLK_P HDMI_D0_P HDMI_D1_P HDMI_D2_P}]
 set_output_delay -clock hdmi_5x_clk -min 0.000 [get_ports {HDMI_CLK_P HDMI_D0_P HDMI_D1_P HDMI_D2_P}]
 set_max_delay -from [get_clocks hdmi_5x_clk] -to [get_ports {HDMI_CLK_P HDMI_D0_P HDMI_D1_P HDMI_D2_P}] 3.500 -datapath_only
+# UART log and subtitle are off by default (top UART_LOG_ENABLE /
+# UART_SUBTITLE_ENABLE = 0): uart_tx is a constant and uart_rx is unused.
+# Restore these constraints together with either parameter. With uart_tx
+# constant, TD drops the -to of the max_delay and applies 10 ns datapath-only
+# to every sd_card_clk path (mountain_attempt27: -15.8 ns on sd_miso).
 # UART is asynchronous at the receiver. Bound only FPGA TX propagation;
 # 10 ns is an engineering budget versus the 8680 ns serial bit interval.
-set_output_delay -clock sd_card_clk -max 0.000 [get_ports uart_tx]
-set_output_delay -clock sd_card_clk -min 0.000 [get_ports uart_tx]
-set_max_delay -from [get_clocks sd_card_clk] -to [get_ports uart_tx] 10.000 -datapath_only
+# set_output_delay -clock sd_card_clk -max 0.000 [get_ports uart_tx]
+# set_output_delay -clock sd_card_clk -min 0.000 [get_ports uart_tx]
+# set_max_delay -from [get_clocks sd_card_clk] -to [get_ports uart_tx] 10.000 -datapath_only
 
 # Asynchronous UART input: TD packs rx_meta into the F12 input PAD FF.
 # Only port-to-input-register timing is exempt; rx_sync remains timed.
-set_false_path -from [get_ports uart_rx] -to [get_cells {uart_rx_syn_4}]
+# set_false_path -from [get_ports uart_rx] -to [get_cells {uart_rx_syn_4}]
