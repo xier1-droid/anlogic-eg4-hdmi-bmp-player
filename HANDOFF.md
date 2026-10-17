@@ -1,3 +1,14 @@
+# 当前交接：v0.17.0 M3 board.2 通过，下一步 M4（2026-10-18）
+
+- 当前任务：v0.17.0 山区防灾避险课堂；M3 v3 已验收（v0.17.0-m3-board.2，候选 m3-local.3），分支 feature/mountain-escape-classroom。
+- 已完成：用户反馈 m3-local.3“板测通过”（整体反馈），记录 releases/v0.17.0/m3-local.3/BOARD_RESULT.md；复用原 bit（670364 字节）。推送分支及 v0.17.0-m3-local.3、v0.17.0-m3-board.2。
+- 资源现状：14111 LUT（72.0%）、BRAM9k 52/64、26/29 DSP，Setup +0.126ns、Hold +0.024ns；串口日志与串口字幕已去掉（参数 UART_LOG_ENABLE / UART_SUBTITLE_ENABLE，恢复时一并恢复 SDC）。DSP 只剩 3 个，M4/M5 新逻辑尽量不用乘法。
+- 卡住的问题：无。
+- 下一步计划：M4——先核实 mode_key_control / switch_mode_control 的 mode 占用，确定场景模式入口与按键映射并写回计划文档；scenario_fsm 替换 hazard_test_source，SND1–4 分阶段音频与 fade_mute，音画同步转场。OSD 布局按已确认方案（右上标题/预警色块/进度条、底部字幕、左下图例，场景模式隐藏左上状态栏、移开音频环）。
+- 踩过的坑：见下一条历史交接（UART 常量端口使 SDC 失效、strategy 5 不再可靠、MSYS 路径改写、被编译错误挡住的测试要整套重跑）。
+
+## 历史交接
+
 # 当前交接：v0.17.0 M3 local.3 已固定，等待板测（2026-10-18）
 
 - 当前任务：v0.17.0 M3 候选 releases/v0.17.0/m3-local.3（v3 四类灾害卡 + 去掉串口日志与串口字幕），标签 v0.17.0-m3-local.3（本地，未推送），分支 feature/mountain-escape-classroom。
