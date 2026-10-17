@@ -26,6 +26,8 @@ LS_DEPOSIT, LS_SCAR = 0, 1
 LS_BODY_FROM = 64       # t_now when the slide body starts to move (rock paths join it)
 LS_ROCKS_FROM = 80      # t_now when rocks start rolling
 LS_DUST_FROM = 140      # t_now when dust starts rising at the slope foot (dense first)
+# Flood onset regions: flooded fields, river channel, overtopped bank top.
+FL_LAND, FL_RIVER, FL_SPILL = 0, 1, 2
 # Debris flow onset regions: slurry, mud on the banks. Aftermath: fan, filled bed.
 DF_FLOW, DF_BANK = 0, 1
 DF_FAN, DF_BED = 0, 1
@@ -49,6 +51,19 @@ def hash8(a, b):
     """8-bit spatial hash from shifts, xors and constant multiplies."""
     h = (a * 73 + b * 151 + (a ^ b) * 37) & 255
     return h ^ (h >> 4)
+
+
+def vnoise(u, v, sx, sy, salt):
+    """Smooth 8-bit value noise: hash8 lattice with cells of 2^sx x 2^sy px,
+    bilinear with 4-bit weights (RTL: 4 hashes, 3 small multiplies)."""
+    cx, cy = (u >> sx) & 255, ((v >> sy) + salt) & 255
+    fx = ((u << 4) >> sx) & 15
+    fy = ((v << 4) >> sy) & 15
+    h00, h10 = hash8(cx, cy), hash8((cx + 1) & 255, cy)
+    h01, h11 = hash8(cx, (cy + 1) & 255), hash8((cx + 1) & 255, (cy + 1) & 255)
+    a = h00 + (((h10 - h00) * fx) >> 4)
+    b = h01 + (((h11 - h01) * fx) >> 4)
+    return a + (((b - a) * fy) >> 4)
 
 
 def encode(region, time):
@@ -241,25 +256,54 @@ def render(rgb, T, hazard, role, t_now, fc, x=None, y=None):
         out[fan & stone & ~big] = blend(rgb[fan & stone & ~big], STONE, 3)
         out[fan & big] = blend(rgb[fan & big], BOULDER, 3)
 
-    elif hazard == 'flood' and role in ('onset', 'aftermath'):
-        # Muddy water whose depth follows how long it has been flooded: shallow
-        # water keeps most of the ground visible, deep water little. Small
-        # foam flecks drift with the current (onset: across the frame to the
-        # right; aftermath: downstream to the lower right). The onset front
-        # is a foam line.
-        if role == 'aftermath':
-            # Whole extent; time is the distance from the river centre line,
-            # so the channel is deep and the overbank shallow.
-            covered, age = layer, np.where(time < 12, 16, 0)
-            fx, fy = (x - fc) >> 1, (y - (fc >> 1)) >> 1
-        else:
-            fx, fy = (x - (fc << 1)) >> 1, y >> 1
-        water = covered & (region == 0)
-        front = water & (age < 2) if role == 'onset' else water & False
-        body = water & ~front
-        k = np.where(age < 6, 1, 2)                    # never opaque: the ground shows through
+    elif hazard == 'flood' and role == 'onset':
+        # Broken water from smooth noise in cells 32 px along the flow by 4 px
+        # across, sliding downstream: high values are white foam, the band
+        # below is lighter rough water.
+        def rough_water(speed, salt):
+            return vnoise((x - speed * fc) & 4095, y & 1023, 5, 2, salt)
+        # River channel (FL_RIVER): a flood wave sweeps downstream (left to
+        # right); its head is a dark churning band; behind it the water is
+        # muddier, keeps the base image's rapids, and carries foam patches.
+        river = covered & (region == FL_RIVER)
+        rhead = river & (age == 0)
+        rbody = river & ~rhead
+        n = rough_water(6, 3)
+        out[rbody] = blend(rgb[rbody], MUD, 1)
+        m = rbody & (n >= 150) & (n < 185)
+        out[m] = blend(rgb[m], RIPPLE, 1)
+        m = rbody & (n >= 185)
+        out[m] = blend(rgb[m], FOAM, 2)
+        out[rhead] = blend(rgb[rhead], MUD, 2)
+        m = rhead & (n >= 120)
+        out[m] = blend(rgb[m], FOAM, 2)
+        # Bank top (FL_SPILL): where the river overtops the bank, water pours
+        # over as falling spray.
+        spill = covered & (region == FL_SPILL)
+        pour = spill & (vnoise(x & 4095, (y - 3 * fc) & 1023, 3, 1, 9) >= 165)
+        out[spill & ~pour] = blend(rgb[spill & ~pour], MUD, 2)
+        out[pour] = blend(rgb[pour], FOAM, 2)
+        # Fields (FL_LAND): muddy water spreading from the overflow, upstream
+        # end first; rough patches run downstream; a thin churning front.
+        land = covered & (region == FL_LAND)
+        front = land & (age == 0)
+        body = land & ~front
+        k = np.where(age < 4, 1, 2)
         out[body] = blend(rgb[body], MUD, k[body])
-        fleck = body & (hash8(fx & 255, fy & 255) < 10)
+        n = rough_water(3, 17)
+        m = body & (n >= 190)
+        out[m] = blend(rgb[m], RIPPLE, 1)
+        churn = front & (vnoise(x & 4095, (y + fc) & 1023, 2, 2, 23) >= 110)
+        out[front & ~churn] = blend(rgb[front & ~churn], FOAM, 1)
+        out[churn] = blend(rgb[churn], FOAM, 2 if fast else 1)
+
+    elif hazard == 'flood' and role == 'aftermath':
+        # Whole extent; time is the distance from the river centre line, so
+        # the channel is deep and the overbank shallow. Small foam flecks
+        # drift downstream (lower right).
+        water = layer & (region == 0)
+        k = np.where(time < 12, 2, 1)
+        out[water] = blend(rgb[water], MUD, k[water])
+        fleck = water & (hash8(((x - fc) >> 1) & 255, ((y - (fc >> 1)) >> 1) & 255) < 10)
         out[fleck] = blend(rgb[fleck], RIPPLE, 2)
-        out[front] = blend(rgb[front], FOAM, 1)
     return out

@@ -245,7 +245,7 @@ def polygon_t(shape, src, outline=False):
     hit = np.asarray(m) > 0
     if src.get('rough') and not outline:
         hit = rough(hit, src['rough'], src.get('seed', 1))
-    if src.get('grade') == 'down':
+    if src.get('grade') in ('down', 'right'):
         return graded_t(shape, src, hit)
     return np.where(hit, src.get('t0', 0), T_NONE).astype(np.uint8)
 
@@ -317,13 +317,15 @@ def crack_t(shape, src):
 
 
 def graded_t(shape, src, hit):
-    """Times for an area that moves from its top edge down (grade: down),
-    broken up by smooth noise so it does not advance as a straight front."""
+    """Times for an area that moves from its top edge down (grade: down) or
+    from its left edge right (grade: right), broken up by smooth noise so it
+    does not advance as a straight front."""
     t0, t1 = time_range(src)
-    ys = np.nonzero(hit)[0]
+    axis = 1 if src.get('grade') == 'right' else 0
+    ys = np.nonzero(hit)[axis]
     if not len(ys):
         return np.full(shape, T_NONE, np.uint8)
-    yy = np.mgrid[0:shape[0], 0:shape[1]][0]
+    yy = np.mgrid[0:shape[0], 0:shape[1]][axis]
     down = (yy - ys.min()) / max(1, ys.max() - ys.min())
     mix = src.get('noise', 0.35)
     f = (1 - mix) * down + mix * smooth_noise(shape, src.get('cell', 24), src.get('seed', 1))
@@ -397,7 +399,7 @@ def source_t(shape, src, base_dir):
         hit = load_gray(base_dir / src['file'], shape) >= 128
         if src.get('rough'):
             hit = rough(hit, src['rough'], src.get('seed', 1))
-        if src.get('grade') == 'down':
+        if src.get('grade') in ('down', 'right'):
             return graded_t(shape, src, hit)
         return np.where(hit, src.get('t0', 0), T_NONE).astype(np.uint8)
     raise SystemExit(f'unknown source type: {kind}')

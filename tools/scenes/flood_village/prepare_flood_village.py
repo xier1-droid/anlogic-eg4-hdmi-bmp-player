@@ -15,6 +15,9 @@ bank, one bridge); PIC2 is the riverbank close-up. Writes, next to this script:
   bank_mask.png          PIC2 overbank flood: from the river edge over the
                          bank and the fields to the lane before the houses
   bank_dem.png           PIC2 cost field: rising away from the river edge
+  river_mask.png         PIC2 river channel between the far-bank rocks and the
+                         near-bank edge
+  spill_mask.png         PIC2 bank top: a 12 px strip below the river edge
 """
 from pathlib import Path
 import sys
@@ -33,6 +36,8 @@ FLOOD = [(116, 108), (150, 136), (184, 168), (214, 196), (244, 222), (266, 244),
 # PIC2 river edge (x, y) from left to right; water is above this line.
 EDGE2 = [(0, 120), (80, 150), (160, 170), (240, 190), (320, 210), (400, 234), (480, 256),
          (560, 276), (640, 290)]
+# PIC2 far-bank rock line (x, y); the river lies between it and EDGE2.
+FAR2 = [(130, 0), (160, 10), (240, 26), (320, 42), (400, 62), (480, 82), (560, 100), (640, 118)]
 # Water stops at the lane in front of the first row of houses.
 HOUSES2 = [(640, 452), (560, 432), (480, 410), (400, 390), (320, 372), (240, 352), (160, 330),
            (80, 306), (0, 286)]
@@ -78,7 +83,13 @@ def main():
     noise = np.random.default_rng(85).random((H // 20 + 2, W // 20 + 2)) * 255
     noise = np.asarray(Image.fromarray(noise.astype(np.uint8)).resize((W, H), Image.BICUBIC), np.float64)
     Image.fromarray(np.clip(40 + d * 0.6 + noise * 0.16, 0, 255).astype(np.uint8)).save(HERE / 'bank_dem.png')
-    print('prepared pic1-4, flood_mask, flood_dem, bank_mask, bank_dem')
+    m = Image.new('L', (W, H), 0)
+    ImageDraw.Draw(m).polygon([(0, 0)] + FAR2 + list(reversed(EDGE2)), fill=255)
+    m.save(HERE / 'river_mask.png')
+    m = Image.new('L', (W, H), 0)
+    ImageDraw.Draw(m).polygon(EDGE2 + [(x, y + 12) for x, y in reversed(EDGE2)], fill=255)
+    ragged(m, 2, 0.6, 6, 87).save(HERE / 'spill_mask.png')
+    print('prepared pic1-4, flood_mask, flood_dem, bank_mask, bank_dem, river_mask, spill_mask')
 
 
 if __name__ == '__main__':
