@@ -1,0 +1,78 @@
+# 泥石流卡（虚构山村，生图 AI 底图 tools/Photo/debris_flow/，不入库）：致因 → 发生 → 后果 → 撤离。
+# 准备：py -I tools/scenes/debris_village/prepare_debris_village.py
+# 生成：py -I tools/make_scene_pack.py tools/scenes/debris_village/scene.yaml --gif
+# 坐标为 640x480 像素。PIC1/PIC3/PIC4 为同一斜俯视构图：窄沟从顶部中间直下，沟口外是平缓草地，
+# 村子在沟口左侧，右岸有两户；PIC2 为沟道近景。
+name: debris_village
+format: 3
+size: [640, 480]
+base: pic1.png
+output: out
+
+stages:
+  - name: 致因：暴雨汇流，沟道内堆满松散土石
+    # 沟口以上、两侧沟壁之间的沟床是物源区：黄色虚线框出。
+    image: pic1.png
+    hazard: debris_flow
+    role: cause
+    sources:
+      - {type: outline, region: 0, width: 3, points: [[322, 30], [374, 30], [394, 120], [408, 200], [418, 272], [346, 272], [340, 200], [330, 120]]}
+
+  - name: 发生：泥石流沿沟道涌下
+    # 沟道近景。稠密泥浆从沟道上游（画面顶部）沿沟床向下涌，龙头翻滚、夹带石块，
+    # 主体有一阵阵向下游推进的浪头，泥浆溅上两侧沟壁下部。
+    image: pic2.png
+    hazard: debris_flow
+    role: onset
+    sources:
+      - type: mask                          # 沟壁溅泥：龙头经过后出现
+        region: 1
+        file: bank_mask.png
+        grade: down
+        noise: 0.25
+        cell: 12
+        seed: 3
+        t0: 30
+        t1: 200
+      - type: mask                          # 泥石流主体：自上而下推进，到 t≈150 冲到沟口
+        region: 0
+        file: flow_mask.png
+        grade: down
+        noise: 0.08
+        cell: 28
+        seed: 2
+        t0: 0
+        t1: 150
+
+  - name: 后果：沟口扇形堆积，冲进村子
+    # 与 PIC1 同构图。沟床被泥石填满；沟口外堆积扇自沟口向下、向两侧扩展，
+    # 盖过草地、道路和石桥，掩埋沟口两侧最近的房屋，并顺沟向下延伸。
+    image: pic3.png
+    hazard: debris_flow
+    role: aftermath
+    sources:
+      - {type: mask, region: 1, file: channel_mask.png}          # 沟床填满
+      - type: seeds                                               # 堆积扇
+        region: 0
+        points: [[372, 270], [384, 270], [396, 270]]
+        mask: fan_mask.png
+        t0: 0
+        t1: 239
+
+  - name: 撤离：向沟道两侧的高处转移，不顺沟、不横穿沟口
+    # 危险区：沟床与沟口堆积扇（含道路、石桥和沟口两侧最近的房屋），由 PIC3 的掩膜给出。
+    # 左线：村子沿上山小路到左上方山坡的避险棚。右线：右岸两户沿小路上到右上方山脊的避险棚。
+    # 两条路线都横向离开沟道，不经过沟口和石桥（工具会检查）。
+    image: pic4.png
+    hazard: debris_flow
+    role: evacuation
+    sources:
+      - {type: mask, region: 1, file: fan_mask.png}
+      - {type: mask, region: 1, file: channel_mask.png}
+      - type: polyline
+        region: 0
+        width: 4
+        lines:
+          - {points: [[200, 262], [178, 236], [168, 212], [166, 190], [172, 160], [174, 140], [160, 118], [134, 104], [110, 90], [102, 72]], t0: 0, t1: 200}
+          - {points: [[512, 322], [502, 300], [512, 272], [530, 246], [546, 216], [536, 186], [522, 160], [530, 132], [546, 104], [560, 78]], t0: 0, t1: 200}
+    spots: [[104, 60, 9], [566, 62, 9]]

@@ -3,8 +3,8 @@
 Per image (BMP header bytes 6-7): hazard type and role. Per pixel (T byte):
 255 = no layer, otherwise region = T[7:6] (0-3) and time = T[5:0] (0-59, in
 units of 4 t_now steps). All effects use integer shifts, masks and adds so the
-RTL can match bit for bit. Draft: rain, evacuation, flood and landslide
-are defined; debris flow and earthquake follow once their base images exist.
+RTL can match bit for bit. Draft: rain, evacuation, flood, landslide and
+debris flow are defined; earthquake follows once its base images exist.
 """
 import numpy as np
 
@@ -26,6 +26,9 @@ LS_DEPOSIT, LS_SCAR = 0, 1
 LS_BODY_FROM = 64       # t_now when the slide body starts to move (rock paths join it)
 LS_ROCKS_FROM = 80      # t_now when rocks start rolling
 LS_DUST_FROM = 140      # t_now when dust starts rising at the slope foot (dense first)
+# Debris flow onset regions: slurry, mud on the banks. Aftermath: fan, filled bed.
+DF_FLOW, DF_BANK = 0, 1
+DF_FAN, DF_BED = 0, 1
 
 RAIN_NEAR, RAIN_FAR = (0xC8, 0xD2, 0xDC), (0xA8, 0xB4, 0xC0)
 ZONE = (0xFF, 0xD0, 0x00)
@@ -38,6 +41,8 @@ CRACK, CRACK_TIP = (0x18, 0x10, 0x08), (0xFF, 0xD0, 0x00)
 SLIDE_DARK, SOIL = (0x3A, 0x2C, 0x1E), (0x9A, 0x78, 0x50)
 ROCK, DUST = (0x50, 0x4C, 0x48), (0xB0, 0xA0, 0x88)
 DEPOSIT, STONE, DEPOSIT_EDGE = (0x7A, 0x5E, 0x40), (0x62, 0x5E, 0x58), (0xB8, 0x9C, 0x78)
+SLURRY, SURGE, HEAD = (0x4E, 0x3A, 0x26), (0x7E, 0x62, 0x42), (0x34, 0x28, 0x1C)
+BOULDER, WET_MUD = (0x58, 0x54, 0x50), (0x5A, 0x44, 0x2E)
 
 
 def hash8(a, b):
@@ -200,6 +205,41 @@ def render(rgb, T, hazard, role, t_now, fc, x=None, y=None):
         out[body & stone] = blend(rgb[body & stone], STONE, 3)
         out[body & grit] = blend(rgb[body & grit], DEPOSIT_EDGE, 3)
         out[edge] = blend(rgb[edge], DEPOSIT_EDGE, 2)
+
+    elif hazard == 'debris_flow' and role == 'onset':
+        # Slurry coats the gully bed: a half blend keeps the bed's own boulders
+        # visible as stones carried in the mud. Surge fronts follow the
+        # arrival-time contours (gentle lobes) and move downstream; the head
+        # is a darker, denser band.
+        flow = covered & (region == DF_FLOW)
+        head = flow & (age < 3)
+        body = flow & ~head
+        surge = body & ((((time << 2) - (fc >> 1)) & 31) < 4)
+        out[body & ~surge] = blend(rgb[body & ~surge], SLURRY, 2)
+        out[surge] = blend(rgb[surge], SURGE, 2)
+        out[head] = blend(rgb[head], HEAD, 3)
+        # Mud splashed on the banks once the head has passed; fresh splashes
+        # are darker, then dry to a thin stain.
+        bank = covered & (region == DF_BANK)
+        out[bank] = blend(rgb[bank], WET_MUD, np.where(age[bank] < 4, 2, 1))
+
+    elif hazard == 'debris_flow' and role == 'aftermath':
+        # Wet debris buries the fan: fresh deposit dark wet mud, older deposit
+        # drying lighter; sparse 1 px gravel and a few 2 px boulders.
+        stone = hash8(x, y) < 18
+        big = hash8(x >> 1, y >> 1) < 8
+        bed = layer & (region == DF_BED)
+        out[bed] = blend(rgb[bed], SLURRY, 2)
+        fan = covered & (region == DF_FAN)
+        fresh = fan & (age < 10)
+        dry = fan & ~fresh
+        out[fresh & ~stone & ~big] = blend(rgb[fresh & ~stone & ~big], WET_MUD, 3)
+        # Successive surges leave lobes: alternate tones every 4 time steps.
+        lobe = ((time >> 2) & 1) == 1
+        out[dry & lobe & ~stone & ~big] = blend(rgb[dry & lobe & ~stone & ~big], DEPOSIT, 3)
+        out[dry & ~lobe & ~stone & ~big] = blend(rgb[dry & ~lobe & ~stone & ~big], DEPOSIT, 2)
+        out[fan & stone & ~big] = blend(rgb[fan & stone & ~big], STONE, 3)
+        out[fan & big] = blend(rgb[fan & big], BOULDER, 3)
 
     elif hazard == 'flood' and role in ('onset', 'aftermath'):
         if role == 'aftermath':
