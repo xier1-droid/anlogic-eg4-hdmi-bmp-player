@@ -34,7 +34,7 @@ module tb_m3_top;
   integer region,tm,t6,age,k;reg layer,covered,fast,slow;
   begin
    model=rgb;
-   if(descriptor[17] || hz<1 || hz>4 || role<1 || role>4)return;
+   if(descriptor[17] || hz<1 || hz>4 || role<1 || role>4)return model;
    layer=T!=8'hff;region=T>>6;tm=T&63;t6=t_now>>2;covered=layer && tm<=t6;age=(t6-tm)&63;
    fast=role==4 || role==3 ? fc[2] : role==2 ? fc[3] : fc[4];slow=fc[5];
    if(hz==1 && role==4)begin
