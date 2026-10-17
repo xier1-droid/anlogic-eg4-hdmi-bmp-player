@@ -2,9 +2,9 @@
 // M3 v3 production top wiring: drive the raw video timing and the frame
 // reader's 32-bit {RGB,T} words, force the layer's frame inputs, and check
 // the brightness/contrast output (identity at 128/128) against the scalar
-// layer of hazard_v3 at adjust_x/adjust_y. Kinds with no rain and no shake
-// keep the check per pixel: landslide evacuation and debris aftermath read
-// T, x, y and frame_cnt; earthquake cause reads the wave/ring regions. Also
+// layer of hazard_v3 at adjust_x/adjust_y. Kinds with no shake keep the
+// check per pixel: landslide evacuation and debris aftermath (with rain)
+// read T, x, y and frame_cnt; earthquake cause reads the wave/ring regions. Also
 // thumbnail bypass, no kind (T ignored) and the black screen before
 // display_valid. The full kind set is covered by tb_m3v3_sweep/card.
 module tb_m3_top;
@@ -29,12 +29,31 @@ module tb_m3_top;
    default:blend[i*8+:8]=(a[i*8+:8]>>2)+(c[i*8+:8]>>1)+(c[i*8+:8]>>2);
   endcase
  endfunction
+ // hazard_v3.rain_masks for one layer: (cell w/h shift, length, vx, vy, salt).
+ function rain_on(input integer px,input integer py,input integer sw,input integer sh,
+  input integer len,input integer vx,input integer vy,input integer salt,input integer density);
+  integer u,v,lu,lv,k,hsh,ox,oy,d;
+  begin
+   u=(px+vx*fc)&4095;v=(py-vy*fc)&16383;
+   lu=u&((1<<sw)-1);lv=v&((1<<sh)-1);
+   k=((u>>sw)*167+(v>>sh)*89+salt)&255;hsh=k^(k>>3);
+   ox=(k>>4)&((1<<(sw-1))-1);oy=(k^(k>>5))&((1<<(sh-1))-1);d=lv-oy;
+   rain_on=hsh<density && d>=0 && d<len && lu==ox+(len>>2)-(d>>2);
+  end
+ endfunction
  // Scalar copies of hazard_v3.render for the three kinds used here.
  function [23:0] model(input [23:0] rgb,input [7:0] T,input integer px,input integer py);
-  integer region,tm,t6,age,k;reg layer,covered,fast,slow;
+  integer region,tm,t6,age,k,density;reg layer,covered,fast,slow;
   begin
    model=rgb;
    if(descriptor[17] || hz<1 || hz>4 || role<1 || role>4)return model;
+   // Rain under the hazard terms (which blend from rgb): cause level 2,
+   // onset/aftermath level 1, none for evacuation and earthquake.
+   if(hz!=4 && role<=3)begin
+    density=role==1 ? 32+(t_now>>2) : 28;
+    if(rain_on(px,py,4,6,14,4,16,0,density))model=blend(model,24'hc8d2dc,2);
+    if(rain_on(px,py,3,5,6,2,8,53,density))model=blend(model,24'ha8b4c0,1);
+   end
    layer=T!=8'hff;region=T>>6;tm=T&63;t6=t_now>>2;covered=layer && tm<=t6;age=(t6-tm)&63;
    fast=role==4 || role==3 ? fc[2] : role==2 ? fc[3] : fc[4];slow=fc[5];
    if(hz==1 && role==4)begin
