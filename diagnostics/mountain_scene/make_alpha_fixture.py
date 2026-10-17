@@ -3,6 +3,8 @@
 Reuses diagnostics/fat32/generate_core_fixtures.py unchanged. PIC1 keeps the
 3x91 size (row stride 12 in both depths) and the same RGB formula; its fourth
 byte carries alpha = (row*7 + col*50 + 5) & 255. PIC2-4 stay 24bpp.
+M3: header bytes 6-7 carry the scene kind: PIC1 (4, 2) = earthquake onset,
+PIC2 (9, 1) is out of range and must read as no kind; PIC3-4 keep 0.
 """
 from pathlib import Path
 import sys
@@ -17,11 +19,16 @@ _bmp24 = core.bmp
 
 
 def bmp(seed):
+    if seed == 2:
+        data = _bmp24(seed)
+        data[6:8] = bytes((9, 1))
+        return data
     if seed != 1:
         return _bmp24(seed)
     width, height, stride = 3, 91, 12
     data = _bmp24(seed)
     core.u16(data, 28, 32)
+    data[6:8] = bytes((4, 2))
     for row in range(height):
         for col in range(width):
             start = 54 + row * stride + col * 4

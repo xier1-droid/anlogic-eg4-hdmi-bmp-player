@@ -88,7 +88,7 @@ module tb_cache_system;
   .frame_error_toggle(error_toggle),.frame_memory_error(memory_error),.reader_error(reader_error),.reader_underflow(underflow),
   .write_finish_toggle(finish_toggle),.display_commit_ack(commit_ack),.display_commit_request(commit_req),
   .write_buf_idx(write_bank),.disp_buf_idx(display_bank),.write_req(req),.write_req_ack(ack),.write_ready(write_ready),.write_en(src_we),.write_data(src_data),
-  .SD_nCS(),.SD_DCLK(),.SD_MOSI(),.SD_MISO(1'b1)
+  .SD_nCS(),.SD_DCLK(),.SD_MOSI(),.SD_MISO(1'b1),.scene_kinds()
  );
  media_commit_cdc cdc(.src_clk(src_clk),.dst_clk(pix_clk),.src_rst(rst),.dst_rst(rst),
   .src_image(committed_image),.src_valid(committed_valid),.src_ready(committed_ready),

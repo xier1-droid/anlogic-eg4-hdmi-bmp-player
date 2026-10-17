@@ -40,7 +40,8 @@ module tb_m1_reader_alpha;
       .write_req(write_req),.write_req_ack(ack),.write_ready(write_ready),.bmp_data_wr_en(pixel_valid),.bmp_data(pixel_rgb),
       .sd_sec_read(raw_req),.sd_sec_read_addr(raw_lba),.sd_sec_read_data(raw_byte),
       .sd_sec_read_data_valid(raw_valid),.sd_sec_read_end(raw_end),.sd_sec_read_failed(raw_failed),
-      .bmp_alpha(pixel_alpha));
+      .bmp_alpha(pixel_alpha),.bmp_kind(kind));
+    wire [5:0] kind;
     // SDRAM word as assembled by sd_card_bmp: {R,G,B,T}.
     wire [31:0] write_word={pixel_rgb,pixel_alpha};
     always @(negedge clk)begin
@@ -104,7 +105,9 @@ module tb_m1_reader_alpha;
         wait(load_done || load_error);@(negedge clk);
         if(load_error || pixels!=(SCALE_TEST?307200:273))$fatal(1,"image %0d failed code=%0d fat=%h pixels=%0d",active_image,bmp_error,fat_error,pixels);
         if((active_image==0) != (alpha_varied!=0))$fatal(1,"image %0d alpha variation %0d",active_image,alpha_varied);
-        $display("PASS M1 reader image=%0d depth=%0d pixels=%0d alpha!=FF=%0d",active_image,active_image==0?32:24,pixels,alpha_varied);
+        // M3 scene kind from header bytes 6-7: PIC1 earthquake onset, others none.
+        if(kind!==(active_image==0 ? 6'b100_010 : 6'd0))$fatal(1,"image %0d scene kind %b",active_image,kind);
+        $display("PASS M1 reader image=%0d depth=%0d pixels=%0d alpha!=FF=%0d kind=%b",active_image,active_image==0?32:24,pixels,alpha_varied,kind);
         repeat(4)@(negedge clk);
       end
       $display("PASS M1 reader alpha case=%0d scale=%0d found=%0d",CASE_ID,SCALE_TEST,found_n);$finish;

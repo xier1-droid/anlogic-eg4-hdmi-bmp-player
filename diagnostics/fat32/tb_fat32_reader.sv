@@ -40,7 +40,7 @@ module tb_fat32_reader;
       .load_done(load_done),.load_error(load_error),.bmp_error(bmp_error),.fat_error(fat_error),.state_code(),
       .write_req(write_req),.write_req_ack(ack),.write_ready(write_ready),.bmp_data_wr_en(pixel_valid),.bmp_data(pixel_rgb),
       .sd_sec_read(raw_req),.sd_sec_read_addr(raw_lba),.sd_sec_read_data(raw_byte),
-      .sd_sec_read_data_valid(raw_valid),.sd_sec_read_end(raw_end),.sd_sec_read_failed(raw_failed),.bmp_alpha());
+      .sd_sec_read_data_valid(raw_valid),.sd_sec_read_end(raw_end),.sd_sec_read_failed(raw_failed),.bmp_alpha(),.bmp_kind());
     always @(negedge clk)begin
       if(rst || !write_req)begin ack=0;delay_ack=0;end
       else begin delay_ack=delay_ack+1;if(delay_ack==40 && TEST_MODE!=4)ack=1;end
