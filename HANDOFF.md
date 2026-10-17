@@ -1,3 +1,22 @@
+# 当前交接：v0.17.0 M3 local.3 已固定，等待板测（2026-10-18）
+
+- 当前任务：v0.17.0 M3 候选 releases/v0.17.0/m3-local.3（v3 四类灾害卡 + 去掉串口日志与串口字幕），标签 v0.17.0-m3-local.3（本地，未推送），分支 feature/mountain-escape-classroom。
+- 已完成：
+  - 去掉 UART 事件日志与 UART 在线字幕（用户决定，数码管 SD 调试页保留）：顶层参数 UART_LOG_ENABLE / UART_SUBTITLE_ENABLE 默认 0，字幕固定为上电默认文案，uart_tx 恒高，timing.sdc 中 UART 约束注释。
+  - 修复两处既有测试问题：顶层 scene_kinds_sd 声明晚于使用（a30408e，b4d1719 起生产顶层无法编译）；tb_m3_top 标量模型补上雨（d35357f）。
+  - 构建 mountain_attempt29_s3（strategy 3）：14111 LUT（72.0%）、BRAM9k 52/64、26 DSP，Setup +0.126ns、Hold +0.024ns，0 ERROR；审计仅多出 uart_tx 无输出延迟。
+  - 仿真：run_m3（m3v3_uart_off3，含 tb_m3_top）、run_m3_uart_off（m3_uart_off2）、18 项回归（m3r_uart_off2）全部通过，回归统计与 local.2 逐项相同。
+- 卡住的问题：无本地阻塞；尚未上板。
+- 下一步计划：用户按 releases/v0.17.0/m3-local.3/BOARD_VALIDATION.md 板测（卡 B–E 为四张 v3 灾害卡）；通过后记录 m3-board.2，推送分支与 m3-local.3/board.2 标签，再进入 M4。
+- 踩过的坑：
+  - uart_tx 变为常量后，`set_max_delay -from sd_card_clk -to [get_ports uart_tx] -datapath_only` 的 -to 失效，TD 把 10 ns datapath-only 套到全部 sd_card_clk 路径（attempt27 sd_miso -15.8 ns）。删端口驱动时要同时处理指向它的约束。
+  - Git Bash 下 vsim 的 `-G/tb/...` 会被改写为 Windows 路径，需 `MSYS_NO_PATHCONV=1`。
+  - attempt28（strategy 5）、attempt29_s2 为 SD 域既有路径 Setup -0.111/-0.272 ns；strategy 3 通过。以前惯用的 strategy 5 不再可靠。
+  - 一个测试台被编译错误挡住时，后面的问题看不到：修好编译后要把整套重跑一遍，不能只看前面的 PASS。
+  - diagnostics/output/m3_uart_off2_release_copy_unused 是误拷进发布目录后移回的副本（含编译库），可再生，未入库。
+
+## 历史交接
+
 # 当前交接：v0.17.0 M3 去掉串口日志与串口字幕（2026-10-18）
 
 - 当前任务：LUT/BRAM 不足（attempt25 16075 LUT、BRAM9k 62/64），按用户决定去掉 UART 事件日志与 UART 在线字幕，数码管 SD 调试页保留。分支 feature/mountain-escape-classroom。
@@ -10,6 +29,7 @@
   - attempt28（strategy 5）、attempt29_s2 为 SD 域既有路径 Setup -0.111/-0.272 ns；strategy 3 通过。
 
 ## 历史交接
+
 
 # 当前交接：v0.17.0 M3 board.1 通过，图层表现重做方案待确认（2026-10-16）
 
