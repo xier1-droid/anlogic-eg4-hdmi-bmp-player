@@ -242,14 +242,24 @@ def render(rgb, T, hazard, role, t_now, fc, x=None, y=None):
         out[fan & big] = blend(rgb[fan & big], BOULDER, 3)
 
     elif hazard == 'flood' and role in ('onset', 'aftermath'):
+        # Muddy water whose depth follows how long it has been flooded: shallow
+        # water keeps most of the ground visible, deep water little. Small
+        # foam flecks drift with the current (onset: across the frame to the
+        # right; aftermath: downstream to the lower right). The onset front
+        # is a foam line.
         if role == 'aftermath':
-            covered, age = layer, (63 - time)          # the whole extent, deepest where earliest
+            # Whole extent; time is the distance from the river centre line,
+            # so the channel is deep and the overbank shallow.
+            covered, age = layer, np.where(time < 12, 16, 0)
+            fx, fy = (x - fc) >> 1, (y - (fc >> 1)) >> 1
+        else:
+            fx, fy = (x - (fc << 1)) >> 1, y >> 1
         water = covered & (region == 0)
         front = water & (age < 2) if role == 'onset' else water & False
         body = water & ~front
-        k = np.where(age < 6, 1, np.where(age < 16, 2, 3))
-        ripple = ((((time << 2) - (fc >> 1)) & 15) < 2)
-        for colour, m in ((RIPPLE, body & ripple), (MUD, body & ~ripple)):
-            out[m] = blend(rgb[m], colour, k[m])
-        out[front] = blend(rgb[front], FOAM, 2 if fast else 1)
+        k = np.where(age < 6, 1, 2)                    # never opaque: the ground shows through
+        out[body] = blend(rgb[body], MUD, k[body])
+        fleck = body & (hash8(fx & 255, fy & 255) < 10)
+        out[fleck] = blend(rgb[fleck], RIPPLE, 2)
+        out[front] = blend(rgb[front], FOAM, 1)
     return out
