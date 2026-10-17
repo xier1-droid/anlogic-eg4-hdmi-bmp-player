@@ -28,6 +28,7 @@ module tb_m1_reader_alpha;
     integer found_n=0,delay_ack=0;
     reg write_ready=1;integer ready_cycles=0;
     always @(negedge clk)begin ready_cycles=ready_cycles+1;write_ready=!SCALE_TEST || ready_cycles%23<13;end
+    wire [5:0] scene_kind;
     fat32_bmp_reader #(.SCALE_ENABLE(SCALE_TEST),.CLK_FREQ_HZ(1000),.TIMEOUT_MS(500),.MAX_VISITED_CLUSTERS(4)) dut(
       .audio_found(),.audio_cluster(),.audio_size(),.audio_spc(),.audio_fat_lba(),.audio_data_lba(),.audio_max_cluster(),
       .a_req(1'b0),.a_lba(32'd0),.a_cancel(1'b0),.a_urgent(1'b0),
@@ -41,7 +42,6 @@ module tb_m1_reader_alpha;
       .sd_sec_read(raw_req),.sd_sec_read_addr(raw_lba),.sd_sec_read_data(raw_byte),
       .sd_sec_read_data_valid(raw_valid),.sd_sec_read_end(raw_end),.sd_sec_read_failed(raw_failed),
       .bmp_alpha(pixel_alpha),.bmp_kind(scene_kind));
-    wire [5:0] scene_kind;
     // SDRAM word as assembled by sd_card_bmp: {R,G,B,T}.
     wire [31:0] write_word={pixel_rgb,pixel_alpha};
     always @(negedge clk)begin
