@@ -64,7 +64,7 @@ def sweep(vec):
 
 def cards(vec, dirs):
     lines = []
-    for d in dirs:
+    for n, d in enumerate(dirs):           # card number in the name: output dirs may share a parent
         d = Path(d)
         for k in range(1, 5):
             bmp = d / 'sd' / f'PIC{k}.BMP'
@@ -72,7 +72,7 @@ def cards(vec, dirs):
             for t in CARD_T[role]:
                 for fc in (CARD_FC if role == 2 else CARD_FC[:2]):
                     out = v3.render(rgb, T, HZ[hz], RL[role], t, fc)
-                    name = f'card_{d.parent.name}_PIC{k}_t{t:03d}_f{fc:03x}.bin'
+                    name = f'card_{n}_PIC{k}_t{t:03d}_f{fc:03x}.bin'
                     (vec / name).write_bytes(out.tobytes())
                     lines.append(f'{bmp.resolve().as_posix()} {t} {fc} {name}\n')
     with open(vec / 'cards.txt', 'w', newline='\n') as f:
