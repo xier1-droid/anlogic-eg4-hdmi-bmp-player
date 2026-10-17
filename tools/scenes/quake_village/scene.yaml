@@ -1,0 +1,150 @@
+# 地震卡（虚构山村，生图 AI 底图 tools/Photo/earthquake/，不入库）：致因 → 发生 → 后果 → 撤离。
+# 准备：py -I tools/scenes/quake_village/prepare_quake_village.py
+# 生成：py -I tools/make_scene_pack.py tools/scenes/quake_village/scene.yaml --gif
+# 坐标为 640x480 像素。PIC1 为正俯视地质图（村子在断层与河流交汇处）；PIC2 为村子近景；
+# PIC3/PIC4 为同一斜俯视全景：村后岩壁和碎石坡，村前是晒谷场和学校操场，再往下是田和小溪。
+name: quake_village
+format: 3
+size: [640, 480]
+base: pic1.png
+output: out
+
+stages:
+  - name: 致因：断层活动，前震 → 主震 → 余震
+    # 地质图。断层线自左下 (0,428) 至右上 (627,0)，穿过村子附近。
+    # 震中用白边空心圆表示，圆越大震级越大：t 16–80 三次小前震；t=96 主震（大圆），
+    # 地震波从震中一圈圈向外扩散；之后余震沿断层陆续出现。断层在主震后发红脉动。
+    image: pic1.png
+    hazard: earthquake
+    role: cause
+    sources:
+      - {type: distance, region: 3, center: [232, 270], step: 6}       # 地震波：时间 = 到震中的距离
+      - type: polyline                                                  # 断层带
+        region: 0
+        width: 5
+        lines:
+          - {points: [[0, 428], [270, 242], [300, 222], [627, 0]], t0: 0, t1: 0}
+      - type: quakes
+        region: 1
+        events:                                                         # [x, y, 半径, 出现时刻]
+          - [420, 140, 3, 16]
+          - [150, 326, 3, 44]
+          - [372, 174, 4, 72]
+          - [232, 270, 16, 96]                                          # 主震
+        aftershocks:
+          near: [240, 264]
+          along: -34                                                    # 断层走向（度，屏幕坐标）
+          spread: 60
+          across: 7
+          count: 34
+          radius: [2, 8]
+          time: [104, 236]
+          seed: 7
+
+  - name: 发生：强烈晃动，墙体开裂，房屋倒塌，落石
+    # 村子近景。t=40 主震到达：画面左右晃动，晃动逐渐减弱；墙面和路面出现裂缝；
+    # 一座老房自屋顶向下垮塌；岩壁碎石坡的石块滚落到后排房屋；倒塌处和坡脚扬起尘土。
+    image: pic2.png
+    hazard: earthquake
+    role: onset
+    sources:
+      - type: dust                                                      # 倒塌处的尘土
+        region: 1
+        soft: 8
+        cell: 14
+        seed: 5
+        points: [[286, 40], [420, 46], [432, 150], [280, 152]]
+      - type: dust                                                      # 坡脚尘土
+        region: 1
+        soft: 8
+        cell: 16
+        seed: 6
+        points: [[430, 70], [640, 80], [640, 160], [436, 150]]
+      - type: polygon                                                   # 倒塌的房屋：自上而下
+        region: 2
+        grade: down
+        noise: 0.3
+        cell: 10
+        seed: 8
+        rough: 2
+        t0: 64
+        t1: 120
+        points: [[300, 98], [392, 96], [398, 138], [300, 140]]
+      - type: rockfall
+        region: 3
+        count: 8
+        seed: 23
+        starts: [[420, 0], [630, 50]]
+        foot: [120, 150]
+        wander: 6
+        start_spread: 40
+        fall: [120, 200]
+        width_min: 3
+        width_max: 5
+      - type: crack                                                     # 墙体裂缝
+        region: 0
+        width_min: 1
+        width_max: 2
+        jitter: 1.5
+        seed: 31
+        lines:
+          - {points: [[160, 140], [166, 152], [162, 166]], t0: 44, t1: 70}
+          - {points: [[300, 252], [306, 262], [302, 278]], t0: 48, t1: 76}
+          - {points: [[470, 282], [478, 292], [474, 306]], t0: 52, t1: 80}
+          - {points: [[90, 290], [98, 302], [94, 318]], t0: 56, t1: 84}
+          - {points: [[560, 290], [566, 300], [562, 314]], t0: 60, t1: 88}
+      - type: crack                                                     # 路面裂缝
+        region: 0
+        width_min: 1.5
+        width_max: 3
+        jitter: 3
+        seed: 33
+        lines:
+          - {points: [[20, 380], [120, 392], [220, 402], [330, 418], [420, 440]], t0: 44, t1: 110}
+
+  - name: 后果：岩壁崩塌，碎石掩埋坡脚房屋，地面沿断层开裂
+    # 与 PIC4 同构图。崩塌碎石自碎石坡坡脚向下扩展，盖住后排房屋；一道地裂缝沿断层迹线
+    # 斜穿村子西侧田地（避开晒谷场和操场）；碎石坡正下方最右侧两户倒塌成废墟。
+    image: pic3.png
+    hazard: earthquake
+    role: aftermath
+    sources:
+      - type: seeds
+        region: 0
+        points: [[420, 140], [470, 152], [520, 154], [570, 166]]
+        mask: debris_mask.png
+        t0: 0
+        t1: 200
+      - type: crack
+        region: 1
+        width_min: 2
+        width_max: 4
+        jitter: 4
+        seed: 41
+        lines:
+          - {points: [[40, 312], [100, 346], [150, 380], [196, 418], [240, 456], [262, 479]], t0: 20, t1: 160}
+      - {type: polygon, region: 2, rough: 2, seed: 43, points: [[536, 228], [578, 226], [580, 246], [538, 248]]}   # 倒塌：坡下第一户
+      - {type: polygon, region: 2, rough: 2, seed: 44, points: [[586, 230], [612, 228], [614, 248], [588, 250]]}   # 倒塌：坡下第二户
+
+  - name: 撤离：离开建筑和山坡，到村前空旷平地
+    # 危险区：岩壁、碎石坡、崩塌堆积范围和后排房屋，以及地裂缝两侧。
+    # 避险点：晒谷场中心、学校操场中心（开阔平地，远离岩壁和房屋）。
+    # 路线从村子沿巷道下到公路，再走小路进入空地，方向背离岩壁（工具会检查）。
+    image: pic4.png
+    hazard: earthquake
+    role: evacuation
+    sources:
+      - {type: polygon, region: 1, points: [[200, 0], [640, 0], [640, 236], [590, 232], [530, 218], [470, 210], [420, 204], [370, 200], [330, 188], [300, 150], [250, 110]]}
+      - type: polyline
+        region: 1
+        width: 16
+        lines:
+          - {points: [[40, 312], [100, 346], [150, 380], [196, 418], [240, 456], [262, 479]], t0: 0, t1: 0}
+      - type: polyline
+        region: 0
+        width: 4
+        lines:
+          - {points: [[150, 196], [168, 214], [196, 236], [226, 252], [252, 272], [268, 288]], t0: 0, t1: 200}
+          - {points: [[440, 196], [436, 220], [430, 248], [440, 270], [458, 292], [470, 310]], t0: 0, t1: 200}
+          - {points: [[560, 214], [566, 236], [556, 258], [532, 280], [508, 300], [490, 316]], t0: 0, t1: 200}
+    spots: [[275, 295, 9], [478, 318, 9]]

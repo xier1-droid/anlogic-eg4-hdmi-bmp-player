@@ -372,8 +372,52 @@ def dust_levels(shape, src):
     return np.where(f >= 0.18, np.clip(lv, 0, 3), -1)
 
 
+def quake_rings(shape, src):
+    """Seismicity map circles: explicit events [x, y, r, t] plus `aftershocks`
+    random events near `near` (count, spread, r range, t range). Returns
+    (white, dark) time maps: a 1-2 px white ring of radius r and a 1 px dark
+    outline just outside it; where rings overlap the earliest event wins."""
+    h, w = shape
+    events = [tuple(e) for e in src.get('events', [])]
+    a = src.get('aftershocks')
+    if a:
+        rng = np.random.default_rng(a.get('seed', 1))
+        cx, cy = a['near']
+        (r0, r1), (t0, t1) = a['radius'], a['time']
+        ang = np.radians(a.get('along', 0))
+        for _ in range(a['count']):
+            u = rng.normal(0, a['spread'])            # along the fault
+            v = rng.normal(0, a.get('across', 6))
+            x = cx + u * np.cos(ang) - v * np.sin(ang)
+            y = cy + u * np.sin(ang) + v * np.cos(ang)
+            r = r0 + (r1 - r0) * rng.random() ** 2      # mostly small
+            events.append((x, y, r, int(rng.uniform(t0, t1))))
+    white = np.full(shape, np.inf)
+    dark = np.full(shape, np.inf)
+    yy, xx = np.mgrid[0:h, 0:w]
+    for x, y, r, t in events:
+        xa, xb = int(max(0, x - r - 3)), int(min(w, x + r + 4))
+        ya, yb = int(max(0, y - r - 3)), int(min(h, y + r + 4))
+        d = np.hypot(xx[ya:yb, xa:xb] - x, yy[ya:yb, xa:xb] - y)
+        width = 2.0 if r >= 8 else 1.2
+        ring = (d >= r - width / 2) & (d <= r + width / 2)
+        edge = (d > r + width / 2) & (d <= r + width / 2 + 1.2)
+        np.minimum(white[ya:yb, xa:xb], np.where(ring, t, np.inf), out=white[ya:yb, xa:xb])
+        np.minimum(dark[ya:yb, xa:xb], np.where(edge, t, np.inf), out=dark[ya:yb, xa:xb])
+    return white, dark
+
+
+def distance_t(shape, src):
+    """Time = distance from `center` / `step` px, capped at 239 (wave field)."""
+    yy, xx = np.mgrid[0:shape[0], 0:shape[1]]
+    d = np.hypot(xx - src['center'][0], yy - src['center'][1]) * 4 / src.get('step', 6)
+    return np.minimum(d, 239).astype(np.uint8)
+
+
 def source_t(shape, src, base_dir):
     kind = src['type']
+    if kind == 'distance':
+        return distance_t(shape, src)
     if kind == 'rockfall':
         out = np.full(shape, T_NONE, np.uint8)
         for line in rockfall_lines(src):
@@ -415,6 +459,12 @@ def stage_t3(shape, stage, base_dir):
     routes = []
     for src in stage.get('sources') or []:
         region = src.get('region', 0)
+        if src['type'] == 'quakes':      # white ring in `region`, dark outline in `region`+1
+            white, dark = quake_rings(shape, src)
+            for reg, tm in ((region + 1, dark), (region, white)):
+                hit = np.isfinite(tm)
+                T[hit] = (reg << 6) | np.minimum(tm[hit].astype(np.int32) >> 2, v3.TIME_MAX)
+            continue
         if src['type'] == 'dust':        # special codes: time 60..63 = dust density 0..3
             lv = dust_levels(shape, src)
             T[lv >= 0] = (region << 6) | (v3.SPECIAL + lv[lv >= 0])

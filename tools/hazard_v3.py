@@ -3,8 +3,8 @@
 Per image (BMP header bytes 6-7): hazard type and role. Per pixel (T byte):
 255 = no layer, otherwise region = T[7:6] (0-3) and time = T[5:0] (0-59, in
 units of 4 t_now steps). All effects use integer shifts, masks and adds so the
-RTL can match bit for bit. Draft: rain, evacuation, flood, landslide and
-debris flow are defined; earthquake follows once its base images exist.
+RTL can match bit for bit. Rain, evacuation, flood, landslide, debris
+flow and earthquake are defined.
 """
 import numpy as np
 
@@ -28,6 +28,15 @@ LS_ROCKS_FROM = 80      # t_now when rocks start rolling
 LS_DUST_FROM = 140      # t_now when dust starts rising at the slope foot (dense first)
 # Flood onset regions: flooded fields, river channel, overtopped bank top.
 FL_LAND, FL_RIVER, FL_SPILL = 0, 1, 2
+# Earthquake cause (geological map): fault band, white ring, dark ring
+# outline, wave field (time = distance from the mainshock).
+EQ_FAULT, EQ_RING, EQ_RING_EDGE, EQ_WAVE = 0, 1, 2, 3
+EQ_MAIN = 96            # t_now of the mainshock
+# Earthquake onset (close-up): cracks, dust (special codes), collapsing
+# house, rockfall paths. Aftermath: debris, ground crack, rubble.
+EQ_CRACK, EQ_DUST, EQ_COLLAPSE, EQ_ROCKS = 0, 1, 2, 3
+EQ_SHOCK = 40           # t_now the shaking starts in the close-up
+EQ_DEBRIS, EQ_GCRACK, EQ_RUBBLE = 0, 1, 2
 # Debris flow onset regions: slurry, mud on the banks. Aftermath: fan, filled bed.
 DF_FLOW, DF_BANK = 0, 1
 DF_FAN, DF_BED = 0, 1
@@ -45,6 +54,10 @@ ROCK, DUST = (0x50, 0x4C, 0x48), (0xB0, 0xA0, 0x88)
 DEPOSIT, STONE, DEPOSIT_EDGE = (0x7A, 0x5E, 0x40), (0x62, 0x5E, 0x58), (0xB8, 0x9C, 0x78)
 SLURRY, SURGE, HEAD = (0x4E, 0x3A, 0x26), (0x7E, 0x62, 0x42), (0x34, 0x28, 0x1C)
 BOULDER, WET_MUD = (0x58, 0x54, 0x50), (0x5A, 0x44, 0x2E)
+FAULT_GLOW, RING_WHITE, RING_DARK = (0xE8, 0x30, 0x20), (0xFA, 0xFA, 0xFA), (0x18, 0x18, 0x18)
+QUAKE_NEW = (0xFF, 0xE0, 0x40)
+TILE, WALL, GAP = (0x40, 0x42, 0x44), (0xA4, 0x96, 0x80), (0x1E, 0x1A, 0x16)
+ROCK_LIGHT = (0x8E, 0x8A, 0x84)
 
 
 def hash8(a, b):
@@ -64,6 +77,18 @@ def vnoise(u, v, sx, sy, salt):
     a = h00 + (((h10 - h00) * fx) >> 4)
     b = h01 + (((h11 - h01) * fx) >> 4)
     return a + (((b - a) * fy) >> 4)
+
+
+def rubble(a, x, y):
+    """Collapsed building: broken roof tiles, wall chunks and dark gaps in
+    2-4 px clumps, 1 px grit; a quarter of the base texture shows."""
+    n = vnoise(x & 4095, y & 1023, 2, 2, 71)
+    g = hash8(x & 255, y & 255)
+    out = np.where((n < 70)[:, None], blend(a, GAP, 2),
+                   np.where((n < 150)[:, None], blend(a, TILE, 2), blend(a, WALL, 2)))
+    grit = g < 24
+    out[grit] = blend(a[grit], STONE, 2)
+    return out
 
 
 def encode(region, time):
@@ -136,7 +161,29 @@ def render(rgb, T, hazard, role, t_now, fc, x=None, y=None):
         for (*_, colour, k), m in zip(RAIN_LAYERS, rain_masks(x, y, fc, rain_density(level, t_now))):
             out[m] = blend(out[m], colour, k)
 
-    if role == 'cause':
+    if hazard == 'earthquake' and role == 'cause':
+        # Seismicity map. The fault band glows faintly while foreshocks occur
+        # and pulses red after the mainshock. Each event is a hollow white
+        # circle with a thin dark outline, appearing at its time (new ones
+        # flash yellow briefly); the mainshock sends rings outward.
+        main6 = EQ_MAIN >> 2
+        fault = layer & (region == EQ_FAULT)
+        if t_now >= EQ_MAIN:
+            out[fault] = blend(rgb[fault], FAULT_GLOW, 3 if fast else 2)
+        elif t_now >= 16:
+            out[fault] = blend(rgb[fault], FAULT_GLOW, 1 + slow)
+        wave = layer & (region == EQ_WAVE)
+        k = t6 - main6 - time
+        front = wave & (k >= 0) & (k < 24) & ((k % 6) == 0)
+        out[front] = blend(rgb[front], RING_WHITE, 1)
+        edge = covered & (region == EQ_RING_EDGE)
+        out[edge] = blend(rgb[edge], RING_DARK, 2)
+        ring = covered & (region == EQ_RING)
+        new = ring & (age < 2)
+        out[ring & ~new] = blend(rgb[ring & ~new], RING_WHITE, 3)
+        out[new] = QUAKE_NEW
+
+    elif role == 'cause':
         # Hazard-prone outline: moving yellow dashes, blinking slowly.
         zone = layer & (region == CAUSE_ZONE) & ((((x + y) >> 2) - (fc >> 3)) & 3 < 2) & (slow == 1)
         out[zone] = blend(rgb[zone], ZONE, 3)
@@ -220,6 +267,60 @@ def render(rgb, T, hazard, role, t_now, fc, x=None, y=None):
         out[body & stone] = blend(rgb[body & stone], STONE, 3)
         out[body & grit] = blend(rgb[body & grit], DEPOSIT_EDGE, 3)
         out[edge] = blend(rgb[edge], DEPOSIT_EDGE, 2)
+
+    elif hazard == 'earthquake' and role == 'onset':
+        # Wall and ground cracks open after the shock.
+        crack = covered & (region == EQ_CRACK)
+        out[crack] = blend(rgb[crack], CRACK, np.where(age[crack] < 2, 2, 3))
+        # A weak house collapses from the roof down into a heap of broken
+        # tiles, wall chunks and dark gaps (smooth-noise clumps, 1 px grit).
+        col = covered & (region == EQ_COLLAPSE)
+        out[col] = rubble(rgb[col], x[col], y[col])
+        # Rocks shaken loose from the scree roll down onto the top row.
+        path = layer & (region == EQ_ROCKS)
+        if t_now >= EQ_SHOCK + 16:
+            p = (fc >> 1) & 63
+            lead = (((time - p) & 63) == 0) | (((time - p - 32) & 63) == 0)
+            puff = (((p - time) & 63) == 1) | (((p + 32 - time) & 63) == 1)
+            out[path & puff & ~lead] = blend(out[path & puff & ~lead], DUST, 1)
+            out[path & lead] = ROCK
+        # Dust (special codes) rises from the collapse and the scree foot.
+        dust = layer & (region == EQ_DUST) & (time >= SPECIAL)
+        level = time - SPECIAL
+        shown = dust & (t_now >= EQ_SHOCK + 24 + ((3 - level) << 4))
+        haze = shown & (level >= 2)
+        out[haze] = blend(out[haze], WALL, np.where(level[haze] == 3, 2, 1))
+        grow = np.minimum(np.maximum(t_now - EQ_SHOCK - 24, 0) >> 2, 16)
+        grain = shown & (hash8(x, (y + (fc >> 1)) & 255) < 4 + (level << 4) + grow)
+        out[grain] = blend(out[grain], DUST, 2)
+        # The whole frame shakes left and right, decaying in four steps.
+        amp = 0 if t_now < EQ_SHOCK else max(0, 4 - ((t_now - EQ_SHOCK) >> 5))
+        s = (0, 1, 0, -1)[fc & 3] * amp
+        if s:
+            out = np.concatenate([np.repeat(out[:, :1], s, 1), out[:, :-s]], 1) if s > 0 else \
+                np.concatenate([out[:, -s:], np.repeat(out[:, -1:], -s, 1)], 1)
+
+    elif hazard == 'earthquake' and role == 'aftermath':
+        # Debris from the collapsed cliff covers the foot of the slope and the
+        # top row of houses; a fresh crack runs along the fault trace; a few
+        # houses are rubble.
+        # Rock debris: a fresh light-grey rock tint over the base texture,
+        # lighter and darker in broad smooth patches, 1 px dark grit; a dusty
+        # advancing edge.
+        deb = covered & (region == EQ_DEBRIS)
+        edge = deb & (age < 2)
+        body = deb & ~edge
+        n = vnoise(x & 4095, y & 1023, 4, 4, 61)
+        lite = body & (n >= 128)
+        out[lite] = blend(rgb[lite], ROCK_LIGHT, 2)
+        out[body & ~lite] = blend(rgb[body & ~lite], STONE, 2)
+        grit = body & (hash8(x, y) < 18)
+        out[grit] = blend(rgb[grit], GAP, 1)
+        out[edge] = blend(rgb[edge], WALL, 2)
+        gc = covered & (region == EQ_GCRACK)
+        out[gc] = blend(rgb[gc], CRACK, 3)
+        rub = layer & (region == EQ_RUBBLE)
+        out[rub] = rubble(rgb[rub], x[rub], y[rub])
 
     elif hazard == 'debris_flow' and role == 'onset':
         # Slurry coats the gully bed: a half blend keeps the bed's own boulders
