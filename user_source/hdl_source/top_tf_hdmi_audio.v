@@ -325,7 +325,8 @@ sd_card_bmp #(
     .SD_nCS            (sd_ncs),
     .SD_DCLK           (sd_dclk),
     .SD_MOSI           (sd_mosi),
-    .SD_MISO           (sd_miso)
+    .SD_MISO           (sd_miso),
+    .scene_kinds       (scene_kinds_sd)
 );
 
 seg7_panel seg7_panel_m0(
@@ -353,10 +354,10 @@ video_timing_data video_timing_data_m0(
     .video_x           (video_x_0)
 );
 
-// The pixel keeps the original read timing and passes the 2-clock hazard
-// layer; SYNC_EXTRA=2 delays x/hs/vs/de to meet it at vout_data_raw.
+// The pixel keeps the original read timing and passes the 10-clock hazard
+// layer; SYNC_EXTRA=10 delays x/hs/vs/de to meet it at vout_data_raw.
 wire [31:0] scene_pixel;wire scene_de;
-video_delay #(.DATA_WIDTH(32),.SYNC_EXTRA(2)) video_delay_m0(
+video_delay #(.DATA_WIDTH(32),.SYNC_EXTRA(10)) video_delay_m0(
     .video_clk         (video_clk),
     .rst               (rst_video),
     .read_en           (video_read_en),
@@ -379,19 +380,25 @@ reg [1:0] scene_de_d;
 always @(posedge video_clk or posedge rst_video)
  if(rst_video)scene_de_d<=2'b00;else scene_de_d<={scene_de_d[0],video_read_en};
 assign scene_de=scene_de_d[1];
-wire [5:0] hazard_frame_cnt;wire [7:0] hazard_t_now;wire [1:0] hazard_stage,hazard_alert;
+// Scene kind ({hazard,role} per image, from BMP header bytes 6-7) crosses
+// to the pixel domain; the kind of the committed image applies from the
+// first frame after the commit, with t restarting.
+wire [23:0] scene_kinds_sd,scene_kinds;
+scene_kind_cdc u_scene_kind_cdc(.src_clk(sd_card_clk),.src_rst(rst_sd),.src_kinds(scene_kinds_sd),
+ .dst_clk(video_clk),.dst_rst(rst_video),.dst_kinds(scene_kinds));
+wire [9:0] hazard_frame_cnt;wire [7:0] hazard_t_now;wire [2:0] hazard_kind_hazard,hazard_kind_role;
 wire hazard_enable;
 generate if(HAZARD_TEST_SOURCE) begin:g_hazard_test
  hazard_test_source u_hazard_test_source(.clk(video_clk),.rst(rst_video),.frame_start(sub_frame_start),.media_update(audio_update),
-  .image_index(audio_image),.frame_cnt(hazard_frame_cnt),.t_now(hazard_t_now),.stage(hazard_stage),
-  .alert_level(hazard_alert));
+  .image_index(audio_image),.kinds(scene_kinds),.frame_cnt(hazard_frame_cnt),.t_now(hazard_t_now),
+  .hazard(hazard_kind_hazard),.role(hazard_kind_role));
  assign hazard_enable=1'b1;
 end else begin:g_no_hazard_source
- assign {hazard_frame_cnt,hazard_t_now,hazard_stage,hazard_alert,hazard_enable}=19'd0;
+ assign {hazard_frame_cnt,hazard_t_now,hazard_kind_hazard,hazard_kind_role,hazard_enable}=25'd0;
 end endgenerate
 hazard_layer u_hazard_layer(.clk(video_clk),.rst(rst_video),.rgb_in(scene_pixel[31:8]),.t_in(scene_pixel[7:0]),
  .de(scene_de),.frame_start(sub_frame_start),
- .t_now(hazard_t_now),.stage(hazard_stage),.alert_level(hazard_alert),.enable(hazard_enable),
+ .t_now(hazard_t_now),.hazard(hazard_kind_hazard),.role(hazard_kind_role),.enable(hazard_enable),
  .thumbnail(preview_pixel),.frame_cnt(hazard_frame_cnt),.rgb_out(vout_data_raw));
 
 // 首图提交前黑屏；提交后一直显示当前显示缓冲区内容

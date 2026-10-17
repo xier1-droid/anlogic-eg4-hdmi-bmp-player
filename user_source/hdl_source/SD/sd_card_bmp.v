@@ -64,7 +64,10 @@ module sd_card_bmp #(
     output                      SD_nCS,
     output                      SD_DCLK,
     output                      SD_MOSI,
-    input                       SD_MISO
+    input                       SD_MISO,
+    // Scene kind of each loaded image ({hazard,role} x 4, image 0 lowest),
+    // written when its load succeeds; 0 for ordinary BMPs.
+    output reg [23:0]           scene_kinds
 );
 
 // FAT32 directory and board controls stay here; cache ownership is independent.
@@ -77,7 +80,7 @@ wire bmp_ready,scan_done,bmp_scan_error,scan_found_valid,bmp_load_done,parser_lo
 wire [31:0] scan_found_cluster,scan_found_size;
 wire [2:0] scan_found_total,parser_error;
 wire [3:0] bmp_state_code,normal_state_code;
-wire bmp_data_wr_en;wire [23:0] bmp_data;wire [7:0] bmp_alpha;
+wire bmp_data_wr_en;wire [23:0] bmp_data;wire [7:0] bmp_alpha;wire [5:0] bmp_kind;
 wire scan_request,scan_accept,scan_result_ready,scan_busy;
 reg scan_result_valid,scan_success,scan_error_seen;
 reg [2:0] img_found_count;
@@ -340,6 +343,16 @@ assign source_frame_error=parser_load_error;
 assign write_en=bmp_data_wr_en && !parser_cancel && !parser_rst;
 // Pixel word {R,G,B,T}: T is the 32bpp alpha byte, FF for 24bpp images.
 assign write_data={bmp_data,bmp_alpha};
+// The image index is taken at load start; the kind table entry changes only
+// on that load's success.
+reg [1:0] kind_idx;
+always @(posedge clk or posedge rst) begin
+ if(rst) begin kind_idx<=0;scene_kinds<=0;end
+ else begin
+  if(load_start_pulse) kind_idx<=load_idx;
+  if(bmp_load_done) scene_kinds[kind_idx*6+:6]<=bmp_kind;
+ end
+end
 
 // Keep original UART event IDs. WAIT phase C/D carries CACHE_DONE/CACHE_HIT.
 // Defer cache/fault records so a concurrent display acknowledgement retains
@@ -417,7 +430,7 @@ fat32_bmp_reader #(.LOAD_BY_INDEX(1),.SCALE_ENABLE(SCALE_ENABLE),.SCAN_AUDIO(AUD
  .state_code(bmp_state_code),.bmp_width(bmp_width),.bmp_height(bmp_height),.write_req(write_req),.write_req_ack(write_req_ack_sync),.write_ready(write_ready),
  .sd_sec_read(sd_sec_read),.sd_sec_read_addr(sd_sec_read_addr),.sd_sec_read_data(sd_sec_read_data),
  .sd_sec_read_data_valid(sd_sec_read_data_valid),.sd_sec_read_end(sd_sec_read_end),.sd_sec_read_failed(sd_sec_read_failed),
- .bmp_data_wr_en(bmp_data_wr_en),.bmp_data(bmp_data),.bmp_alpha(bmp_alpha)
+ .bmp_data_wr_en(bmp_data_wr_en),.bmp_data(bmp_data),.bmp_alpha(bmp_alpha),.bmp_kind(bmp_kind)
 );
 sd_card_top #(.CLK_FREQ_HZ(CLK_FREQ_HZ)) sd_card_top_m0(
  .clk(clk),.rst(sd_local_rst),.SD_nCS(SD_nCS),.SD_DCLK(SD_DCLK),.SD_MOSI(SD_MOSI),.SD_MISO(SD_MISO),

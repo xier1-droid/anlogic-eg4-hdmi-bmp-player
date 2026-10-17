@@ -23,7 +23,12 @@ module fat32_bmp_reader #(
  output bmp_data_wr_en,output [23:0] bmp_data,
  output sd_sec_read,output [31:0] sd_sec_read_addr,
  input [7:0] sd_sec_read_data,input sd_sec_read_data_valid,sd_sec_read_end,sd_sec_read_failed,
- output [7:0] bmp_alpha  // alpha (scene T) beside bmp_data; FF for 24bpp
+ output [7:0] bmp_alpha,  // alpha (scene T) beside bmp_data; FF for 24bpp
+ // Scene kind of the file being loaded, from BMP header bytes 6-7 (hazard,
+ // role; tools/make_scene_pack.py format 3): {hazard[2:0],role[2:0]}, 0 when
+ // either byte is outside 1..4, as in ordinary BMPs. Valid from the header
+ // through load_done.
+ output [5:0] bmp_kind
 );
  localparam IDLE=0,SCAN=1,SELECT=2,HEADER_RESET=3,HEADER_REQ=4,
  HEADER_WAIT=5,HEADER_CHECK=6,SCAN_FINISH=7,WRITE_WAIT=8,
@@ -148,6 +153,17 @@ reg [2:0] header_shift_count;   // header_lba is shifted one bit per cycle
  .frame_commit(),.bmp_done(decode_done),.bmp_error(decode_error),
  .pixel_ready(1'b1),.file_ready(),.image_width(),.image_height(),.pixel_alpha(bmp_alpha));
  end endgenerate
+ reg [7:0] kind_hazard,kind_role;
+ always @(posedge clk or posedge rst)begin
+  if(rst)begin kind_hazard<=0;kind_role<=0;end
+  else if(file_go)begin kind_hazard<=0;kind_role<=0;end
+  else if(stream_valid && state==READ_FILE)begin
+   if(stream_offset==32'd6)kind_hazard<=stream_byte;
+   if(stream_offset==32'd7)kind_role<=stream_byte;
+  end
+ end
+ assign bmp_kind=(kind_hazard>=8'd1 && kind_hazard<=8'd4 && kind_role>=8'd1 && kind_role<=8'd4) ?
+  {kind_hazard[2:0],kind_role[2:0]} : 6'd0;
  localparam integer WAIT_CYCLES=(CLK_FREQ_HZ/1000)*TIMEOUT_MS;
  reg [31:0] ack_wait;
  always @(posedge clk or posedge rst)begin
