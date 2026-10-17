@@ -273,6 +273,7 @@ end
 wire bgm_valid,bgm_ready,bgm_active;
 wire frame_write_ready,frame_refill_priority;
 wire signed [15:0] bgm_left,bgm_right;
+wire [23:0] scene_kinds_sd,scene_kinds;
 sd_card_bmp #(
     .CLK_FREQ_HZ       (100_000_000),
     .SCAN_START_SECTOR (32'd0),
@@ -383,7 +384,6 @@ assign scene_de=scene_de_d[1];
 // Scene kind ({hazard,role} per image, from BMP header bytes 6-7) crosses
 // to the pixel domain; the kind of the committed image applies from the
 // first frame after the commit, with t restarting.
-wire [23:0] scene_kinds_sd,scene_kinds;
 scene_kind_cdc u_scene_kind_cdc(.src_clk(sd_card_clk),.src_rst(rst_sd),.src_kinds(scene_kinds_sd),
  .dst_clk(video_clk),.dst_rst(rst_video),.dst_kinds(scene_kinds));
 wire [9:0] hazard_frame_cnt;wire [7:0] hazard_t_now;wire [2:0] hazard_kind_hazard,hazard_kind_role;
