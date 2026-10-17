@@ -1,3 +1,16 @@
+# 当前交接：v0.17.0 M3 去掉串口日志与串口字幕（2026-10-18）
+
+- 当前任务：LUT/BRAM 不足（attempt25 16075 LUT、BRAM9k 62/64），按用户决定去掉 UART 事件日志与 UART 在线字幕，数码管 SD 调试页保留。分支 feature/mountain-escape-classroom。
+- 已完成：顶层参数 UART_LOG_ENABLE / UART_SUBTITLE_ENABLE（默认 0）隔离相关模块，字幕固定为上电默认文案，uart_tx 恒高，timing.sdc 中 UART 约束注释；run_m3_uart_off（1,804,800 像素逐像素一致 + 变异体检出）与 18 项 M3 回归（m3r_uart_off2）通过；mountain_attempt29_s3 14111 LUT、BRAM9k 52/64、Setup +0.126ns、Hold +0.024ns、0 ERROR，审计仅多出 uart_tx 无输出延迟。详见计划文档“M3 资源”一节。
+- 卡住的问题：run_m3 的 tb_m3_top 在泥石流后果图 x=159 y=9 比对失败；改动前的顶层（a30408e）结果相同，属既有问题——该测试台自 b4d1719 起因顶层编译错误从未实际运行，其标量模型未包含 hazard_v3 中 aftermath 的雨（RAIN_LEVEL aftermath=1）。sweep/card（RTL 对 Python 参考）通过。
+- 下一步计划：修正 tb_m3_top 模型后重跑 run_m3；v3 图层与本次资源调整一起形成 m3-local.3 候选（bit 取 attempt29_s3 或之后的干净构建）交用户上板。
+- 踩过的坑：
+  - uart_tx 变为常量后，`set_max_delay -from sd_card_clk -to [get_ports uart_tx] -datapath_only` 的 -to 失效，TD 把 10 ns datapath-only 套到全部 sd_card_clk 路径（attempt27 sd_miso -15.8 ns）。删端口驱动时要同时处理指向它的约束。
+  - Git Bash 下 vsim 的 `-G/tb/...` 会被改写为 Windows 路径，需 `MSYS_NO_PATHCONV=1`。
+  - attempt28（strategy 5）、attempt29_s2 为 SD 域既有路径 Setup -0.111/-0.272 ns；strategy 3 通过。
+
+## 历史交接
+
 # 当前交接：v0.17.0 M3 board.1 通过，图层表现重做方案待确认（2026-10-16）
 
 - 当前任务：v0.17.0 山区防灾避险课堂；M3 功能已验收（v0.17.0-m3-board.1，候选 m3-local.2），分支 feature/mountain-escape-classroom。

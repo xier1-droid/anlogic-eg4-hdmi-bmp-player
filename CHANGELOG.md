@@ -1,5 +1,7 @@
 # v0.17.0 开发中（未发布）
 
+- M3 资源：去掉串口事件日志与串口在线字幕（顶层参数 UART_LOG_ENABLE / UART_SUBTITLE_ENABLE 默认 0，字幕固定为上电默认文案，uart_tx 恒高，相关 SDC 注释）；数码管 SD 调试页保留。mountain_attempt29_s3：14111 LUT（-1964）、BRAM9k 52/64（-10），Setup +0.126ns、Hold +0.024ns。同时修复顶层 scene_kinds_sd 声明顺序导致的生产顶层编译失败。
+
 - M3 board.1：用户确认 m3-local.2 上板“功能都正常”（整体反馈），复用原 bit。用户同时要求重做图层表现：雨丝改为整屏随机移动的两层雨（不要闪电）；灾害类型定为滑坡、泥石流、山洪、地震，每张卡按“致因 → 灾害 → 撤离”组织。
 - M3 local.2：按用户意见修订 local.1（未上板）——切图时 t 清零；板测卡换为河谷村（生图 AI 底图）；图层 v2 效果（雨丝、近黑裂缝、浑黄泥水按时长加深并带波纹和浪花、流动虚线路线）。14652 LUT、56 BRAM9K、13 DSP，Setup +0.116ns、Hold +0.014ns；52 帧逐像素比对、穷举、链路、顶层与 18 项回归通过。固定 releases/v0.17.0/m3-local.2，待板测。
 - M3 local.1：显示链路插入 hazard_layer（亮度/对比度之前、缩略图旁路），按 T 与临时自增 t 合成灾害图层；video_delay 新增 SYNC_EXTRA 对齐同步。14608 LUT（+384）、56 BRAM9K、13 DSP，Setup +0.103ns、Hold +0.011ns；T×t 穷举与 44 帧 expected 逐像素比对、链路对齐、生产顶层与 18 项受影响回归通过。固定 releases/v0.17.0/m3-local.1，待板测。
