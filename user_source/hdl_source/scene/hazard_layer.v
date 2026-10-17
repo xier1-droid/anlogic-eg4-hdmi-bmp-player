@@ -19,14 +19,12 @@ module hazard_layer #(parameter integer LATENCY=10)(   // fixed; documents the c
  input enable,thumbnail,input [9:0] frame_cnt,
  output reg [23:0] rgb_out
 );
- localparam [23:0] RAIN_NEAR=24'hc8d2dc,RAIN_FAR=24'ha8b4c0,ZONE=24'hffd000,DANGER=24'hd82020;
- localparam [23:0] ROUTE=24'h20c848,DASH=24'haaffbe,ROUTE_TIP=24'hffffff,ROUTE_TIP_OFF=24'h40ff40,REFUGE=24'h00ff00;
- localparam [23:0] MUD=24'h8c6a3c,RIPPLE=24'hc4a874,FOAM=24'hf0e8d6,CRACK=24'h181008;
- localparam [23:0] SLIDE_DARK=24'h3a2c1e,SOIL=24'h9a7850,ROCK=24'h504c48,DUST=24'hb0a088;
- localparam [23:0] DEPOSIT=24'h7a5e40,STONE=24'h625e58,DEPOSIT_EDGE=24'hb89c78;
- localparam [23:0] SLURRY=24'h4e3a26,SURGE=24'h7e6242,HEAD=24'h34281c,BOULDER=24'h585450,WET_MUD=24'h5a442e;
- localparam [23:0] FAULT_GLOW=24'he83020,RING_WHITE=24'hfafafa,RING_DARK=24'h181818,QUAKE_NEW=24'hffe040;
- localparam [23:0] TILE=24'h404244,WALL=24'ha49680,GAP=24'h1e1a16,ROCK_LIGHT=24'h8e8a84;
+ localparam [23:0] RAIN_NEAR=24'hc8d2dc,RAIN_FAR=24'ha8b4c0;
+ // Palette indices; colour terms come from the ROM below.
+ localparam [4:0] ZONE=5'd0,DANGER=5'd1,ROUTE=5'd2,DASH=5'd3,ROUTE_TIP=5'd4,ROUTE_TIP_OFF=5'd5,REFUGE=5'd6,MUD=5'd7;
+ localparam [4:0] RIPPLE=5'd8,FOAM=5'd9,CRACK=5'd10,SLIDE_DARK=5'd11,SOIL=5'd12,ROCK=5'd13,DUST=5'd14,DEPOSIT=5'd15;
+ localparam [4:0] STONE=5'd16,DEPOSIT_EDGE=5'd17,SLURRY=5'd18,SURGE=5'd19,HEAD=5'd20,BOULDER=5'd21,WET_MUD=5'd22,FAULT_GLOW=5'd23;
+ localparam [4:0] RING_WHITE=5'd24,RING_DARK=5'd25,QUAKE_NEW=5'd26,TILE=5'd27,WALL=5'd28,GAP=5'd29,ROCK_LIGHT=5'd30;
  localparam [2:0] LS=3'd1,DF=3'd2,FL=3'd3,EQ=3'd4;
  localparam [2:0] CAUSE=3'd1,ONSET=3'd2,AFTER=3'd3,EVAC=3'd4;
  localparam [1:0] NONE=2'd0,CONST=2'd1,BLEND=2'd2;
@@ -48,6 +46,161 @@ module hazard_layer #(parameter integer LATENCY=10)(   // fixed; documents the c
     endcase
    end
   end
+ endfunction
+
+ // Colour term ROM: {palette index, k} -> k=0 colour, k=1..3 cterm(colour,k).
+ function [23:0] tterm(input [4:0] idx,input [1:0] k);
+  case({idx,k})
+   7'd0:tterm=24'hffd000;   // ZONE k0
+   7'd1:tterm=24'h3f3400;
+   7'd2:tterm=24'h7f6800;
+   7'd3:tterm=24'hbe9c00;
+   7'd4:tterm=24'hd82020;   // DANGER k0
+   7'd5:tterm=24'h360808;
+   7'd6:tterm=24'h6c1010;
+   7'd7:tterm=24'ha21818;
+   7'd8:tterm=24'h20c848;   // ROUTE k0
+   7'd9:tterm=24'h083212;
+   7'd10:tterm=24'h106424;
+   7'd11:tterm=24'h189636;
+   7'd12:tterm=24'haaffbe;   // DASH k0
+   7'd13:tterm=24'h2a3f2f;
+   7'd14:tterm=24'h557f5f;
+   7'd15:tterm=24'h7fbe8e;
+   7'd16:tterm=24'hffffff;   // ROUTE_TIP k0
+   7'd17:tterm=24'h3f3f3f;
+   7'd18:tterm=24'h7f7f7f;
+   7'd19:tterm=24'hbebebe;
+   7'd20:tterm=24'h40ff40;   // ROUTE_TIP_OFF k0
+   7'd21:tterm=24'h103f10;
+   7'd22:tterm=24'h207f20;
+   7'd23:tterm=24'h30be30;
+   7'd24:tterm=24'h00ff00;   // REFUGE k0
+   7'd25:tterm=24'h003f00;
+   7'd26:tterm=24'h007f00;
+   7'd27:tterm=24'h00be00;
+   7'd28:tterm=24'h8c6a3c;   // MUD k0
+   7'd29:tterm=24'h231a0f;
+   7'd30:tterm=24'h46351e;
+   7'd31:tterm=24'h694f2d;
+   7'd32:tterm=24'hc4a874;   // RIPPLE k0
+   7'd33:tterm=24'h312a1d;
+   7'd34:tterm=24'h62543a;
+   7'd35:tterm=24'h937e57;
+   7'd36:tterm=24'hf0e8d6;   // FOAM k0
+   7'd37:tterm=24'h3c3a35;
+   7'd38:tterm=24'h78746b;
+   7'd39:tterm=24'hb4aea0;
+   7'd40:tterm=24'h181008;   // CRACK k0
+   7'd41:tterm=24'h060402;
+   7'd42:tterm=24'h0c0804;
+   7'd43:tterm=24'h120c06;
+   7'd44:tterm=24'h3a2c1e;   // SLIDE_DARK k0
+   7'd45:tterm=24'h0e0b07;
+   7'd46:tterm=24'h1d160f;
+   7'd47:tterm=24'h2b2116;
+   7'd48:tterm=24'h9a7850;   // SOIL k0
+   7'd49:tterm=24'h261e14;
+   7'd50:tterm=24'h4d3c28;
+   7'd51:tterm=24'h735a3c;
+   7'd52:tterm=24'h504c48;   // ROCK k0
+   7'd53:tterm=24'h141312;
+   7'd54:tterm=24'h282624;
+   7'd55:tterm=24'h3c3936;
+   7'd56:tterm=24'hb0a088;   // DUST k0
+   7'd57:tterm=24'h2c2822;
+   7'd58:tterm=24'h585044;
+   7'd59:tterm=24'h847866;
+   7'd60:tterm=24'h7a5e40;   // DEPOSIT k0
+   7'd61:tterm=24'h1e1710;
+   7'd62:tterm=24'h3d2f20;
+   7'd63:tterm=24'h5b4630;
+   7'd64:tterm=24'h625e58;   // STONE k0
+   7'd65:tterm=24'h181716;
+   7'd66:tterm=24'h312f2c;
+   7'd67:tterm=24'h494642;
+   7'd68:tterm=24'hb89c78;   // DEPOSIT_EDGE k0
+   7'd69:tterm=24'h2e271e;
+   7'd70:tterm=24'h5c4e3c;
+   7'd71:tterm=24'h8a755a;
+   7'd72:tterm=24'h4e3a26;   // SLURRY k0
+   7'd73:tterm=24'h130e09;
+   7'd74:tterm=24'h271d13;
+   7'd75:tterm=24'h3a2b1c;
+   7'd76:tterm=24'h7e6242;   // SURGE k0
+   7'd77:tterm=24'h1f1810;
+   7'd78:tterm=24'h3f3121;
+   7'd79:tterm=24'h5e4931;
+   7'd80:tterm=24'h34281c;   // HEAD k0
+   7'd81:tterm=24'h0d0a07;
+   7'd82:tterm=24'h1a140e;
+   7'd83:tterm=24'h271e15;
+   7'd84:tterm=24'h585450;   // BOULDER k0
+   7'd85:tterm=24'h161514;
+   7'd86:tterm=24'h2c2a28;
+   7'd87:tterm=24'h423f3c;
+   7'd88:tterm=24'h5a442e;   // WET_MUD k0
+   7'd89:tterm=24'h16110b;
+   7'd90:tterm=24'h2d2217;
+   7'd91:tterm=24'h433322;
+   7'd92:tterm=24'he83020;   // FAULT_GLOW k0
+   7'd93:tterm=24'h3a0c08;
+   7'd94:tterm=24'h741810;
+   7'd95:tterm=24'hae2418;
+   7'd96:tterm=24'hfafafa;   // RING_WHITE k0
+   7'd97:tterm=24'h3e3e3e;
+   7'd98:tterm=24'h7d7d7d;
+   7'd99:tterm=24'hbbbbbb;
+   7'd100:tterm=24'h181818;   // RING_DARK k0
+   7'd101:tterm=24'h060606;
+   7'd102:tterm=24'h0c0c0c;
+   7'd103:tterm=24'h121212;
+   7'd104:tterm=24'hffe040;   // QUAKE_NEW k0
+   7'd105:tterm=24'h3f3810;
+   7'd106:tterm=24'h7f7020;
+   7'd107:tterm=24'hbea830;
+   7'd108:tterm=24'h404244;   // TILE k0
+   7'd109:tterm=24'h101011;
+   7'd110:tterm=24'h202122;
+   7'd111:tterm=24'h303133;
+   7'd112:tterm=24'ha49680;   // WALL k0
+   7'd113:tterm=24'h292520;
+   7'd114:tterm=24'h524b40;
+   7'd115:tterm=24'h7b7060;
+   7'd116:tterm=24'h1e1a16;   // GAP k0
+   7'd117:tterm=24'h070605;
+   7'd118:tterm=24'h0f0d0b;
+   7'd119:tterm=24'h161310;
+   7'd120:tterm=24'h8e8a84;   // ROCK_LIGHT k0
+   7'd121:tterm=24'h232221;
+   7'd122:tterm=24'h474542;
+   7'd123:tterm=24'h6a6763;
+   default:tterm=24'd0;
+  endcase
+ endfunction
+ // Split form of blend: blend(a,c,k) = aterm(a,k) + cterm(c,k), exactly
+ // (each channel adds two 8-bit terms whose sum stays below 256). The
+ // selection stage folds cterm of its constant colour; C4/C5 add.
+ function [23:0] cterm(input [23:0] c,input [1:0] k);
+  integer i;reg [7:0] q;
+  begin
+   for(i=0;i<3;i=i+1)begin
+    q=c[i*8+:8];
+    case(k) 2'd1:cterm[i*8+:8]=q>>2; 2'd2:cterm[i*8+:8]=q>>1; default:cterm[i*8+:8]=(q>>1)+(q>>2); endcase
+   end
+  end
+ endfunction
+ function [23:0] aterm(input [23:0] a,input [1:0] k);
+  integer i;reg [7:0] p;
+  begin
+   for(i=0;i<3;i=i+1)begin
+    p=a[i*8+:8];
+    case(k) 2'd1:aterm[i*8+:8]=(p>>1)+(p>>2); 2'd2:aterm[i*8+:8]=p>>1; 2'd3:aterm[i*8+:8]=p>>2; default:aterm[i*8+:8]=8'd0; endcase
+   end
+  end
+ endfunction
+ function [23:0] add3(input [23:0] a,input [23:0] b);
+  integer i;begin for(i=0;i<3;i=i+1)add3[i*8+:8]=a[i*8+:8]+b[i*8+:8];end
  endfunction
 
  // Active pixel position of rgb_in.
@@ -177,9 +330,9 @@ module hazard_layer #(parameter integer LATENCY=10)(   // fixed; documents the c
  wire [4:0] grow=t_now<dust_from ? 5'd0 : dust_t[7:2]>=6'd16 ? 5'd16 : dust_t[6:2];
  wire [7:0] grain_thr=8'd4+{2'b00,level,4'b0000}+grow;
  wire grain=hc2<grain_thr;
- reg [1:0] eop,bop;reg aon;reg [23:0] ec,ac,bc;reg [1:0] ek,ak,bk;
+ reg [1:0] eop,bop;reg aon;reg [4:0] ec,ac,bc;reg [1:0] ek,ak,bk;
  always @* begin
-  eop=NONE;ec=24'd0;ek=2'd1;aon=1'b0;ac=24'd0;ak=2'd1;bop=NONE;bc=24'd0;bk=2'd1;
+  eop=NONE;ec=5'd0;ek=2'd1;aon=1'b0;ac=5'd0;ak=2'd1;bop=NONE;bc=5'd0;bk=2'd1;
   if(role==CAUSE && hazard==EQ)begin
    case(reg2)
     2'd0:if(layer2)begin
@@ -295,23 +448,26 @@ module hazard_layer #(parameter integer LATENCY=10)(   // fixed; documents the c
  end
  wire [23:0] near=rain0_2 && v2 ? blend(rgb2,RAIN_NEAR,2'd2) : rgb2;
 
- reg [23:0] rgb3,near3,ec3,ac3,bc3;reg [1:0] eop3,ek3,ak3,bop3,bk3;reg aon3,rain1_3;
+ // Colour terms are folded here: CONST becomes operand 0 + colour.
+ reg [23:0] rgb3,near3,et3,at3,bt3;reg [1:0] eop3,ek3,ak3,bop3,bk3;reg aon3,rain1_3;
  always @(posedge clk)begin
   rgb3<=rgb2;near3<=near;rain1_3<=rain1_2 && v2;
-  eop3<=eop;ec3<=ec;ek3<=ek;aon3<=aon;ac3<=ac;ak3<=ak;bop3<=bop;bc3<=bc;bk3<=bk;
+  eop3<=eop;ek3<=eop==CONST ? 2'd0 : ek;et3<=tterm(ec,eop==CONST ? 2'd0 : ek);
+  aon3<=aon;ak3<=ak;at3<=tterm(ac,ak);
+  bop3<=bop;bk3<=bop==CONST ? 2'd0 : bk;bt3<=tterm(bc,bop==CONST ? 2'd0 : bk);
  end
 
  // ---------------------------------------------------------------- C4
  wire [23:0] rained=rain1_3 ? blend(near3,RAIN_FAR,2'd1) : near3;
- wire [23:0] base=eop3==CONST ? ec3 : eop3==BLEND ? blend(rgb3,ec3,ek3) : rained;
- reg [23:0] base4,ac4,bc4;reg [1:0] ak4,bop4,bk4;reg aon4;
+ wire [23:0] base=eop3!=NONE ? add3(aterm(rgb3,ek3),et3) : rained;
+ reg [23:0] base4,at4,bt4;reg [1:0] ak4,bop4,bk4;reg aon4;
  always @(posedge clk)begin
-  base4<=base;aon4<=aon3;ac4<=ac3;ak4<=ak3;bop4<=bop3;bc4<=bc3;bk4<=bk3;
+  base4<=base;aon4<=aon3;at4<=at3;ak4<=ak3;bop4<=bop3;bt4<=bt3;bk4<=bk3;
  end
 
  // ---------------------------------------------------------------- C5
- wire [23:0] over_a=aon4 ? blend(base4,ac4,ak4) : base4;
- wire [23:0] over_b=bop4==CONST ? bc4 : bop4==BLEND ? blend(over_a,bc4,bk4) : over_a;
+ wire [23:0] over_a=aon4 ? add3(aterm(base4,ak4),at4) : base4;
+ wire [23:0] over_b=bop4!=NONE ? add3(aterm(over_a,bk4),bt4) : over_a;
 
  // de travels beside the pixel (de_d[3] marks over_b) for the shake.
  reg [3:0] de_d;
