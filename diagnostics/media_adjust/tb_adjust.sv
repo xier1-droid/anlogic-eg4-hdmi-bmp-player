@@ -27,7 +27,7 @@ module tb_adjust_decimal;
  reg clk=0,rst=1,vs=1;always #5 clk=~clk;
  reg [7:0] b=128,c=128;reg [3:0] v=10;
  adjust_osd_overlay dut(.clk(clk),.rst(rst),.vs(vs),.de(1'b0),.pixel_x(10'd0),.rgb_in(24'd0),
- .mode(2'd1),.selected(2'd0),.brightness(b),.contrast(c),.volume_level(v),.rgb_out(),.active());
+ .mode(2'd1),.selected(2'd0),.brightness(b),.contrast(c),.volume_level(v),.rgb_out(),.active(),.speed(2'd0),.speed_visible(1'b0));
  function integer number(input [11:0] bcd);
   begin number=bcd[11:8]*100+bcd[7:4]*10+bcd[3:0];end
  endfunction
@@ -102,10 +102,11 @@ module tb_adjust_keys;
  reg clk=0,rst=1,k1=1,k2=1,k4=1;always #5 clk=~clk;
  reg [1:0] mode=0;wire dec,inc,res,sel,nxt,prev,scan,auto_e,activity;
  mode_key_control #(.CLK_FREQ_HZ(1000)) keys(.clk(clk),.rst(rst),.enable(1'b1),.key1(k1),.key2(k2),.key4(k4),.mode(mode),
- .next_event(nxt),.previous_event(prev),.rescan_event(scan),.auto_toggle_event(auto_e),.scene_mode(),.manual_activity(activity),
+ .next_event(nxt),.previous_event(prev),.rescan_event(scan),.auto_toggle_event(auto_e),.scene_mode(),.warn_mode(),.manual_activity(activity),
+
  .adjust_decrease(dec),.adjust_increase(inc),.adjust_restore(res),.adjust_select(sel));
  wire [7:0] b,c;wire [3:0] v;wire [1:0] selected;
- media_adjust_control ctl(clk,rst,mode,dec,inc,res,sel,b,c,v,selected);
+ media_adjust_control ctl(clk,rst,mode,dec,inc,res,sel,b,c,v,selected,1'b0,);
  integer scans=0,autos=0,pictures=0;
  always @(posedge clk)begin if(scan)scans++;if(auto_e)autos++;if(nxt||prev)pictures++;end
  task ticks(input integer t);repeat(t)@(negedge clk);endtask
@@ -135,7 +136,8 @@ module tb_adjust_osd;
  reg [9:0] x=0;reg [1:0] mode=1,selected=0;
  wire [23:0] rgb;wire active;integer yellow=0,white=0,percent=0;
  adjust_osd_overlay dut(.clk(clk),.rst(rst),.vs(vs),.de(de),.pixel_x(x),.rgb_in(24'h804020),
- .mode(mode),.selected(selected),.brightness(8'd128),.contrast(8'd255),.volume_level(4'd10),.rgb_out(rgb),.active(active));
+ .mode(mode),.selected(selected),.brightness(8'd128),.contrast(8'd255),.volume_level(4'd10),.rgb_out(rgb),.active(active),.speed(2'd0),.speed_visible(1'b0));
+
  initial begin
   repeat(3)@(negedge clk);rst=0;vs=0;repeat(3)@(negedge clk);vs=1;
   for(integer y=0;y<55;y++)begin

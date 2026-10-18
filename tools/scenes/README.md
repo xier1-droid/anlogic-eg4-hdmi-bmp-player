@@ -1,6 +1,6 @@
 # 场景包工具使用说明（v0.17.0 M2，图像部分）
 
-`tools/make_scene_pack.py` 按 `scene.yaml` 生成一张场景卡的 PIC1–4.BMP，以及 `hazard_layer` 的参考图像；加 `--audio` 时再生成各阶段音频 SND1–4.PCM（M4，见“阶段音频”一节）。字库和文本（FONT.BIN/TEXT.BIN）在 M5 接入。
+`tools/make_scene_pack.py` 按 `scene.yaml` 生成一张场景卡的 PIC1–4.BMP，以及 `hazard_layer` 的参考图像；加 `--audio` 时再生成各阶段音频 SND1–4.PCM（M4，见“阶段音频”一节）；加 `--text` 时再生成字库和文本 FONT.BIN/TEXT.BIN（M5，见“场景文字”一节）。
 
 设计依据：[02_技术实现.md](../../docs/选题方案/02_技术实现.md) §2.3、§2.4、§4.2、§5。
 
@@ -39,7 +39,22 @@ python -I tools/make_scene_pack.py tools/scenes/flood_village/scene.yaml --audio
 - 输出：`sd/SND1.PCM`…`SND4.PCM`（拷到卡根目录，与 PIC1–4、BGM.PCM 放在一起）和 `audio/SNDn.wav`（试听用）。语音合成的结果取决于本机语音引擎，不保证逐字节可复现；图像部分不受 `--audio` 影响。
 - 四张 v3 卡（滑坡、泥石流、山洪、地震）的 scene.yaml 已写好旁白，关键词对准图层时刻，例如山洪发生图 t=30“河水漫过河堤”（漫顶 t 20 起、淹田 t 24 起），地震发生图 t=40“强烈晃动”（主震到达 t=40）。
 
+## 场景文字 FONT.BIN / TEXT.BIN（M5，`--text`）
+
+```
+python -I tools/make_scene_pack.py tools/scenes/landslide_village/scene.yaml --audio --text
+```
+
+- scene.yaml 顶层 `village:`（村名，预警模式标题）、`warning:`（预警语，预警模式字幕）；每个阶段 `title:`（右上标题，≤16 格）、`subtitle:`（底部滚动字幕，省略时取该阶段旁白各句，句间两个空格）、`legend:`（左下图例，`[[色块, 文字], ...]`，≤38 格）。色块：`danger` 危险区红、`route` 路线绿、`refuge` 避险点绿（闪烁）、`mud` 泥流褐、`zone` 隐患区黄、`fault` 断层红、`rock` 落石灰、`rain` 雨灰蓝（取自 hazard_v3 配色）。
+- 一格 16×16 像素。数字、`:` `.` `-` `!` `?`、空格（含全角 ０–９ ：！？ 和全角空格）用 5×7 字库放大显示，不占字库；其余字符（汉字、全角逗号句号、字母）都作为字形放进 FONT.BIN。
+- FONT.BIN：每字 32 字节，第 r 行为字节 2r（左 8 点）和 2r+1（右 8 点），高位在左；最多 128 字。前 13 个固定是板上原有的 case 字库字形（米醋电子工作室忧郁胆肥嘟的），原字幕“胆子肥嘟嘟的 FPGA”在有 FONT.BIN 时从这里取字；其余按首次出现的顺序用宋体 16px 渲染，与原字库中宋体字形逐点相同。
+- TEXT.BIN v1：`"TX"`、版本 1、段数 14，随后 14 个描述符 `{起始偏移低字节, 高字节, 长度, 类型}`，字符从第 60 字节起。段号固定：0 村名、1–4 阶段标题、5–8 阶段字幕、9 预警语、10–13 阶段图例。字符码：0x00–0x7F 字形序号，0xE0–0xE7 图例色块，0xF0–0xF9 数字，0xFA `:`、0xFB `.`、0xFC `-`、0xFD `!`、0xFE `?`、0xFF 空格。
+- 超出限制（字形多于 128、标题超过 16 格、图例超过 38 格、段超过 255 格、TEXT.BIN 超过 4096 字节）时工具报错退出。
+- 输出：`sd/FONT.BIN`、`sd/TEXT.BIN`（拷到卡根目录），`osd/STAGEn.png` 与 `osd/WARN.png`（场景 OSD 预览：t=239 的进度条，字幕首字放在 x=8）。
+- 四张 v3 卡已写好标题、图例和预警语；村名（青石坡村、黑石沟村、河湾村、断岭村）是占位名，可直接改。卡上没有 FONT.BIN 或 TEXT.BIN 时，场景模式只显示色块、进度条和预警红框，原字幕回退板上字库。
+
 ## scene.yaml
+
 
 ```yaml
 name: demo_village

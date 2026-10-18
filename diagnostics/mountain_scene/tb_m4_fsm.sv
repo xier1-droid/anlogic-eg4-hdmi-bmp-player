@@ -12,7 +12,8 @@ module tb_m4_fsm;
  wire [9:0] fc;wire [7:0] t_now;wire [1:0] stage;wire [2:0] hz,role;wire layer,mute,done;
  scenario_fsm dut(.clk(clk),.rst(rst),.scene_mode_async(scene),.frame_start(frame_start),
   .media_update(media_update),.image_index(image),.image_valid(image_valid),.kinds(kinds),
-  .sample_tick(sample_tick),.audio_running(running),.transition_active(transition),.speed(speed),
+  .sample_tick(sample_tick),.audio_running(running),.transition_active(transition),.speed(speed),.warn_async(1'b0),
+
   .frame_cnt(fc),.t_now(t_now),.stage(stage),.hazard(hz),.role(role),
   .layer_enable(layer),.fade_mute(mute),.stage_done(done));
  integer checks=0;

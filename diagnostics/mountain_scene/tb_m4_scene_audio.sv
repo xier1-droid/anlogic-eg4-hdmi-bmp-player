@@ -3,8 +3,9 @@
 // Each audio file has its own sample pattern, so every player session is
 // identified by its first sample and then compared sample by sample. The card
 // has PIC1-4, BGM, SND1, SND2, SND4 (no SND3). Checks: BGM outside scene
-// mode; long KEY4 switches to the displayed stage's SNDn; KEY1 does nothing
-// in scene mode; KEY2 steps the stage and its file, SND3 falling back to BGM;
+// mode; long KEY4 switches to the displayed stage's SNDn (KEY1 in scene mode
+// is the M5 warning key, covered by tb_m5_scene); KEY2 steps the stage and
+// its file, SND3 falling back to BGM;
 // scene AUTO advances only after scene_stage_done and never while held;
 // rescan in scene mode restarts on SND1; leaving scene mode returns to BGM and
 // KEY1; a card without SND keeps BGM playing across stage changes. The stream
@@ -164,8 +165,6 @@ module tb_m4_scene_audio;
   if(scene_mode)$fatal(1,"scene mode after reset");
   press(4,1100);if(!scene_mode)$fatal(1,"long KEY4 did not enter scene mode");
   expect_file(0,"scene stage 1 SND1");
-  s0=sessions;press(1,100);repeat(30000)@(negedge clk);
-  if(image!=0 || sessions!=s0)$fatal(1,"KEY1 acted in scene mode");
   press(2,100);expect_image(1,"KEY2 stage 2");expect_file(1,"stage 2 SND2");
   press(2,100);expect_image(2,"KEY2 stage 3");expect_file(4,"stage 3 without SND3 falls back to BGM");
   press(2,100);expect_image(3,"KEY2 stage 4");expect_file(3,"stage 4 SND4");
@@ -193,7 +192,8 @@ module tb_m4_scene_audio;
   repeat(20000)@(negedge clk);s0=sessions;
   press(2,100);expect_image(1,"plain card stage 2");repeat(200000)@(negedge clk);
   if(sessions!=s0 || file!=4)$fatal(1,"BGM restarted on a card without SND");
-  $display("PASS M4 scene audio: %0d sessions, %0d exact samples; BGM/SNDn per stage, SND3 fallback, KEY1 reserved, scene AUTO gated by stage end, rescan, exit, plain card",sessions,total);
+  $display("PASS M4 scene audio: %0d sessions, %0d exact samples; BGM/SNDn per stage, SND3 fallback, scene AUTO
+ gated by stage end, rescan, exit, plain card",sessions,total);
   $finish;
  end
  initial begin #900000000;$fatal(1,"scene audio watchdog scan=%0d stream=%0d file=%0d",app.scan_state,app.g_audio.u_stream.state,file);end
