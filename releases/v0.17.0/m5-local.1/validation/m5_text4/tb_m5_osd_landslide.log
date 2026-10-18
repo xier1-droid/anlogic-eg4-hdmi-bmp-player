@@ -1,0 +1,22 @@
+# vsim -c -quiet -voptargs="+acc" -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/m5_text4/unit_work tb_m5_osd -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\m5_text4/tb_m5_osd_landslide.log -do "run -all; quit -f" -gTEXT_FILE=D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/m5_text4/card_landslide/sd/TEXT.BIN -gFONT_FILE=D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/m5_text4/card_landslide/sd/FONT.BIN 
+# Start time: 01:02:40 on Oct 19,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# run -all
+# PASS M5 scene OSD: 24 frames, 7679999 pixels (glyph 31644, symbol 1280, swatch 5616, frame 35328), FONT 3264 B TEXT 296 B
+# ** Note: $finish    : D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/mountain_scene/tb_m5_osd.sv(147)
+#    Time: 418931740 ns  Iteration: 2  Instance: /tb_m5_osd
+# End time: 01:03:00 on Oct 19,2026, Elapsed time: 0:00:20
+# Errors: 0, Warnings: 0

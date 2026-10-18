@@ -1,0 +1,88 @@
+# vsim -c -quiet -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/m5r3_system1/work tb_cache_system -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\m5r3_system1/system.log -do "run -all; quit -f" -gSCALE_TEST=1 
+# Start time: 01:23:20 on Oct 19,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Warning: ../user_source/hdl_source/IP/afifo_16_32_256.v(231): (vopt-2685) [TFMPC] - Too few port connections for 'ram_inst'.  Expected 16, found 14.
+# ** Warning: ../user_source/hdl_source/IP/afifo_16_32_256.v(231): (vopt-2718) [TFMPC] - Missing connection for port 'dib'.
+# ** Warning: ../user_source/hdl_source/IP/afifo_16_32_256.v(231): (vopt-2718) [TFMPC] - Missing connection for port 'doa'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2685) [TFMPC] - Too few port connections for 'write_buf'.  Expected 14, found 11.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'aempty'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'afull'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'valid'.
+# ** Warning: ../user_source/hdl_source/IP/afifo_32_16_256.v(231): (vopt-2685) [TFMPC] - Too few port connections for 'ram_inst'.  Expected 16, found 14.
+# ** Warning: ../user_source/hdl_source/IP/afifo_32_16_256.v(231): (vopt-2718) [TFMPC] - Missing connection for port 'dib'.
+# ** Warning: ../user_source/hdl_source/IP/afifo_32_16_256.v(231): (vopt-2718) [TFMPC] - Missing connection for port 'doa'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_reader.v(50): (vopt-2685) [TFMPC] - Too few port connections for 'read_buf'.  Expected 14, found 11.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_reader.v(50): (vopt-2718) [TFMPC] - Missing connection for port 'aempty'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_reader.v(50): (vopt-2718) [TFMPC] - Missing connection for port 'afull'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_reader.v(50): (vopt-2718) [TFMPC] - Missing connection for port 'valid'.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(25): (vopt-2685) [TFMPC] - Too few port connections for 'loader'.  Expected 32, found 31.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(25): (vopt-2718) [TFMPC] - Missing connection for port 'burst_permit'.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(45): (vopt-2685) [TFMPC] - Too few port connections for 'reader'.  Expected 34, found 30.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(45): (vopt-2718) [TFMPC] - Missing connection for port 'pixel_descriptor'.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(45): (vopt-2718) [TFMPC] - Missing connection for port 'preview_ack'.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(45): (vopt-2718) [TFMPC] - Missing connection for port 'preview_descriptor'.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(45): (vopt-2718) [TFMPC] - Missing connection for port 'preview_request'.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(78): (vopt-2685) [TFMPC] - Too few port connections for 'app'.  Expected 71, found 63.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(78): (vopt-2718) [TFMPC] - Missing connection for port 'preview_descriptor'.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(78): (vopt-2718) [TFMPC] - Missing connection for port 'preview_request'.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(78): (vopt-2718) [TFMPC] - Missing connection for port 'preview_ack'.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(78): (vopt-2718) [TFMPC] - Missing connection for port 'osd_error_code'.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(78): (vopt-2718) [TFMPC] - Missing connection for port 'adjust_select'.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(78): (vopt-2718) [TFMPC] - Missing connection for port 'adjust_restore'.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(78): (vopt-2718) [TFMPC] - Missing connection for port 'adjust_increase'.
+# ** Warning: ../diagnostics/four_bank/tb_cache_system.sv(78): (vopt-2718) [TFMPC] - Missing connection for port 'adjust_decrease'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/osd/cache_osd_checks.svh(61): (vopt-2685) [TFMPC] - Too few port connections for 'scrolling'.  Expected 16, found 13.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/osd/cache_osd_checks.svh(61): (vopt-2718) [TFMPC] - Missing connection for port 'font_valid'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/osd/cache_osd_checks.svh(61): (vopt-2718) [TFMPC] - Missing connection for port 'font_data'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/osd/cache_osd_checks.svh(61): (vopt-2718) [TFMPC] - Missing connection for port 'font_addr'.
+# ** Warning: (vopt-2121) ../user_source/hdl_source/include/sdr_init_ref.enc.v(207): Illegal concatenation of an unsized constant. Will treat it as a 32-bit value.
+# ** Warning: (vopt-2121) ../user_source/hdl_source/include/sdr_wrrd.enc.v(77): Illegal concatenation of an unsized constant. Will treat it as a 32-bit value.
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# run -all
+# TRANSITION progress frames=32 commits=2
+# TRANSITION progress frames=64 commits=3
+# TRANSITION progress frames=96 commits=4
+# TRANSITION progress frames=128 commits=5
+# TRANSITION progress frames=160 commits=6
+# TRANSITION progress frames=192 commits=7
+# TRANSITION progress frames=224 commits=8
+# TRANSITION progress frames=256 commits=9
+# TRANSITION progress frames=288 commits=10
+# TRANSITION progress frames=320 commits=11
+# TRANSITION progress frames=352 commits=12
+# TRANSITION progress frames=384 commits=13
+# TRANSITION progress frames=416 commits=14
+# PASS integrated cache hits/AUTO: starts=4 reads=9028 commits=14
+# TRANSITION progress frames=448 commits=15
+# PASS integrated rescan: pending commit, active load, compact/missing/no card preserve old pixels
+# TRANSITION progress frames=480 commits=18
+# TRANSITION progress frames=512 commits=19
+# PASS integrated ordinary failure retry/skip/manual reload with retained FAT32 volume
+# TRANSITION progress frames=544 commits=21
+# TRANSITION progress frames=576 commits=22
+# PASS integrated timeout keeps cached manual switching
+# PASS cache system: starts=14 completions=10 commits=22 cues=22 hits=15 frames=591 refreshes=365203
+# ** Note: $finish    : ../diagnostics/four_bank/tb_cache_system.sv(390)
+#    Time: 10046370120 ns  Iteration: 1  Instance: /tb_cache_system
+# PCM system observations: 481827 exact samples, 5 sessions; no underrun/overrun
+# PASS S2 origin: 2 AUTO wipes, 15 manual fades
+# PASS transition system: 17 fades, 17 black frames, 183705600 pixels
+# OSD system observations: 598 frame snapshots, 251159248 pixel/blanking checks
+# UART system observations: 4 serial command stages applied at frame boundaries
+# Scroll system observations: 251159248 output checks, 253839 foreground pixels
+# Timestamp system observations: 598 frame edges, 251159248 pixel/blanking checks, 181532 foreground pixels
+# Band system observations: 251159248 output checks, 12155041 dimmed pixels
+# End time: 01:52:55 on Oct 19,2026, Elapsed time: 0:29:35
+# Errors: 0, Warnings: 36

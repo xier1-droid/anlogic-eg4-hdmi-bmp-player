@@ -1,0 +1,114 @@
+# M5 candidate inputs
+
+Baseline v0.16.0; build mountain_attempt32_s3.
+Bit 670364 bytes; 108 inputs compared byte-for-byte.
+21 production inputs changed or added since v0.16.0, saved under sources/; 160 passing simulation logs, 28 mutant logs (expected failures).
+
+- TD_project/demo.al (37078 bytes) [changed]
+- user_source/hdl_source/SD/switch_mode_control.v (1230 bytes)
+- user_source/hdl_source/IP/afifo_16_32_256.v (34859 bytes)
+- user_source/hdl_source/IP/afifo_32_16_256.v (34123 bytes)
+- user_source/hdl_source/IP/sys_pll.v (2567 bytes)
+- user_source/ip_source/s3_single_pll/sys_pll_s3.v (3015 bytes)
+- user_source/hdl_source/IP/video_pll.v (2389 bytes)
+- user_source/hdl_source/SD/ax_debounce.v (2201 bytes)
+- user_source/hdl_source/SD/bmp_read.v (16701 bytes)
+- user_source/hdl_source/SD/color_bar.v (10117 bytes)
+- user_source/hdl_source/SD/frame_fifo_read.v (11953 bytes)
+- user_source/hdl_source/SD/frame_fifo_write.v (12568 bytes)
+- user_source/hdl_source/SD/frame_read_write.v (11450 bytes)
+- user_source/hdl_source/SD/sd_card_bmp.v (29242 bytes) [changed]
+- user_source/hdl_source/SD/sd_card_cmd.v (12324 bytes)
+- user_source/hdl_source/SD/sd_card_sec_read_write.v (8668 bytes)
+- user_source/hdl_source/SD/sd_card_top.v (9081 bytes)
+- user_source/hdl_source/SD/sdram.v (3335 bytes)
+- user_source/hdl_source/SD/seg_decoder.v (766 bytes)
+- user_source/hdl_source/SD/seg7_panel.v (2717 bytes)
+- user_source/hdl_source/SD/seg_scan.v (2121 bytes)
+- user_source/hdl_source/SD/spi_master.v (3794 bytes)
+- user_source/hdl_source/SD/video_define.v (21 bytes)
+- user_source/hdl_source/SD/video_delay.v (2536 bytes) [changed]
+- user_source/hdl_source/video_transition_control.v (1203 bytes)
+- user_source/hdl_source/video_transition_pixels.v (690 bytes)
+- user_source/hdl_source/video_transition_sd_control.v (2445 bytes)
+- user_source/hdl_source/SD/video_timing_data.v (2827 bytes)
+- user_source/hdl_source/include/global_def.v (429 bytes)
+- user_source/hdl_source/include/sdr_as_ram.enc.v (7538 bytes)
+- user_source/hdl_source/hdmi_phy_warpper.v (4250 bytes)
+- user_source/hdl_source/lane_lvds_10_1.v (4850 bytes)
+- user_source/hdl_source/top_tf_hdmi_audio.v (33183 bytes) [changed]
+- user_source/hdl_source/include/sdr_init_ref.enc.v (9059 bytes)
+- user_source/hdl_source/include/sdr_wrrd.enc.v (15637 bytes)
+- user_source/hdl_source/SD/dual_key_event_router.v (6608 bytes)
+- user_source/hdl_source/SD/key_gesture_control.v (4088 bytes)
+- user_source/hdl_source/SD/media_display_control.v (2121 bytes)
+- user_source/hdl_source/SD/media_player_control.v (4040 bytes)
+- user_source/hdl_source/SD/media_policy.v (494 bytes)
+- user_source/hdl_source/SD/key_press_debounce.v (1409 bytes)
+- user_source/hdl_source/SD/mode_key_control.v (7977 bytes) [changed]
+- user_source/hdl_source/audio/pcm_test_tone.v (2908 bytes)
+- user_source/hdl_source/hdmi_audio/hdmi_audio_acr_packetizer.v (2323 bytes)
+- user_source/hdl_source/hdmi_audio/hdmi_audio_infoframe_packetizer.v (1632 bytes)
+- user_source/hdl_source/hdmi_audio/hdmi_audio_packet_scheduler.v (3593 bytes)
+- user_source/hdl_source/hdmi_audio/hdmi_audio_sample_packetizer.v (5901 bytes)
+- user_source/hdl_source/hdmi_audio/hdmi_audio_symbol_core.v (9898 bytes)
+- user_source/hdl_source/hdmi_audio/hdmi_bch8.v (982 bytes)
+- user_source/hdl_source/hdmi_audio/hdmi_data_island_mapper.v (1691 bytes)
+- user_source/hdl_source/hdmi_audio/hdmi_data_island_scheduler.v (6450 bytes)
+- user_source/hdl_source/hdmi_audio/hdmi_terc4_encoder.v (900 bytes)
+- user_source/hdl_source/hdmi_audio/hdmi_tmds_channel_encoder.v (4202 bytes)
+- user_source/hdl_source/hdmi_audio/media_hdmi_audio_bridge.v (2854 bytes)
+- user_source/hdl_source/audio/fat32_pcm_stream.v (4846 bytes)
+- user_source/hdl_source/audio/pcm_stream_player.v (5095 bytes)
+- user_source/hdl_source/audio/audio_source_mux.v (1053 bytes)
+- user_source/hdl_source/audio/pcm_media_tone.v (10011 bytes)
+- user_source/hdl_source/audio/media_commit_cdc.v (1176 bytes)
+- user_source/hdl_source/reset_sync.v (411 bytes)
+- user_source/hdl_source/uart/uart_tx_byte.v (1267 bytes)
+- user_source/hdl_source/uart/uart_boot_reporter.v (1169 bytes)
+- user_source/hdl_source/uart/uart_event_logger.v (12970 bytes)
+- user_source/hdl_source/SD/bmp24_decoder.v (6039 bytes) [changed]
+- user_source/hdl_source/SD/bmp_header_check.v (6671 bytes)
+- user_source/hdl_source/SD/sd_sector_adapter.v (3864 bytes)
+- user_source/hdl_source/SD/sd_sector_service.v (3867 bytes)
+- user_source/hdl_source/SD/fat32_volume_scanner.v (20743 bytes) [changed]
+- user_source/hdl_source/SD/fat32_file_streamer.v (10105 bytes)
+- user_source/hdl_source/SD/fat32_bmp_reader.v (18150 bytes) [changed]
+- user_source/hdl_source/SD/media_frame_loader.v (7019 bytes)
+- user_source/hdl_source/SD/media_thumbnail_loader.v (4544 bytes)
+- user_source/hdl_source/SD/media_preview_control.v (2842 bytes)
+- user_source/hdl_source/SD/thumbnail_address.v (1603 bytes)
+- user_source/hdl_source/SD/thumbnail_layout.v (768 bytes)
+- user_source/hdl_source/SD/media_frame_reader.v (4346 bytes)
+- user_source/hdl_source/SD/media_frame_cache_control.v (12619 bytes)
+- user_source/hdl_source/SD/media_frame_load_control.v (3743 bytes)
+- user_source/hdl_source/osd/osd_font_5x7.v (9182 bytes)
+- user_source/hdl_source/osd/osd_font_cn_16x16.v (3458 bytes)
+- user_source/hdl_source/osd/osd_status_cdc.v (1438 bytes)
+- user_source/hdl_source/osd/status_osd_overlay.v (2926 bytes)
+- user_source/hdl_source/osd/scroll_text_overlay.v (5982 bytes) [changed]
+- user_source/hdl_source/osd/osd_alpha_band.v (992 bytes)
+- user_source/hdl_source/osd/osd_pixel_position.v (939 bytes)
+- user_source/hdl_source/uart/uart_rx_byte.v (2946 bytes)
+- user_source/hdl_source/uart/subtitle_uart_controller.v (7158 bytes)
+- user_source/hdl_source/osd/subtitle_frame_commit.v (1910 bytes)
+- user_source/hdl_source/osd/timestamp_osd.v (2490 bytes)
+- user_source/hdl_source/audio_vis/audio_ring_levels.v (3245 bytes)
+- user_source/hdl_source/audio_vis/audio_ring_rom.v (247997 bytes)
+- user_source/hdl_source/audio_vis/audio_ring_overlay.v (2333 bytes)
+- user_source/hdl_source/SD/image_scale_nearest.v (4753 bytes) [changed]
+- user_source/hdl_source/SD/bmp_sector_buffer.v (1556 bytes)
+- user_source/hdl_source/SD/bmp_scale_stream.v (4369 bytes) [changed]
+- user_source/hdl_source/adjust/adjust_osd_overlay.v (3514 bytes) [changed]
+- user_source/hdl_source/adjust/brightness_contrast_adjust.v (2048 bytes)
+- user_source/hdl_source/scene/hazard_layer.v (21178 bytes) [changed]
+- user_source/hdl_source/scene/hazard_test_source.v (1129 bytes) [changed]
+- user_source/hdl_source/scene/scene_kind_cdc.v (1097 bytes) [changed]
+- user_source/hdl_source/scene/scenario_fsm.v (4029 bytes) [changed]
+- user_source/hdl_source/scene/bin_to_bram_loader.v (1205 bytes) [changed]
+- user_source/hdl_source/scene/scene_osd.v (6895 bytes) [changed]
+- user_source/hdl_source/adjust/media_adjust_cdc.v (1018 bytes)
+- user_source/hdl_source/adjust/media_adjust_control.v (1560 bytes) [changed]
+- user_source/hdl_source/adjust/pcm_master_volume.v (1665 bytes) [changed]
+- user_source/constraints_source/pin.adc (5914 bytes)
+- user_source/constraints_source/timing.sdc (4117 bytes) [changed]

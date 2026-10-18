@@ -1,0 +1,31 @@
+# vsim -c -quiet -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/m5_m1_1/work tb_m1_alpha_stream -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\m5_m1_1/tb_m1_alpha_stream.log -do "run -all; quit -f" 
+# Start time: 01:07:54 on Oct 19,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# run -all
+# PASS alpha stream 32bpp 640x480 bytes=1228854 pixels=307200 letterbox=0 alphaFF=1200 other=306000
+# PASS alpha stream 32bpp 160x120 bytes=76854 pixels=307200 letterbox=0 alphaFF=1216 other=305984
+# PASS alpha stream 32bpp 1920x1080 bytes=8294454 pixels=307200 letterbox=76800 alphaFF=77701 other=229499
+# PASS alpha stream 32bpp 801x601 bytes=1925658 pixels=307200 letterbox=480 alphaFF=1672 other=305528
+# PASS alpha stream 32bpp 1080x1920 bytes=8294454 pixels=307200 letterbox=177600 alphaFF=179624 other=127576
+# PASS alpha stream 32bpp 3x91 bytes=1146 pixels=307200 letterbox=300000 alphaFF=300055 other=7145
+# PASS alpha stream 24bpp 640x480 bytes=921654 pixels=307200 letterbox=0 alphaFF=307200 other=0
+# PASS alpha stream 24bpp 801x601 bytes=1444858 pixels=307200 letterbox=480 alphaFF=307200 other=0
+# PASS alpha stream 24bpp 1920x1080 bytes=6220854 pixels=307200 letterbox=76800 alphaFF=307200 other=0
+# PASS alpha stream suite
+# ** Note: $finish    : D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/mountain_scene/tb_m1_alpha_stream.sv(72)
+#    Time: 929591200 ns  Iteration: 1  Instance: /tb_m1_alpha_stream
+# End time: 01:08:56 on Oct 19,2026, Elapsed time: 0:01:02
+# Errors: 0, Warnings: 0
