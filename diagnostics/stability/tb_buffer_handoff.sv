@@ -24,7 +24,7 @@ module tb_buffer_handoff;
         .display_commit_request(commit_request),.display_commit_ack(commit_ack),
         .write_req(req),.write_req_ack(ack),.write_en(we),.write_data(data),
         .SD_nCS(),.SD_DCLK(),.SD_MOSI(),.SD_MISO(1'b1)
-    );
+    ,.warn_mode(),.bin_wr(),.bin_sel(),.bin_addr(),.bin_data(),.font_loaded(),.text_loaded());
     defparam dut.bmp_read_m0.PIXEL_GAP = SOURCE_GAP;
     reg read_req=0, read_en=0;
     wire read_ack, read_finish, rd_en, wr_en;

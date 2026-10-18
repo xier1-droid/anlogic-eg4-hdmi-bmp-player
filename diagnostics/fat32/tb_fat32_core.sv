@@ -37,7 +37,7 @@ module tb_fat32_core;
         .sector_req(scan_req),.sector_lba(scan_lba),.sector_busy(sector_busy),
         .sector_valid(!owner && sector_valid),.sector_byte(sector_byte),.sector_byte_index(sector_index),
         .sector_done(!owner && sector_done),.sector_error(sector_error)
-    );
+    ,.font_found(),.text_found(),.font_big(),.text_big(),.font_cluster(),.text_cluster(),.font_size(),.text_size());
     fat32_file_streamer #(.MAX_VISITED_CLUSTERS(4)) streamer (
         .clk(clk),.rst_n(!rst),.file_start(file_start),.data_permit(1'b1),.first_cluster(selected_cluster),.file_size(selected_size),
         .sectors_per_cluster(spc),.fat_start_lba(fat_lba),.data_start_lba(data_lba),.max_cluster(max_cluster),

@@ -8,7 +8,7 @@ module tb_scroll_params;
  scroll_text_overlay #(.TEXT_LEN(1),.TEXT("A"),.WINDOW_LEFT(4),
   .WINDOW_RIGHT(36),.TEXT_Y(4),.PIXELS_PER_FRAME(5)) dut(
   .clk(clk),.rst(rst),.vs(vs),.de(de),.pixel_x(x),.image_valid(valid),
-  .rgb_in(24'h123456),.rgb_out(rgb),.active(active),.runtime_text(120'd0),.runtime_length(4'd0),.runtime_enable(1'b1),.runtime_text_changed(1'b0));
+  .rgb_in(24'h123456),.rgb_out(rgb),.active(active),.runtime_text(120'd0),.runtime_length(4'd0),.runtime_enable(1'b1),.runtime_text_changed(1'b0),.font_addr(),.font_data(16'd0),.font_valid(1'b0));
  reg [34:0] bitmap={5'b01110,5'b10001,5'b10001,5'b11111,5'b10001,5'b10001,5'b10001};
  integer f,y,col,step=0,lx,gx,gy,checks=0;
  bit hit;

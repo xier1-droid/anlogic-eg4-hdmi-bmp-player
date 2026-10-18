@@ -29,7 +29,7 @@ module tb_timeout_control;
         .committed_image(image_id),.committed_valid(committed),.committed_ready(1'b1),
         .write_finish_toggle(finish),.display_commit_ack(commit_pipe[3]),.display_commit_request(commit_req),
         .write_buf_idx(wb),.disp_buf_idx(db),.write_req(req),.write_req_ack(ack_pipe[3]),
-        .write_en(we),.write_data(rgb),.SD_nCS(),.SD_DCLK(),.SD_MOSI(),.SD_MISO(1'b1));
+        .write_en(we),.write_data(rgb),.SD_nCS(),.SD_DCLK(),.SD_MOSI(),.SD_MISO(1'b1),.warn_mode(),.bin_wr(),.bin_sel(),.bin_addr(),.bin_data(),.font_loaded(),.text_loaded());
     sim_bmp_sectors #(.WIDTH(4),.HEIGHT(1),.FAT32(1)) card(.clk(clk),.rst(rst),
         .request(dut.sd_sec_read),.address(dut.sd_sec_read_addr),.bad_headers(bad),
         .data(data),.valid(dv),.sector_end(ending),.busy(card_busy));

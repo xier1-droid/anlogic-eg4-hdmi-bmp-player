@@ -7,9 +7,9 @@ module tb_scroll_text;
  wire active;
  always #5 clk=~clk;
  scroll_text_overlay dut(.clk(clk),.rst(rst),.vs(vs),.de(de),.pixel_x(x),
-  .image_valid(image_valid),.rgb_in(rgb),.rgb_out(out_rgb),.active(active),.runtime_text(120'd0),.runtime_length(4'd0),.runtime_enable(1'b1),.runtime_text_changed(1'b0));
+  .image_valid(image_valid),.rgb_in(rgb),.rgb_out(out_rgb),.active(active),.runtime_text(120'd0),.runtime_length(4'd0),.runtime_enable(1'b1),.runtime_text_changed(1'b0),.font_addr(),.font_data(16'd0),.font_valid(1'b0));
  scroll_text_overlay #(.ENABLE(0)) off_dut(.clk(clk),.rst(rst),.vs(vs),.de(de),.pixel_x(x),
-  .image_valid(image_valid),.rgb_in(rgb),.rgb_out(bypass),.active(),.runtime_text(120'd0),.runtime_length(4'd0),.runtime_enable(1'b1),.runtime_text_changed(1'b0));
+  .image_valid(image_valid),.rgb_in(rgb),.rgb_out(bypass),.active(),.runtime_text(120'd0),.runtime_length(4'd0),.runtime_enable(1'b1),.runtime_text_changed(1'b0),.font_addr(),.font_data(16'd0),.font_valid(1'b0));
  string slogan="ANLOGIC FPGA IMAGE PLAYER";
  integer expected_step=0,frames=0,checks=0,foreground=0;
  bit expected_started=0;

@@ -5,7 +5,7 @@ module preview_osd_chain(input clk,rst,vs,de,input [9:0] x,input [23:0] rgb,inpu
  status_osd_overlay status(.clk(clk),.rst(rst),.vs(vs),.de(de),.pixel_x(x),.rgb_in(rgb),.image_index(id),
  .image_valid(valid),.auto_enabled(1'b1),.error_code(8'd0),.rgb_out(a),.active(sa));
  scroll_text_overlay #(.CN_ENABLE(1),.RUNTIME_ENABLE(1)) scroll(.clk(clk),.rst(rst),.vs(vs),.de(de),.pixel_x(x),.image_valid(valid),
- .rgb_in(a),.rgb_out(b),.active(sb),.runtime_text(120'h414243),.runtime_length(4'd3),.runtime_enable(!preview),.runtime_text_changed(1'b0));
+ .rgb_in(a),.rgb_out(b),.active(sb),.runtime_text(120'h414243),.runtime_length(4'd3),.runtime_enable(!preview),.runtime_text_changed(1'b0),.font_addr(),.font_data(16'd0),.font_valid(1'b0));
  timestamp_osd timer(.clk(clk),.rst(rst),.vs(vs),.de(de),.pixel_x(x),.rgb_in(b),.rgb_out(c),.active(sc));
  osd_alpha_band #(.RUNTIME_ENABLE(1)) band(.clk(clk),.rst(rst),.vs(vs),.de(de),.pixel_x(x),.rgb_in(c),.glyph_active(sa||sb||sc),
  .subtitle_enable(!preview),.rgb_out(out),.active());

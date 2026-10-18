@@ -10,10 +10,10 @@ module tb_runtime_pixels;
  always #5 clk=~clk;
  scroll_text_overlay #(.RUNTIME_ENABLE(1)) dut(.clk(clk),.rst(rst),.vs(vs),.de(de),.pixel_x(x),
  .image_valid(image_valid),.rgb_in(bg),.rgb_out(rgb),.active(hit),.runtime_text(text),
- .runtime_length(len),.runtime_enable(enable),.runtime_text_changed(changed));
+ .runtime_length(len),.runtime_enable(enable),.runtime_text_changed(changed),.font_addr(),.font_data(16'd0),.font_valid(1'b0));
  scroll_text_overlay #(.RUNTIME_ENABLE(1),.ENABLE(0)) off_dut(.clk(clk),.rst(rst),.vs(vs),.de(de),.pixel_x(x),
  .image_valid(image_valid),.rgb_in(bg),.rgb_out(bypass),.active(),.runtime_text(text),
- .runtime_length(len),.runtime_enable(enable),.runtime_text_changed(changed));
+ .runtime_length(len),.runtime_enable(enable),.runtime_text_changed(changed),.font_addr(),.font_data(16'd0),.font_valid(1'b0));
  osd_alpha_band #(.RUNTIME_ENABLE(1)) bands(.clk(clk),.rst(rst),.vs(vs),.de(de),.pixel_x(x),
  .rgb_in(rgb),.glyph_active(hit),.subtitle_enable(enable && len!=0),.rgb_out(final_rgb),.active(band));
  reg [7:0] font_char;reg [3:0] font_row;wire [15:0] font_bits;

@@ -18,7 +18,7 @@ module tb_m4_scanner #(parameter integer GAP=0);
  .resource0_size(),.resource1_size(),.resource2_size(),.resource3_size(),
  .audio_slot(slot),.snd_found(snd),.audio_found(found),.audio_cluster(cluster),.audio_size(size),
  .sector_req(req),.sector_lba(lba),.sector_busy(sbusy),.sector_valid(valid),.sector_byte(byte_data),
- .sector_byte_index(idx),.sector_done(sdone),.sector_error(8'd0));
+ .sector_byte_index(idx),.sector_done(sdone),.sector_error(8'd0),.font_found(),.text_found(),.font_big(),.text_big(),.font_cluster(),.text_cluster(),.font_size(),.text_size());
  always @(negedge clk)begin
   valid=0;sdone=0;
   if(rst)begin sbusy=0;pos=0;end

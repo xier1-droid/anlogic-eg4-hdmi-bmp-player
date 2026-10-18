@@ -12,11 +12,12 @@ p = argparse.ArgumentParser()
 p.add_argument('build')
 p.add_argument('--candidate', default='m5-local.1')
 p.add_argument('--baseline', default='v0.16.0')
-p.add_argument('--m5', default='m5_text2')
-p.add_argument('--m4', default='m5_m4_1')
+p.add_argument('--m5', default='m5_text4')
+p.add_argument('--m4', default='m5_m4_2')
+p.add_argument('--m1', default='m5_m1_1')
 p.add_argument('--m3', default='m5_m3v3_1')
 p.add_argument('--adjust', default='m5_adjust_unit2')
-p.add_argument('--prefix', default='m5r1')
+p.add_argument('--prefix', default='m5r3')
 a = p.parse_args()
 root = Path(__file__).resolve().parents[2]
 output = root / 'diagnostics/output'
@@ -58,7 +59,11 @@ logs = {f'{m5}/check_scene_text.log': 'PASS M5 scene text',
         f'{m3}/tb_m3_chain.log': 'PASS M3 chain',
         f'{m3}/tb_m3_test_source.log': 'PASS hazard test source',
         f'{m3}/tb_m3_top.log': 'PASS M3 production top'}
+for f in (output / a.m1).glob('*.log'):
+    if f.name.startswith(('reader_case', 'tb_m1_')) and '.console.' not in f.name:
+        logs[f.relative_to(output).as_posix()] = 'PASS '
 for t in ('tb_adjust', 'tb_volume', 'tb_adjust_cdc', 'tb_adjust_keys', 'tb_adjust_osd', 'tb_adjust_decimal'):
+
     logs[f'{adj}/{t}.log'] = 'PASS '
 for run in (f'{pre}_regression1', f'{pre}_scaler1'):
     for f in (output / run).glob('tb_*.log'):
@@ -78,7 +83,10 @@ for name, marker in ((f'{pre}_paths1/paths.log', 'PASS frame paths'),
                      (f'{pre}_video_delay1/tb_m3_video_delay_equiv.log', 'PASS video_delay equivalence')):
     logs[name] = marker
 for name, marker in logs.items():
-    text = (output / name).read_text(errors='replace')
+    raw = (output / name).read_bytes()
+    # PowerShell redirection writes the tool check as UTF-16.
+    text = raw.decode('utf-16') if raw[:2] == b'\xff\xfe' else raw.decode('utf-8', 'replace')
+
     assert marker in text, name
     if name.endswith('check_scene_text.log'):
         continue

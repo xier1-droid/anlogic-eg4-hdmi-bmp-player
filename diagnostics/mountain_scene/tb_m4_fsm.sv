@@ -15,7 +15,7 @@ module tb_m4_fsm;
   .sample_tick(sample_tick),.audio_running(running),.transition_active(transition),.speed(speed),.warn_async(1'b0),
 
   .frame_cnt(fc),.t_now(t_now),.stage(stage),.hazard(hz),.role(role),
-  .layer_enable(layer),.fade_mute(mute),.stage_done(done));
+  .layer_enable(layer),.fade_mute(mute),.stage_done(done),.scene_on(),.warn_on());
  integer checks=0;
  task check(input bit ok,input string what);
   begin if(!ok)$fatal(1,"%s: t=%0d stage=%0d kind=%0d/%0d layer=%b mute=%b done=%b",what,t_now,stage,hz,role,layer,mute,done);checks++;end

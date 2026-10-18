@@ -69,7 +69,7 @@ module tb_picture_requests;
         .write_buf_idx(wb), .disp_buf_idx(db), .write_req(req),
         .write_req_ack(ack), .write_en(we), .write_data(pixel),
         .SD_nCS(), .SD_DCLK(), .SD_MOSI(), .SD_MISO(1'b1)
-    );
+    ,.warn_mode(),.bin_wr(),.bin_sel(),.bin_addr(),.bin_data(),.font_loaded(),.text_loaded());
     initial begin
         force dut.sd_init_done = init_done;
         force dut.sd_sec_read_data = sector_data;

@@ -60,7 +60,8 @@ wire runtime_enable=1, runtime_changed=0;
 `endif
 scroll_text_overlay #(.RUNTIME_ENABLE(RUNTIME_TEST)) scrolling(.clk(pix_clk),.rst(rst),.vs(vs),.de(de),.pixel_x(x),
  .image_valid(media_enable),.rgb_in(osd_pixels),.rgb_out(final_osd_pixels),.active(scroll_active),
- .runtime_text(runtime_text),.runtime_length(runtime_length),.runtime_enable(runtime_enable),.runtime_text_changed(runtime_changed));
+ .runtime_text(runtime_text),.runtime_length(runtime_length),.runtime_enable(runtime_enable),.runtime_text_changed(runtime_changed),.font_addr(),.font_data(16'd0),.font_valid(1'b0));
+
 integer expected_scroll=0,scroll_checks=0,scroll_lit=0;
 reg motion_started=0,scroll_vs_prev=1;
 always @(posedge pix_clk) begin

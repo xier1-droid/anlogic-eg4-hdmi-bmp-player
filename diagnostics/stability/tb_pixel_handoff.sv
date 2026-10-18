@@ -25,7 +25,7 @@ module tb_pixel_handoff;
         .display_commit_request(commit_request),.display_commit_ack(commit_ack),
         .write_req(req),.write_req_ack(ack),.write_en(we),.write_data(data),
         .SD_nCS(),.SD_DCLK(),.SD_MOSI(),.SD_MISO(1'b1)
-    );
+    ,.warn_mode(),.bin_wr(),.bin_sel(),.bin_addr(),.bin_data(),.font_loaded(),.text_loaded());
     reg [7:0] sector_data=0;
     reg sector_valid=0,sector_end=0;
     integer short_attempts=0,short_sector=2,short_bytes=100;

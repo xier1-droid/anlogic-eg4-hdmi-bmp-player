@@ -29,7 +29,7 @@ module tb_uart_subtitle;
   .frame_start(frame_start),.dst_text(dst_text),.dst_length(dst_len),.dst_enable(dst_en),.text_changed(change));
  scroll_text_overlay #(.RUNTIME_ENABLE(1)) overlay(.clk(pix),.rst(rst),.vs(vs),.de(de),
   .pixel_x(x),.image_valid(1'b1),.rgb_in(24'hffffff),.rgb_out(text_rgb),.active(hit),
-  .runtime_text(dst_text),.runtime_length(dst_len),.runtime_enable(dst_en),.runtime_text_changed(change));
+  .runtime_text(dst_text),.runtime_length(dst_len),.runtime_enable(dst_en),.runtime_text_changed(change),.font_addr(),.font_data(16'd0),.font_valid(1'b0));
  osd_alpha_band #(.RUNTIME_ENABLE(1)) bands(.clk(pix),.rst(rst),.vs(vs),.de(de),.pixel_x(x),
   .rgb_in(text_rgb),.glyph_active(hit),.subtitle_enable(dst_en && dst_len!=0),.rgb_out(final_rgb),.active(band));
  string lines[0:127];integer line_count=0,rx_errors=0,updates=0;
