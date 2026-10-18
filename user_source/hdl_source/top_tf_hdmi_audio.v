@@ -36,7 +36,7 @@ parameter integer BAND_ENABLE = 1;
 parameter integer TIMESTAMP_ENABLE = 1;
 parameter integer TRANSITION_ENABLE = 1;
 parameter integer AUDIO_VIS_ENABLE = 1;
-parameter integer HAZARD_TEST_SOURCE = 1; // M3 temporary t/stage driver; M4 swaps in scenario_fsm
+parameter integer HAZARD_TEST_SOURCE = 0; // 1: M3 test driver (t loops, layer always on) instead of scenario_fsm
 parameter integer UART_LOG_ENABLE = 0;      // event log on uart_tx; off holds uart_tx idle high
 parameter integer UART_SUBTITLE_ENABLE = 0; // subtitle commands on uart_rx; off keeps the power-on subtitle
 parameter MEM_DATA_BITS = 32;
@@ -294,6 +294,7 @@ wire bgm_valid,bgm_ready,bgm_active;
 wire frame_write_ready,frame_refill_priority;
 wire signed [15:0] bgm_left,bgm_right;
 wire [23:0] scene_kinds_sd,scene_kinds;
+wire scene_mode_sd,scene_stage_done;
 sd_card_bmp #(
     .CLK_FREQ_HZ       (100_000_000),
     .SCAN_START_SECTOR (32'd0),
@@ -309,6 +310,7 @@ sd_card_bmp #(
     .key2              (key2),
     .key4              (key4),
     .mode              (switch_mode),
+    .scene_mode(scene_mode_sd),.scene_stage_done(scene_stage_done),
     .adjust_decrease(adjust_decrease),.adjust_increase(adjust_increase),
     .adjust_restore(adjust_restore),.adjust_select(adjust_select),
     .state_code        (state_code),
@@ -407,14 +409,23 @@ assign scene_de=scene_de_d[1];
 scene_kind_cdc u_scene_kind_cdc(.src_clk(sd_card_clk),.src_rst(rst_sd),.src_kinds(scene_kinds_sd),
  .dst_clk(video_clk),.dst_rst(rst_video),.dst_kinds(scene_kinds));
 wire [9:0] hazard_frame_cnt;wire [7:0] hazard_t_now;wire [2:0] hazard_kind_hazard,hazard_kind_role;
-wire hazard_enable;
+wire hazard_enable,fade_mute;
 generate if(HAZARD_TEST_SOURCE) begin:g_hazard_test
  hazard_test_source u_hazard_test_source(.clk(video_clk),.rst(rst_video),.frame_start(sub_frame_start),.media_update(audio_update),
   .image_index(audio_image),.kinds(scene_kinds),.frame_cnt(hazard_frame_cnt),.t_now(hazard_t_now),
   .hazard(hazard_kind_hazard),.role(hazard_kind_role));
  assign hazard_enable=1'b1;
-end else begin:g_no_hazard_source
- assign {hazard_frame_cnt,hazard_t_now,hazard_kind_hazard,hazard_kind_role,hazard_enable}=25'd0;
+ assign fade_mute=1'b0;
+ assign scene_stage_done=1'b0;
+end else begin:g_scenario
+ // M4: the stage follows the displayed image; t follows the SD audio file's
+ // accepted samples. Speed stays 1x until M5 adds its parameter item.
+ scenario_fsm u_scenario_fsm(.clk(video_clk),.rst(rst_video),.scene_mode_async(scene_mode_sd),
+  .frame_start(sub_frame_start),.media_update(audio_update),.image_index(audio_image),.image_valid(audio_enable),
+  .kinds(scene_kinds),.sample_tick(bgm_valid && bgm_ready),.audio_running(bgm_active),
+  .transition_active(transition_active),.speed(2'd0),
+  .frame_cnt(hazard_frame_cnt),.t_now(hazard_t_now),.stage(),.hazard(hazard_kind_hazard),.role(hazard_kind_role),
+  .layer_enable(hazard_enable),.fade_mute(fade_mute),.stage_done(scene_stage_done));
 end endgenerate
 hazard_layer u_hazard_layer(.clk(video_clk),.rst(rst_video),.rgb_in(scene_pixel[31:8]),.t_in(scene_pixel[7:0]),
  .de(scene_de),.frame_start(sub_frame_start),
@@ -574,7 +585,7 @@ audio_source_mux u_audio_source_mux(
  .out_ready(mixed_ready),.out_valid(mixed_valid),.out_left(mixed_left),.out_right(mixed_right));
 wire volume_valid,volume_ready;
 wire signed [15:0] volume_left,volume_right;
-pcm_master_volume u_master_volume(.clk(video_clk),.rst(rst_video),.volume_level(volume_frame),
+pcm_master_volume u_master_volume(.clk(video_clk),.rst(rst_video),.volume_level(volume_frame),.fade_mute(fade_mute),
  .in_valid(mixed_valid),.in_ready(mixed_ready),.in_left(mixed_left),.in_right(mixed_right),
  .out_valid(volume_valid),.out_ready(volume_ready),.out_left(volume_left),.out_right(volume_right));
 media_hdmi_audio_bridge u_media_hdmi_audio_bridge (

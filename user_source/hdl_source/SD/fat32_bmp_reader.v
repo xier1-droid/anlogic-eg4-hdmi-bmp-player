@@ -8,6 +8,9 @@ module fat32_bmp_reader #(
  parameter integer LOAD_BY_INDEX=0
 )(
  input clk,rst,sd_init_done,scan_start,load_start,load_cancel,
+ // audio_slot picks the audio file reported on audio_*: 0-3 SND1-4.PCM,
+ // otherwise BGM.PCM; snd_found marks the stage files found by the scan.
+ input [2:0] audio_slot,output [3:0] snd_found,
  output audio_found,output [31:0] audio_cluster,audio_size,
  output [7:0] audio_spc,output [31:0] audio_fat_lba,audio_data_lba,audio_max_cluster,
  input a_req,input [31:0] a_lba,input a_urgent,a_cancel,
@@ -96,7 +99,7 @@ reg [2:0] header_shift_count;   // header_lba is shifted one bit per cycle
  fat32_volume_scanner #(.SCAN_AUDIO(SCAN_AUDIO),.MAX_VISITED_CLUSTERS(MAX_VISITED_CLUSTERS)) scanner(
  .clk(clk),.rst_n(!rst),.scan_start(scan_go),.scan_busy(volume_busy),.scan_done(volume_done),.fs_error(volume_error),
  .partition_lba(),.sectors_per_cluster(spc),.fat_start_lba(fat_lba),.data_start_lba(data_lba),.max_cluster(max_cluster),
- .resource_valid(mask),.audio_found(audio_found),.audio_cluster(audio_cluster),.audio_size(audio_size),.resource0_cluster(clusters[0]),.resource1_cluster(clusters[1]),.resource2_cluster(clusters[2]),.resource3_cluster(clusters[3]),
+ .resource_valid(mask),.audio_slot(audio_slot),.snd_found(snd_found),.audio_found(audio_found),.audio_cluster(audio_cluster),.audio_size(audio_size),.resource0_cluster(clusters[0]),.resource1_cluster(clusters[1]),.resource2_cluster(clusters[2]),.resource3_cluster(clusters[3]),
  .resource0_size(sizes[0]),.resource1_size(sizes[1]),.resource2_size(sizes[2]),.resource3_size(sizes[3]),
  .sector_req(scan_req),.sector_lba(scan_lba),.sector_busy(sector_busy),.sector_valid(scan_sector_valid),
  .sector_byte(scan_sector_byte),.sector_byte_index(scan_sector_index),.sector_done(scan_sector_done),.sector_error(scan_sector_error));

@@ -23,6 +23,10 @@ module sd_card_bmp #(
     input                       key2,
     input                       key4,
     input [1:0]                 mode,
+    // Scene mode (long KEY4 in mode 0) and the pixel-domain end of the
+    // current stage (t_now==239), synchronized here.
+    output                      scene_mode,
+    input                       scene_stage_done,
     output adjust_decrease,adjust_increase,adjust_restore,adjust_select,
     output     [3:0]            state_code,
     output [63:0]               sd_debug,
@@ -98,6 +102,7 @@ wire audio_found;
 wire [31:0] audio_cluster,audio_size,audio_fat_lba,audio_data_lba,audio_max_cluster;
 wire [7:0] audio_spc;
 wire a_req,a_busy,a_valid,a_done,a_urgent;
+wire narration_done;
 wire [31:0] a_lba;
 wire [7:0] a_error,a_byte;
 wire [8:0] a_index;
@@ -106,17 +111,38 @@ wire [8:0] a_index;
 // Register the stop through audio_session: preview/rescan decisions must not
 // feed the file streamer's same-cycle enable path. A start can coincide with
 // that final enabled edge, so wait for both enable low and the stopped ack.
-wire audio_run=audio_session;
+// In scene mode the stage (displayed image) plays SNDn.PCM when the scan found
+// it, otherwise BGM.PCM. A change of file drops the stream enable until the
+// stream and player have stopped, then starts the new file from its beginning.
+wire [3:0] snd_found;
+reg [2:0] play_slot;
+reg audio_switch,switch_wait;
+wire [2:0] want_slot=(scene_mode && snd_found[committed_image]) ? {1'b0,committed_image} : 3'd4;
+wire audio_run=audio_session && !audio_switch;
 assign scan_accept=scan_request && scan_state==SC_IDLE && !audio_run && audio_stopped;
 always @(posedge clk or posedge rst) begin
  if(rst)audio_session<=0;
  else if(scan_request || rescan_event)audio_session<=0;
  else if(scan_result_valid && scan_result_ready)audio_session<=scan_success;
 end
+always @(posedge clk or posedge rst) begin
+ if(rst) begin play_slot<=4;audio_switch<=0;switch_wait<=0;end
+ else begin
+  switch_wait<=audio_switch;
+  if(!audio_session) begin play_slot<=want_slot;audio_switch<=0;end
+  else if(!audio_switch) audio_switch<=want_slot!=play_slot;
+  // switch_wait skips the first disabled cycle, when a stream start taken on
+  // the last enabled edge is not yet visible in audio_stopped.
+  else if(switch_wait && audio_stopped) begin play_slot<=want_slot;audio_switch<=0;end
+ end
+end
 generate if(AUDIO_ENABLE)begin: g_audio
  wire player_enable,file_valid,file_ready,sector_permit,player_stopped;
  wire [7:0] file_byte;
  wire player_low;
+ wire [7:0] audio_error;wire [31:0] audio_loops;
+ // A stage file has been read through once, or cannot be played.
+ assign narration_done=play_slot[2] || audio_loops!=0 || audio_error!=0;
  reg urgent_latched;
  always @(posedge clk or posedge rst)begin
   if(rst)urgent_latched<=1;else urgent_latched<=player_low;
@@ -128,7 +154,7 @@ generate if(AUDIO_ENABLE)begin: g_audio
  .fat_start_lba(audio_fat_lba),.data_start_lba(audio_data_lba),.max_cluster(audio_max_cluster),
  .sector_permit(sector_permit),.player_stopped(player_stopped),.player_ready(file_ready),
  .player_enable(player_enable),.file_valid(file_valid),.file_byte(file_byte),
- .stopped(audio_stopped),.error_code(),.loop_count(),
+ .stopped(audio_stopped),.error_code(audio_error),.loop_count(audio_loops),
  .sector_req(a_req),.sector_lba(a_lba),.sector_busy(a_busy),.sector_valid(a_valid),
  .sector_done(a_done),.sector_byte(a_byte),.sector_error(a_error),.sector_index(a_index));
  pcm_stream_player u_player(
@@ -139,7 +165,7 @@ generate if(AUDIO_ENABLE)begin: g_audio
  .sample_valid(bgm_valid),.sample_left(bgm_left),.sample_right(bgm_right),
  .active(bgm_active),.underflow_count(),.output_overrun());
 end else begin: g_no_audio
- assign audio_stopped=1'b1;assign a_req=1'b0;assign a_lba=0;assign a_urgent=0;
+ assign audio_stopped=1'b1;assign a_req=1'b0;assign narration_done=1'b1;assign a_lba=0;assign a_urgent=0;
  assign bgm_valid=0;assign bgm_active=0;assign bgm_left=0;assign bgm_right=0;
 end endgenerate
 always @(posedge clk or posedge rst) begin
@@ -287,10 +313,16 @@ media_frame_cache_control u_cache_control(
  .retry_event(retry_event),
  .cache_complete_image(cache_complete_image),.cache_hit_image(cache_hit_image),.failed_image(failed_image)
 );
+// Scene AUTO moves on only after the stage has finished: t_now reached 239 and
+// the stage file has been read through. The hold restarts the AUTO interval.
+(* ASYNC_REG = "TRUE" *) reg [1:0] stage_done_sync;
+always @(posedge clk or posedge rst)
+ if(rst)stage_done_sync<=0;else stage_done_sync<={stage_done_sync[0],scene_stage_done};
+wire scene_auto_hold=scene_mode && !(stage_done_sync[1] && narration_done && !audio_switch);
 mode_key_control #(.PREVIEW_ENABLE(PREVIEW_ENABLE),.CLK_FREQ_HZ(CLK_FREQ_HZ)) u_mode_key_control(
  .clk(clk),.rst(rst),.enable(!scan_busy),.key1(key1),.key2(key2),.key4(key4),.mode(mode),
  .rescan_event(rescan_raw),.next_event(media_next_request),.previous_event(media_previous_request),
- .auto_toggle_event(media_auto_toggle_request),.manual_activity(manual_activity),
+ .auto_toggle_event(media_auto_toggle_request),.scene_mode(scene_mode),.manual_activity(manual_activity),
  .adjust_decrease(adjust_decrease),.adjust_increase(adjust_increase),.adjust_restore(adjust_restore),.adjust_select(adjust_select)
 );
 media_player_control #(.AUTO_PLAY_CYCLES((CLK_FREQ_HZ/1000)*AUTO_PLAY_MS)) u_media_player_control(
@@ -298,7 +330,7 @@ media_player_control #(.AUTO_PLAY_CYCLES((CLK_FREQ_HZ/1000)*AUTO_PLAY_MS)) u_med
  .display_valid(display_valid),.load_busy(foreground_busy || transition_block),.first_image_committed(first_image_committed),
  .image_count(image_count),.current_image(img_idx),.mode(mode),.next_event(media_next_request),
  .previous_event(media_previous_request),.auto_toggle_event(media_auto_toggle_request),
- .request_accept(ctrl_request_accept),.manual_activity(manual_activity),
+ .request_accept(ctrl_request_accept),.manual_activity(manual_activity || scene_auto_hold),
  .next_load_request(),.previous_load_request(),.auto_load_request(ctrl_auto_load_request),
  .auto_play_en(ctrl_auto_play_en),.next_pending(ctrl_next_pending),.previous_pending(ctrl_prev_pending),
  .auto_tick(ctrl_auto_tick),.load_request(ctrl_load_request),.target_image(ctrl_target_image)
@@ -419,6 +451,7 @@ end
 
 fat32_bmp_reader #(.LOAD_BY_INDEX(1),.SCALE_ENABLE(SCALE_ENABLE),.SCAN_AUDIO(AUDIO_ENABLE),.CLK_FREQ_HZ(CLK_FREQ_HZ),.TIMEOUT_MS(LOAD_TIMEOUT_MS)) bmp_read_m0(
  .clk(clk),.rst(parser_rst),.sd_init_done(sd_init_done),.ready(bmp_ready),
+ .audio_slot(play_slot),.snd_found(snd_found),
  .audio_found(audio_found),.audio_cluster(audio_cluster),.audio_size(audio_size),
  .audio_spc(audio_spc),.audio_fat_lba(audio_fat_lba),.audio_data_lba(audio_data_lba),.audio_max_cluster(audio_max_cluster),
  .a_req(a_req),.a_lba(a_lba),.a_cancel(!audio_run),.a_urgent(a_urgent),

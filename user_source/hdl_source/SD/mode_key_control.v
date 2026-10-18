@@ -1,7 +1,11 @@
 // Three independent active-low keys. Mode gates new picture events only.
+// Mode 0 KEY4: a press released before SCENE_HOLD_MS toggles AUTO on release;
+// holding it SCENE_HOLD_MS toggles scene mode once and its release is ignored.
+// Scene mode stays across modes; in mode 0 it leaves KEY1 to the warning mode.
 module mode_key_control #(
     parameter integer CLK_FREQ_HZ = 100_000_000,
     parameter integer RESCAN_HOLD_MS = 2000,
+    parameter integer SCENE_HOLD_MS = 1000,
     parameter integer PREVIEW_ENABLE = 0
 )(
     input wire clk, rst, enable,
@@ -10,6 +14,7 @@ module mode_key_control #(
     output reg next_event, rescan_event,
     output wire previous_event,
     output reg auto_toggle_event,
+    output reg scene_mode,
     output wire adjust_decrease,adjust_increase,adjust_restore,adjust_select,
     output wire manual_activity
 );
@@ -34,7 +39,7 @@ module mode_key_control #(
         if (rst) press_mode <= 0;
         else press_mode <= mode;
     end
-    assign previous_event = enable && (press_mode == 0 || (PREVIEW_ENABLE && press_mode == 3)) && press_mode==mode && press1;
+    assign previous_event = enable && ((press_mode == 0 && !scene_mode) || (PREVIEW_ENABLE && press_mode == 3)) && press_mode==mode && press1;
     localparam integer HOLD_CYCLES = (CLK_FREQ_HZ / 1000) * RESCAN_HOLD_MS;
     localparam integer HOLD_BITS = $clog2(HOLD_CYCLES + 1);
     reg [HOLD_BITS-1:0] held_cycles;
@@ -72,10 +77,40 @@ module mode_key_control #(
     adjust_key_gestures #(.CLK_FREQ_HZ(CLK_FREQ_HZ)) adjust_keys(
         .clk(clk),.rst(rst),.mode(mode),.stable1(stable1),.stable2(stable2),.stable4(stable4),
         .decrease(adjust_decrease),.increase(adjust_increase),.restore(adjust_restore),.select_next(adjust_select));
+    localparam integer SCENE_CYCLES = (CLK_FREQ_HZ / 1000) * SCENE_HOLD_MS;
+    localparam integer SCENE_BITS = $clog2(SCENE_CYCLES + 1);
+    reg [SCENE_BITS-1:0] held4_cycles;
+    reg stable4_d, long4_fired, key4_allowed, short4_event;
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            stable4_d <= 1; held4_cycles <= 0; long4_fired <= 0; key4_allowed <= 0;
+            short4_event <= 0; scene_mode <= 0;
+        end else begin
+            stable4_d <= stable4;
+            short4_event <= 0;
+            if (stable4_d && !stable4) begin
+                key4_allowed <= enable && mode == 0;
+                held4_cycles <= 1;
+            end else if (!stable4) begin
+                if (!enable || mode != 0) key4_allowed <= 0;
+                if (!long4_fired && key4_allowed && enable && mode == 0) begin
+                    if (held4_cycles >= SCENE_CYCLES - 1) begin
+                        scene_mode <= ~scene_mode;
+                        long4_fired <= 1;
+                    end else held4_cycles <= held4_cycles + 1'b1;
+                end
+            end else begin
+                if (!stable4_d && !long4_fired && key4_allowed && enable && mode == 0)
+                    short4_event <= 1;
+                held4_cycles <= 0; long4_fired <= 0; key4_allowed <= 0;
+            end
+        end
+    end
     // Register the media toggle to break mode -> preview -> cache request logic.
+    // Mode 3 keeps the press edge for the preview toggle.
     always @(posedge clk or posedge rst)
         if(rst)auto_toggle_event<=0;
-        else auto_toggle_event<=enable && press4 && press_mode==mode && (mode==0 || mode==3);
+        else auto_toggle_event<=short4_event || (enable && press4 && press_mode==mode && mode==3);
     assign manual_activity = enable &&
         (!stable1 || !stable2 || !stable4 || press1 || press2 || press4);
 endmodule
