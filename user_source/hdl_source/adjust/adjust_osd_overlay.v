@@ -1,14 +1,16 @@
 module adjust_osd_overlay #(parameter ENABLE=1)(
  input clk,rst,vs,de,input [9:0] pixel_x,input [23:0] rgb_in,
  input [1:0] mode,selected,input [7:0] brightness,contrast,input [3:0] volume_level,
- output [23:0] rgb_out,output active
+ output [23:0] rgb_out,output active,
+ // Scene speed item "S:1X/2X/4X" after V, shown with speed_visible.
+ input [1:0] speed,input speed_visible
 );
  wire [8:0] y;wire frame_start;
  osd_pixel_position position(.clk(clk),.rst(rst),.vs(vs),.de(de),.line_y(y),.frame_start(frame_start),.first_active());
  wire [9:0] dx=pixel_x-10'd8;wire [8:0] dy=y-9'd32;
  wire visible=ENABLE && (mode==1 || mode==2);
- wire region=visible && de && pixel_x>=8 && pixel_x<296 && y>=32 && y<48;
- wire band=visible && de && pixel_x>=4 && pixel_x<300 && y>=28 && y<52;
+ wire region=visible && de && pixel_x>=8 && (pixel_x<296 || (speed_visible && pixel_x<376)) && y>=32 && y<48;
+ wire band=visible && de && pixel_x>=4 && (pixel_x<300 || (speed_visible && pixel_x<380)) && y>=28 && y<52;
  // Shared eight-step binary-to-BCD converter runs in vertical blanking.
  // Values are frame-stable; all three fields finish long before text line 32.
  reg [11:0] b_bcd,c_bcd,v_bcd;
@@ -61,6 +63,11 @@ module adjust_osd_overlay #(parameter ENABLE=1)(
    15:begin character=v_digits[15:8];item=2;end
    16:begin character=v_digits[7:0];item=2;end
    17:begin character="%";item=2;end
+   19:begin character="S";item=3;end
+   20:begin character=":";item=3;end
+   21:begin character=speed[1]?"4":speed[0]?"2":"1";item=3;end
+   22:begin character="X";item=3;end
+
   endcase
  end
  wire [4:0] glyph;

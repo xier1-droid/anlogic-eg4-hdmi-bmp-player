@@ -11,7 +11,8 @@ module sd_card_bmp #(
     parameter integer AUDIO_ENABLE = 0,
     parameter integer SCALE_ENABLE = 0,
     parameter integer PREVIEW_ENABLE = 0,
-    parameter integer TRANSITION_ENABLE = 0
+    parameter integer TRANSITION_ENABLE = 0,
+    parameter integer TEXT_ENABLE = 0     // scan FONT.BIN/TEXT.BIN to bin_*
 )(
     output                      bgm_valid,bgm_active,
     output signed [15:0]        bgm_left,bgm_right,
@@ -27,6 +28,12 @@ module sd_card_bmp #(
     // current stage (t_now==239), synchronized here.
     output                      scene_mode,
     input                       scene_stage_done,
+    // Warning mode (KEY1 in scene mode, mode 0) and the FONT/TEXT byte stream.
+    output                      warn_mode,
+    output                      bin_wr, bin_sel,
+    output [11:0]               bin_addr,
+    output [7:0]                bin_data,
+    output                      font_loaded, text_loaded,
     output adjust_decrease,adjust_increase,adjust_restore,adjust_select,
     output     [3:0]            state_code,
     output [63:0]               sd_debug,
@@ -274,8 +281,10 @@ wire [1:0] ctrl_target_image;
 wire transition_block=transition_busy || rescan_wait;
 wire ctrl_offer=ctrl_load_request && !transition_block && !preview_intent && !preview_selecting;
 wire [1:0] preview_target;
+reg warn_q,warn_jump;
+wire [1:0] last_image=image_count==0 ? 2'd0 : image_count[1:0]-2'd1;
 wire cache_offer=ctrl_offer || preview_offer;
-wire [1:0] cache_target=preview_offer?preview_target:ctrl_target_image;
+wire [1:0] cache_target=preview_offer?preview_target:(warn_jump?last_image:ctrl_target_image);
 generate if(PREVIEW_ENABLE)begin:g_preview
  media_preview_control control(.clk(clk),.rst(rst),.mode(mode),.scan_busy(scan_busy),
  .first_image_committed(first_image_committed),.transition_busy(transition_busy),.foreground_busy(foreground_busy),
@@ -318,17 +327,31 @@ media_frame_cache_control u_cache_control(
 (* ASYNC_REG = "TRUE" *) reg [1:0] stage_done_sync;
 always @(posedge clk or posedge rst)
  if(rst)stage_done_sync<=0;else stage_done_sync<={stage_done_sync[0],scene_stage_done};
-wire scene_auto_hold=scene_mode && !(stage_done_sync[1] && narration_done && !audio_switch);
+// The warning mode holds AUTO and the mode 0 KEY2 step. Entering it moves to
+// the last image (stage 4) through an ordinary next request whose target is
+// replaced when the cache accepts it; nothing moves if it is already shown.
+wire scene_auto_hold=scene_mode && (warn_mode || !(stage_done_sync[1] && narration_done && !audio_switch));
+wire warn_jump_start
+=warn_mode && !warn_q && img_idx!=last_image;
+wire player_next_event=(media_next_request && !(warn_mode && mode==0)) || warn_jump_start;
+always @(posedge clk or posedge rst) begin
+ if(rst) begin warn_q<=0;warn_jump<=0;end
+ else begin
+  warn_q<=warn_mode;
+  if(!warn_mode || ctrl_request_accept) warn_jump<=0;
+  else if(warn_jump_start) warn_jump<=1;
+ end
+end
 mode_key_control #(.PREVIEW_ENABLE(PREVIEW_ENABLE),.CLK_FREQ_HZ(CLK_FREQ_HZ)) u_mode_key_control(
  .clk(clk),.rst(rst),.enable(!scan_busy),.key1(key1),.key2(key2),.key4(key4),.mode(mode),
  .rescan_event(rescan_raw),.next_event(media_next_request),.previous_event(media_previous_request),
- .auto_toggle_event(media_auto_toggle_request),.scene_mode(scene_mode),.manual_activity(manual_activity),
+ .auto_toggle_event(media_auto_toggle_request),.scene_mode(scene_mode),.warn_mode(warn_mode),.manual_activity(manual_activity),
  .adjust_decrease(adjust_decrease),.adjust_increase(adjust_increase),.adjust_restore(adjust_restore),.adjust_select(adjust_select)
 );
 media_player_control #(.AUTO_PLAY_CYCLES((CLK_FREQ_HZ/1000)*AUTO_PLAY_MS)) u_media_player_control(
  .clk(clk),.rst(rst),.enable(!scan_busy && !preview_intent && !preview_selecting),.scan_done(!scan_busy),
  .display_valid(display_valid),.load_busy(foreground_busy || transition_block),.first_image_committed(first_image_committed),
- .image_count(image_count),.current_image(img_idx),.mode(mode),.next_event(media_next_request),
+ .image_count(image_count),.current_image(img_idx),.mode(mode),.next_event(player_next_event),
  .previous_event(media_previous_request),.auto_toggle_event(media_auto_toggle_request),
  .request_accept(ctrl_request_accept),.manual_activity(manual_activity || scene_auto_hold),
  .next_load_request(),.previous_load_request(),.auto_load_request(ctrl_auto_load_request),
@@ -449,7 +472,9 @@ always @(posedge clk or posedge rst) begin
  end
 end
 
-fat32_bmp_reader #(.LOAD_BY_INDEX(1),.SCALE_ENABLE(SCALE_ENABLE),.SCAN_AUDIO(AUDIO_ENABLE),.CLK_FREQ_HZ(CLK_FREQ_HZ),.TIMEOUT_MS(LOAD_TIMEOUT_MS)) bmp_read_m0(
+fat32_bmp_reader #(.LOAD_BY_INDEX(1),.SCALE_ENABLE(SCALE_ENABLE),.SCAN_AUDIO(AUDIO_ENABLE),.SCAN_TEXT(TEXT_ENABLE),.CLK_FREQ_HZ(CLK_FREQ_HZ),.TIMEOUT_MS(LOAD_TIMEOUT_MS)) bmp_read_m0(
+ .bin_wr(bin_wr),.bin_sel(bin_sel),.bin_addr(bin_addr),.bin_data(bin_data),.font_loaded(font_loaded),.text_loaded(text_loaded),
+
  .clk(clk),.rst(parser_rst),.sd_init_done(sd_init_done),.ready(bmp_ready),
  .audio_slot(play_slot),.snd_found(snd_found),
  .audio_found(audio_found),.audio_cluster(audio_cluster),.audio_size(audio_size),

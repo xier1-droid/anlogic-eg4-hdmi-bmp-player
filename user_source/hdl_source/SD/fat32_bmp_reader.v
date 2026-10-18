@@ -5,7 +5,10 @@ module fat32_bmp_reader #(
  parameter integer MAX_VISITED_CLUSTERS=8192,
  // 1: loads select a found image by index from the scanner table instead of
  // taking load_cluster/load_size; the table only changes during a scan.
- parameter integer LOAD_BY_INDEX=0
+ parameter integer LOAD_BY_INDEX=0,
+ // 1: after the picture headers the scan also streams FONT.BIN and TEXT.BIN
+ // (each up to 4096 bytes) to bin_* and reports scan_done afterwards.
+ parameter integer SCAN_TEXT=0
 )(
  input clk,rst,sd_init_done,scan_start,load_start,load_cancel,
  // audio_slot picks the audio file reported on audio_*: 0-3 SND1-4.PCM,
@@ -31,12 +34,18 @@ module fat32_bmp_reader #(
  // role; tools/make_scene_pack.py format 3): {hazard[2:0],role[2:0]}, 0 when
  // either byte is outside 1..4, as in ordinary BMPs. Valid from the header
  // through load_done.
- output [5:0] bmp_kind
+ output [5:0] bmp_kind,
+ // FONT.BIN (bin_sel 0) / TEXT.BIN (1) bytes at their file offset. A flag is
+ // cleared when a scan starts and set when its file has been read without
+ // error; TEXT.BIN must also start with "TX" and version 1.
+ output bin_wr,bin_sel,output [11:0] bin_addr,output [7:0] bin_data,
+ output reg font_loaded,text_loaded
 );
  localparam IDLE=0,SCAN=1,SELECT=2,HEADER_RESET=3,HEADER_REQ=4,
  HEADER_WAIT=5,HEADER_CHECK=6,SCAN_FINISH=7,WRITE_WAIT=8,
- START_FILE=9,READ_FILE=10,DRAIN=11,RESULT=12,HEADER_SHIFT=13,HEADER_ADD=14,SELECT_CHECK=15;
- reg [3:0] state;
+ START_FILE=9,READ_FILE=10,DRAIN=11,RESULT=12,HEADER_SHIFT=13,HEADER_ADD=14,SELECT_CHECK=15,
+ BIN_SELECT=16,BIN_CHECK=17,BIN_START=18,BIN_READ=19,BIN_NEXT=20;
+ reg [4:0] state;
  reg scan_go,file_go;
  reg [2:0] candidate;
  reg [31:0] task_cluster,task_size,header_lba;
@@ -51,10 +60,18 @@ module fat32_bmp_reader #(
  wire sector_busy,sector_valid,sector_done;
  wire [7:0] sector_byte,sector_error;wire [8:0] sector_index;
  wire scan_owner=(state==SCAN);
- wire file_owner=(state==START_FILE || state==READ_FILE || state==DRAIN);
- wire abort_file=(state==DRAIN || state==RESULT || state==IDLE || load_cancel);
+ wire bin_owner=(state==BIN_START || state==BIN_READ);
+ wire file_owner=(state==START_FILE || state==READ_FILE || state==DRAIN || bin_owner);
+ wire abort_file=(state==DRAIN || state==RESULT || state==IDLE || load_cancel ||
+                  state==BIN_SELECT || state==BIN_CHECK || state==BIN_NEXT);
  wire [2:0] decode_error;wire decode_done;
- wire request_allowed=(state==READ_FILE && decode_error==0 && !load_cancel);
+ wire request_allowed=(state==READ_FILE && decode_error==0 && !load_cancel) || state==BIN_READ;
+ reg bin_index,bin_bad,text_magic;
+ wire font_found,text_found,font_big,text_big;
+ wire [27:0] font_cluster,text_cluster;
+ wire [12:0] font_size,text_size;
+ wire [27:0] bin_cluster=bin_index ? text_cluster : font_cluster;
+ wire [12:0] bin_size=bin_index ? text_size : font_size;
  wire header_match;wire [33:0] required_end;
  wire [31:0] header_file_len;
  reg header_go;
@@ -75,12 +92,18 @@ reg [2:0] header_shift_count;   // header_lba is shifted one bit per cycle
   else header_cluster_shift<=spc_shift(spc);
  end
  assign ready=(state==IDLE && sd_init_done);
- assign state_code=(state==IDLE)?4'd1:((state<=SCAN_FINISH || state==SELECT_CHECK)?4'd2:4'd3);
+ assign state_code=(state==IDLE)?4'd1:((state<=SCAN_FINISH || state==SELECT_CHECK || state>=BIN_SELECT)?4'd2:4'd3);
+
  assign write_req=(state==WRITE_WAIT && !load_cancel);
  wire pixel_valid;
  wire pixel_ready=state==READ_FILE && decode_error==0 && stream_error==0 && !load_cancel && (!SCALE_ENABLE || write_ready);
  assign bmp_data_wr_en=pixel_valid && pixel_ready;
  wire data_permit;
+ wire stream_permit=(state==BIN_READ) || data_permit;
+ assign bin_wr=state==BIN_READ && stream_valid;
+ assign bin_sel=bin_index;
+ assign bin_addr=stream_offset[11:0];
+ assign bin_data=stream_byte;
  assign audio_spc=spc;
  assign audio_fat_lba=fat_lba;assign audio_data_lba=data_lba;assign audio_max_cluster=max_cluster;
  assign a_byte=sector_byte;assign a_index=sector_index;
@@ -96,7 +119,9 @@ reg [2:0] header_shift_count;   // header_lba is shifted one bit per cycle
    scan_sector_byte<=sector_byte;scan_sector_error<=sector_error;scan_sector_index<=sector_index;
   end
  end
- fat32_volume_scanner #(.SCAN_AUDIO(SCAN_AUDIO),.MAX_VISITED_CLUSTERS(MAX_VISITED_CLUSTERS)) scanner(
+ fat32_volume_scanner #(.SCAN_AUDIO(SCAN_AUDIO),.SCAN_TEXT(SCAN_TEXT),.MAX_VISITED_CLUSTERS(MAX_VISITED_CLUSTERS)) scanner(
+ .font_found(font_found),.text_found(text_found),.font_big(font_big),.text_big(text_big),
+ .font_cluster(font_cluster),.text_cluster(text_cluster),.font_size(font_size),.text_size(text_size),
  .clk(clk),.rst_n(!rst),.scan_start(scan_go),.scan_busy(volume_busy),.scan_done(volume_done),.fs_error(volume_error),
  .partition_lba(),.sectors_per_cluster(spc),.fat_start_lba(fat_lba),.data_start_lba(data_lba),.max_cluster(max_cluster),
  .resource_valid(mask),.audio_slot(audio_slot),.snd_found(snd_found),.audio_found(audio_found),.audio_cluster(audio_cluster),.audio_size(audio_size),.resource0_cluster(clusters[0]),.resource1_cluster(clusters[1]),.resource2_cluster(clusters[2]),.resource3_cluster(clusters[3]),
@@ -120,7 +145,7 @@ reg [2:0] header_shift_count;   // header_lba is shifted one bit per cycle
   end
  end
  fat32_file_streamer #(.MAX_VISITED_CLUSTERS(SCALE_ENABLE?16384:MAX_VISITED_CLUSTERS),.DATA_GATE_ENABLE(SCALE_ENABLE)) streamer(
- .clk(clk),.rst_n(!rst && !abort_file),.file_start(file_go),.data_permit(data_permit),.first_cluster(task_cluster),.file_size(task_size),
+ .clk(clk),.rst_n(!rst && !abort_file),.file_start(file_go),.data_permit(stream_permit),.first_cluster(task_cluster),.file_size(task_size),
  .sectors_per_cluster(spc),.fat_start_lba(fat_lba),.data_start_lba(data_lba),.max_cluster(max_cluster),
  .file_busy(stream_busy),.file_done(stream_done),.file_valid(stream_valid),.file_byte(stream_byte),.file_byte_offset(stream_offset),.fs_error(stream_error),
  .sector_req(file_req),.sector_lba(file_lba),.sector_busy(sector_busy),.sector_valid(file_sector_valid),
@@ -175,7 +200,12 @@ reg [2:0] header_shift_count;   // header_lba is shifted one bit per cycle
  scan_found_valid<=0;scan_found_cluster<=0;scan_found_size<=0;scan_found_total<=0;
  load_done<=0;load_error<=0;bmp_error<=0;fat_error<=0;candidate<=0;
  task_cluster<=0;task_size<=0;header_lba<=0;header_shift_count<=0;found_slot[0]<=0;found_slot[1]<=0;found_slot[2]<=0;found_slot[3]<=0;io_error<=0;stream_finished<=0;decode_finished<=0;ack_wait<=0;selected_bad<=0;
+ bin_index<=0;bin_bad<=0;text_magic<=0;font_loaded<=0;text_loaded<=0;
  end else begin
+ // TEXT.BIN header bytes 0-2 must read "TX",1.
+ if(file_go)text_magic<=1'b1;
+ else if(bin_wr && bin_index && stream_offset<3 &&
+         stream_byte!=(stream_offset[1] ? 8'd1 : stream_offset[0] ? "X" : "T"))text_magic<=1'b0;
  scan_go<=0;file_go<=0;header_go<=0;scan_found_valid<=0;load_done<=0;load_error<=0;scan_error<=0;
  // Observe file errors with the same response bundle consumed by streamer.
  // This preserves the existing distinction between a retryable stream error
@@ -190,7 +220,8 @@ reg [2:0] header_shift_count;   // header_lba is shifted one bit per cycle
   else state<=DRAIN;
  end else case(state)
  IDLE:if(sd_init_done)begin
- if(scan_start)begin scan_done<=0;scan_found_total<=0;candidate<=0;fat_error<=0;bmp_error<=0;io_error<=0;scan_go<=1;state<=SCAN;end
+ if(scan_start)begin scan_done<=0;scan_found_total<=0;candidate<=0;fat_error<=0;bmp_error<=0;io_error<=0;scan_go<=1;state<=SCAN;
+ bin_index<=0;font_loaded<=0;text_loaded<=0;end
  else if(load_start)begin task_cluster<=LOAD_BY_INDEX ? selected_cluster : load_cluster;task_size<=LOAD_BY_INDEX ? selected_size : load_size;io_error<=0;fat_error<=0;bmp_error<=0;
  stream_finished<=0;decode_finished<=0;ack_wait<=0;state<=WRITE_WAIT;end
  end
@@ -199,7 +230,7 @@ reg [2:0] header_shift_count;   // header_lba is shifted one bit per cycle
  else state<=SELECT;
  end
  SELECT:if(!sector_busy)begin
- if(candidate==4)state<=SCAN_FINISH;
+ if(candidate==4)state<=SCAN_TEXT ? BIN_SELECT : SCAN_FINISH;
  else begin
  selected_bad<=!mask[candidate[1:0]] || selected_size<54 || selected_cluster<2 || selected_cluster>max_cluster;
  state<=SELECT_CHECK;end
@@ -224,7 +255,28 @@ reg [2:0] header_shift_count;   // header_lba is shifted one bit per cycle
  if(!scan_found_total[2])found_slot[scan_found_total[1:0]]<=candidate[1:0];end
  candidate<=candidate+1'b1;state<=SELECT;
  end
+ BIN_SELECT:begin
+ bin_bad<=!(bin_index ? text_found : font_found) || (bin_index ? text_big : font_big) ||
+  bin_size==0 || bin_size>13'd4096 || (bin_index && bin_size<4) ||
+  bin_cluster<2 || {4'd0,bin_cluster}>max_cluster;
+ state<=BIN_CHECK;
+ end
+ BIN_CHECK:if(bin_bad)state<=BIN_NEXT;
+ else begin task_cluster<={4'd0,bin_cluster};task_size<={19'd0,bin_size};state<=BIN_START;end
+ BIN_START:if(!sector_busy && !stream_busy)begin file_go<=1;state<=BIN_READ;end
+ BIN_READ:if(stream_done)begin
+ if(stream_error==0)begin
+  if(!bin_index)font_loaded<=1'b1;
+  else text_loaded<=text_magic;
+ end
+ state<=BIN_NEXT;
+ end
+ BIN_NEXT:if(!sector_busy)begin
+ if(bin_index)state<=SCAN_FINISH;
+ else begin bin_index<=1'b1;state<=BIN_SELECT;end
+ end
  SCAN_FINISH:if(!sector_busy)begin scan_done<=1;state<=IDLE;end
+
  WRITE_WAIT:if(write_req_ack)state<=START_FILE;
  else if(ack_wait>=WAIT_CYCLES-1)begin bmp_error<=2;fat_error<=8'h11;state<=RESULT;end
  else ack_wait<=ack_wait+1'b1;

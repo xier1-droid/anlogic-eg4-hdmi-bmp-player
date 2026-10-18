@@ -1,4 +1,8 @@
 // Fixed text, RGB888 combinational overlay; no video latency or text CDC.
+// BRAM_FONT=1 (M5): Chinese glyphs come from the FONT.BIN BRAM while
+// font_valid, else from the case font. The BRAM has one clock of read
+// latency, so the character is formed for the next pixel, which addresses
+// the BRAM, and registered for the current one.
 module scroll_text_overlay #(
     parameter integer ENABLE = 1,
     parameter integer TEXT_LEN = 25,
@@ -8,7 +12,8 @@ module scroll_text_overlay #(
     parameter integer TEXT_Y = 444,
     parameter integer PIXELS_PER_FRAME = 1,
     parameter integer CN_ENABLE = 0,
-    parameter integer RUNTIME_ENABLE = 0
+    parameter integer RUNTIME_ENABLE = 0,
+    parameter integer BRAM_FONT = 0
 )(
     input clk, rst, vs, de,
     input [9:0] pixel_x,
@@ -18,7 +23,10 @@ module scroll_text_overlay #(
     output wire active,
     input [119:0] runtime_text,
     input [3:0] runtime_length,
-    input runtime_enable, runtime_text_changed
+    input runtime_enable, runtime_text_changed,
+    output [10:0] font_addr,          // glyph 0x80+i is FONT.BIN glyph i
+    input [15:0] font_data,
+    input font_valid
 );
     localparam integer MIXED_LEN = 12;
     localparam integer MAX_WIDTH = (RUNTIME_ENABLE ? 15 : (CN_ENABLE ? MIXED_LEN : TEXT_LEN)) * 16;
@@ -60,7 +68,8 @@ module scroll_text_overlay #(
     wire signed [31:0] text_x = $signed({1'b0,scroll}) +
                                                 $signed({1'b0,pixel_x}) - WINDOW_RIGHT;
     wire [8:0] dy = line_y - TEXT_Y;
-    reg [7:0] character;
+    reg [7:0] character_now, next_char, character_q;
+    wire signed [31:0] next_x = text_x + 1;
     function [7:0] mixed_char;
         input integer index;
         begin
@@ -75,21 +84,33 @@ module scroll_text_overlay #(
         end
     endfunction
     always @* begin
-        character = " ";
+        character_now = " ";
         if (text_x >= 0 && text_x < text_width)
-            character = RUNTIME_ENABLE ? runtime_text[(text_x >> 4)*8 +: 8] :
+            character_now = RUNTIME_ENABLE ? runtime_text[(text_x >> 4)*8 +: 8] :
                         CN_ENABLE ? mixed_char(text_x >> 4) :
                         TEXT[(TEXT_LEN-1-(text_x >> 4))*8 +: 8];
+        next_char = " ";
+        if (next_x >= 0 && next_x < text_width)
+            next_char = RUNTIME_ENABLE ? runtime_text[(next_x >> 4)*8 +: 8] :
+                        CN_ENABLE ? mixed_char(next_x >> 4) :
+                        TEXT[(TEXT_LEN-1-(next_x >> 4))*8 +: 8];
     end
+    always @(posedge clk or posedge rst)
+        if (rst) character_q <= " ";
+        else character_q <= next_char;
+    wire [7:0] character = BRAM_FONT ? character_q : character_now;
+    assign font_addr = {next_char[6:0], dy[3:0]};
     wire [4:0] glyph;
-    wire [15:0] cn_glyph;
+    wire [15:0] cn_glyph, case_glyph;
+    assign cn_glyph = (BRAM_FONT && font_valid) ? font_data : case_glyph;
     wire ascii_supported = (character >= "A" && character <= "Z") ||
         (character >= "0" && character <= "9") || character==" " || character==":" ||
         character=="." || character=="," || character=="!" || character=="?" ||
         character=="-" || character=="_" || character=="/";
     wire [7:0] ascii_char = RUNTIME_ENABLE && !ascii_supported ? "?" : character;
     osd_font_5x7 font(.character(ascii_char), .row(dy[3:1]), .pixels(glyph));
-    osd_font_cn_16x16 cn_font(.character(character), .row(dy[3:0]), .pixels(cn_glyph));
+    osd_font_cn_16x16 cn_font(.character(character), .row(dy[3:0]), .pixels(case_glyph));
+
     wire in_region = ENABLE && subtitle_enabled && started && de && pixel_x >= WINDOW_LEFT && pixel_x < WINDOW_RIGHT &&
                      line_y >= TEXT_Y && line_y < TEXT_Y + 16 && text_x >= 0 && text_x < text_width;
     wire is_cn = character[7:4] == 4'h8;

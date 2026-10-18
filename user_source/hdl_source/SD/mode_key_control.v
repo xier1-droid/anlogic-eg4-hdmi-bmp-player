@@ -1,7 +1,8 @@
 // Three independent active-low keys. Mode gates new picture events only.
 // Mode 0 KEY4: a press released before SCENE_HOLD_MS toggles AUTO on release;
 // holding it SCENE_HOLD_MS toggles scene mode once and its release is ignored.
-// Scene mode stays across modes; in mode 0 it leaves KEY1 to the warning mode.
+// Scene mode stays across modes; in mode 0 KEY1 toggles the warning mode,
+// which ends with scene mode.
 module mode_key_control #(
     parameter integer CLK_FREQ_HZ = 100_000_000,
     parameter integer RESCAN_HOLD_MS = 2000,
@@ -15,6 +16,7 @@ module mode_key_control #(
     output wire previous_event,
     output reg auto_toggle_event,
     output reg scene_mode,
+    output reg warn_mode,
     output wire adjust_decrease,adjust_increase,adjust_restore,adjust_select,
     output wire manual_activity
 );
@@ -106,7 +108,12 @@ module mode_key_control #(
             end
         end
     end
+    always @(posedge clk or posedge rst)
+        if (rst) warn_mode <= 0;
+        else if (!scene_mode) warn_mode <= 0;
+        else if (enable && press1 && press_mode == 0 && mode == 0) warn_mode <= ~warn_mode;
     // Register the media toggle to break mode -> preview -> cache request logic.
+
     // Mode 3 keeps the press edge for the preview toggle.
     always @(posedge clk or posedge rst)
         if(rst)auto_toggle_event<=0;

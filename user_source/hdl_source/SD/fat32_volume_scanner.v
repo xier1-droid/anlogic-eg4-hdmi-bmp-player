@@ -2,10 +2,12 @@
 // contract; fields are captured as bytes arrive, without a 512-byte mux array.
 // With SCAN_AUDIO the scanner also records BGM.PCM and the stage files
 // SND1-4.PCM; audio_found/cluster/size report the file chosen by audio_slot
-// (0-3 SND1-4, otherwise BGM).
+// (0-3 SND1-4, otherwise BGM). With SCAN_TEXT it also records FONT.BIN and
+// TEXT.BIN; their size is kept as 13 bits plus a flag for 8192 and above.
 module fat32_volume_scanner #(
     parameter integer MAX_VISITED_CLUSTERS = 8192,
-    parameter integer SCAN_AUDIO = 0
+    parameter integer SCAN_AUDIO = 0,
+    parameter integer SCAN_TEXT = 0
 )(
     input wire clk, input wire rst_n, input wire scan_start,
     output wire scan_busy, output reg scan_done, output reg [7:0] fs_error,
@@ -17,6 +19,9 @@ module fat32_volume_scanner #(
     output reg [31:0] resource0_size, resource1_size, resource2_size, resource3_size,
     input wire [2:0] audio_slot, output reg [3:0] snd_found,
     output wire audio_found, output wire [31:0] audio_cluster, audio_size,
+    output reg font_found, text_found, font_big, text_big,
+    output reg [27:0] font_cluster, text_cluster,
+    output reg [12:0] font_size, text_size,
     output reg sector_req, output reg [31:0] sector_lba,
     input wire sector_busy, sector_valid, input wire [7:0] sector_byte,
     input wire [8:0] sector_byte_index,
@@ -41,7 +46,7 @@ module fat32_volume_scanner #(
     reg [7:0] dir_sector;
     reg [COUNT_BITS-1:0] visited;
     reg dir_end, name_match;
-    reg audio_match, snd_match;
+    reg audio_match, snd_match, font_match, text_match;
     reg bgm_found;
     reg [31:0] bgm_cluster, bgm_size;
     reg [31:0] snd_cluster[0:3], snd_size[0:3];
@@ -87,7 +92,7 @@ module fat32_volume_scanner #(
     // Names, attributes and duplicate status are settled before byte 30.
     // Register per-destination enables there; commit at byte 31 as before.
     // Hold the enables across byte gaps and clear them after the commit.
-    (* keep = "true" *) reg [8:0] entry_accept;
+    (* keep = "true" *) reg [10:0] entry_accept;
     integer k;
     always @(posedge clk or negedge rst_n) begin
         if(!rst_n) entry_accept<=0;
@@ -101,6 +106,8 @@ module fat32_volume_scanner #(
                 entry_accept[4]<=!dir_end && audio_match && !bgm_found;
                 for(k=0;k<4;k=k+1)
                     entry_accept[5+k]<=!dir_end && snd_match && resource_index==k && !snd_found[k];
+                entry_accept[9]<=!dir_end && font_match && !font_found;
+                entry_accept[10]<=!dir_end && text_match && !text_found;
             end else if(sector_byte_index[4:0]==31) entry_accept<=0;
         end
     end
@@ -110,12 +117,18 @@ module fat32_volume_scanner #(
             resource0_cluster<=0;resource1_cluster<=0;resource2_cluster<=0;resource3_cluster<=0;
             resource0_size<=0;resource1_size<=0;resource2_size<=0;resource3_size<=0;
             for(k=0;k<4;k=k+1)begin snd_cluster[k]<=0;snd_size[k]<=0;end
+            font_found<=0;text_found<=0;font_big<=0;text_big<=0;font_cluster<=0;text_cluster<=0;font_size<=0;text_size<=0;
         end else if(state==IDLE && scan_start) begin
             resource_valid<=0;bgm_found<=0;bgm_cluster<=0;bgm_size<=0;snd_found<=0;
             resource0_cluster<=0;resource1_cluster<=0;resource2_cluster<=0;resource3_cluster<=0;
             resource0_size<=0;resource1_size<=0;resource2_size<=0;resource3_size<=0;
             for(k=0;k<4;k=k+1)begin snd_cluster[k]<=0;snd_size[k]<=0;end
+            font_found<=0;text_found<=0;
         end else if(sector_valid && sector_byte_index[4:0]==31) begin
+            if(entry_accept[9])begin font_found<=1;font_cluster<=entry_cluster[27:0];font_size<=entry_size[12:0];
+                font_big<=sector_byte!=0 || entry_size[23:13]!=0;end
+            if(entry_accept[10])begin text_found<=1;text_cluster<=entry_cluster[27:0];text_size<=entry_size[12:0];
+                text_big<=sector_byte!=0 || entry_size[23:13]!=0;end
             if(entry_accept[0])begin resource_valid[0]<=1;resource0_cluster<=entry_cluster;resource0_size<={sector_byte,entry_size[23:0]};end
             if(entry_accept[1])begin resource_valid[1]<=1;resource1_cluster<=entry_cluster;resource1_size<={sector_byte,entry_size[23:0]};end
             if(entry_accept[2])begin resource_valid[2]<=1;resource2_cluster<=entry_cluster;resource2_size<={sector_byte,entry_size[23:0]};end
@@ -136,7 +149,7 @@ module fat32_volume_scanner #(
             mbr_match<=0;for(j=0;j<4;j=j+1)mbr_lba[j]<=0;
             overhead<=0;data_sectors<=0;data_borrow<=0;shift_count<=0;cluster_count<=0;partition_reserved<=0;cluster_offset<=0;cluster_shift<=0;fat_span<=0;current_cluster<=0;dir_sector<=0;visited<=0;
             dir_end<=0;name_match<=0;resource_index<=0;entry_cluster<=0;entry_size<=0;fat_entry<=0;
-            audio_match<=0;snd_match<=0;
+            audio_match<=0;snd_match<=0;font_match<=0;text_match<=0;
         end else begin
             scan_done<=0;sector_req<=0;
             if(sector_valid && (state==ZERO_WAIT || state==BOOT_WAIT)) begin
@@ -169,20 +182,29 @@ module fat32_volume_scanner #(
             end
             if(state==DIR_WAIT && sector_valid && !dir_end) begin
                 case(sector_byte_index[4:0])
-                    0:begin name_match<=(sector_byte=="P");audio_match<=SCAN_AUDIO && (sector_byte=="B");snd_match<=SCAN_AUDIO && (sector_byte=="S");if(sector_byte==0)dir_end<=1;end
-                    1:begin name_match<=name_match && sector_byte=="I";audio_match<=audio_match && sector_byte=="G";snd_match<=snd_match && sector_byte=="N";end
-                    2:begin name_match<=name_match && sector_byte=="C";audio_match<=audio_match && sector_byte=="M";snd_match<=snd_match && sector_byte=="D";end
+                    0:begin name_match<=(sector_byte=="P");audio_match<=SCAN_AUDIO && (sector_byte=="B");snd_match<=SCAN_AUDIO && (sector_byte=="S");if(sector_byte==0)dir_end<=1;
+                        font_match<=SCAN_TEXT && (sector_byte=="F");text_match<=SCAN_TEXT && (sector_byte=="T");end
+                    1:begin name_match<=name_match && sector_byte=="I";audio_match<=audio_match && sector_byte=="G";snd_match<=snd_match && sector_byte=="N";
+                        font_match<=font_match && sector_byte=="O";text_match<=text_match && sector_byte=="E";end
+                    2:begin name_match<=name_match && sector_byte=="C";audio_match<=audio_match && sector_byte=="M";snd_match<=snd_match && sector_byte=="D";
+                        font_match<=font_match && sector_byte=="N";text_match<=text_match && sector_byte=="X";end
                     3:begin name_match<=name_match && sector_byte>="1" && sector_byte<="4";audio_match<=audio_match && sector_byte==" ";
                         snd_match<=snd_match && sector_byte>="1" && sector_byte<="4";
+                        font_match<=font_match && sector_byte=="T";text_match<=text_match && sector_byte=="T";
                         resource_index<=sector_byte[1:0]-2'd1;end
-                    4,5,6,7:begin name_match<=name_match && sector_byte==" ";audio_match<=audio_match && sector_byte==" ";snd_match<=snd_match && sector_byte==" ";end
-                    8:begin name_match<=name_match && sector_byte=="B";audio_match<=audio_match && sector_byte=="P";snd_match<=snd_match && sector_byte=="P";end
-                    9:begin name_match<=name_match && sector_byte=="M";audio_match<=audio_match && sector_byte=="C";snd_match<=snd_match && sector_byte=="C";end
-                    10:begin name_match<=name_match && sector_byte=="P";audio_match<=audio_match && sector_byte=="M";snd_match<=snd_match && sector_byte=="M";end
+                    4,5,6,7:begin name_match<=name_match && sector_byte==" ";audio_match<=audio_match && sector_byte==" ";snd_match<=snd_match && sector_byte==" ";
+                        font_match<=font_match && sector_byte==" ";text_match<=text_match && sector_byte==" ";end
+                    8:begin name_match<=name_match && sector_byte=="B";audio_match<=audio_match && sector_byte=="P";snd_match<=snd_match && sector_byte=="P";
+                        font_match<=font_match && sector_byte=="B";text_match<=text_match && sector_byte=="B";end
+                    9:begin name_match<=name_match && sector_byte=="M";audio_match<=audio_match && sector_byte=="C";snd_match<=snd_match && sector_byte=="C";
+                        font_match<=font_match && sector_byte=="I";text_match<=text_match && sector_byte=="I";end
+                    10:begin name_match<=name_match && sector_byte=="P";audio_match<=audio_match && sector_byte=="M";snd_match<=snd_match && sector_byte=="M";
+                        font_match<=font_match && sector_byte=="N";text_match<=text_match && sector_byte=="N";end
                     // Accept read-only/hidden/system/archive files; exclude LFN,
                     // volume labels and subdirectories by their attribute bits.
                     11:begin name_match<=name_match && (sector_byte & 8'h18)==0;audio_match<=audio_match && (sector_byte & 8'h18)==0;
-                        snd_match<=snd_match && (sector_byte & 8'h18)==0;end
+                        snd_match<=snd_match && (sector_byte & 8'h18)==0;
+                        font_match<=font_match && (sector_byte & 8'h18)==0;text_match<=text_match && (sector_byte & 8'h18)==0;end
                     20:entry_cluster[23:16]<=sector_byte;
                     21:entry_cluster[31:24]<={4'b0,sector_byte[3:0]};
                     26:entry_cluster[7:0]<=sector_byte;27:entry_cluster[15:8]<=sector_byte;
@@ -258,8 +280,10 @@ module fat32_volume_scanner #(
                 DIR_REQ:if(!sector_busy)begin sector_req<=1;name_match<=0;state<=DIR_WAIT;end
                 DIR_WAIT:if(sector_done)begin if(sector_error!=0)fail(ERR_SECTOR);else state<=DIR_NEXT;end
                 DIR_NEXT:begin
-                    // Without every audio file the scan runs to the directory end.
-                    if(dir_end || (resource_valid==4'hf && (!SCAN_AUDIO || (bgm_found && snd_found==4'hf))))state<=FINISH;
+                    // Without every audio or text file the scan runs to the directory end.
+                    if(dir_end || (resource_valid==4'hf && (!SCAN_AUDIO || (bgm_found && snd_found==4'hf)) &&
+                                   (!SCAN_TEXT || (font_found && text_found))))state<=FINISH;
+
                     else if(dir_sector+1'b1<sectors_per_cluster)begin
                         dir_sector<=dir_sector+1'b1;sector_lba<=sector_lba+1'b1;state<=DIR_REQ;
                     end else begin sector_lba<=fat_start_lba+(current_cluster>>7);state<=FAT_REQ;end

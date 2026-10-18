@@ -227,23 +227,31 @@ wire [23:0] adjust_frame;
 wire [1:0] adjust_mode=adjust_frame[23:22],adjust_selected=adjust_frame[21:20];
 wire [7:0] brightness_frame=adjust_frame[19:12],contrast_frame=adjust_frame[11:4];
 wire [3:0] volume_frame=adjust_frame[3:0];
+wire scene_mode_sd,warn_sd;
+wire [1:0] speed_src;
 media_adjust_control u_adjust_control(.clk(sd_card_clk),.rst(rst_sd),.mode(switch_mode),
  .decrease(adjust_decrease),.increase(adjust_increase),.restore(adjust_restore),.select_next(adjust_select),
- .brightness(brightness_src),.contrast(contrast_src),.volume_level(volume_src),.selected(selected_src));
+ .brightness(brightness_src),.contrast(contrast_src),.volume_level(volume_src),.selected(selected_src),
+ .scene_mode(scene_mode_sd),.speed(speed_src));
 media_adjust_cdc u_adjust_cdc(.src_clk(sd_card_clk),.src_rst(rst_sd),
  .src_state({switch_mode,selected_src,brightness_src,contrast_src,volume_src}),
  .dst_clk(video_clk),.dst_rst(rst_video),.frame_start(sub_frame_start),.frame_state(adjust_frame));
 
 // Mode and key routing share the SD control clock. Synchronize mode for panel display.
 
+// M5: in scene mode the last digit shows the stage 1-4, or A in the warning
+// mode; error codes D-F keep their place.
+wire [3:0] panel_code=(scene_mode_sd && state_code<4'hd) ?
+ (warn_sd ? 4'ha : {2'd0,committed_image}+4'd1) : state_code;
 reg [1:0] mode_panel_sync0, mode_panel_sync1, mode_panel_half;
+
 reg auto_panel_half;
 reg [3:0] state_panel_half,state_panel_sync;
 // Related 100/50 MHz clocks: stage on the falling source edge so the
 // destination rising edge has half a source period of hold margin.
 always @(negedge sd_card_clk or posedge rst_sd)begin
  if(rst_sd)begin mode_panel_half<=0;auto_panel_half<=0;state_panel_half<=0;end
- else begin mode_panel_half<=switch_mode;auto_panel_half<=auto_play_indicator;state_panel_half<=state_code;end
+ else begin mode_panel_half<=switch_mode;auto_panel_half<=auto_play_indicator;state_panel_half<=panel_code;end
 end
 switch_mode_control #(.CLK_FREQ_HZ(100_000_000)) u_switch_mode_control (
     .clk(sd_card_clk), .rst(rst_sd), .switches({sw2, sw1}), .mode(switch_mode)
@@ -294,13 +302,18 @@ wire bgm_valid,bgm_ready,bgm_active;
 wire frame_write_ready,frame_refill_priority;
 wire signed [15:0] bgm_left,bgm_right;
 wire [23:0] scene_kinds_sd,scene_kinds;
-wire scene_mode_sd,scene_stage_done;
+wire scene_stage_done;
+wire bin_wr,bin_sel,font_loaded_sd,text_loaded_sd;
+wire [11:0] bin_addr;wire [7:0] bin_data;
 sd_card_bmp #(
     .CLK_FREQ_HZ       (100_000_000),
     .SCAN_START_SECTOR (32'd0),
     .SCAN_MAX_SECTOR   (32'd131071),
-    .SCAN_TARGET_COUNT (3'd4), .SCALE_ENABLE(1), .PREVIEW_ENABLE(1), .AUDIO_ENABLE(1), .USE_FRAME_RESULT(1), .TRANSITION_ENABLE(TRANSITION_ENABLE)
+    .SCAN_TARGET_COUNT (3'd4), .SCALE_ENABLE(1), .PREVIEW_ENABLE(1), .AUDIO_ENABLE(1), .USE_FRAME_RESULT(1), .TRANSITION_ENABLE(TRANSITION_ENABLE),
+    .TEXT_ENABLE(1)
 ) sd_card_bmp_m0(
+    .warn_mode(warn_sd),.bin_wr(bin_wr),.bin_sel(bin_sel),.bin_addr(bin_addr),.bin_data(bin_data),
+    .font_loaded(font_loaded_sd),.text_loaded(text_loaded_sd),
     .bgm_valid(bgm_valid),.bgm_ready(bgm_ready),.bgm_active(bgm_active),
     .bgm_left(bgm_left),.bgm_right(bgm_right),
     .clk               (sd_card_clk),
@@ -410,6 +423,14 @@ scene_kind_cdc u_scene_kind_cdc(.src_clk(sd_card_clk),.src_rst(rst_sd),.src_kind
  .dst_clk(video_clk),.dst_rst(rst_video),.dst_kinds(scene_kinds));
 wire [9:0] hazard_frame_cnt;wire [7:0] hazard_t_now;wire [2:0] hazard_kind_hazard,hazard_kind_role;
 wire hazard_enable,fade_mute;
+wire [1:0] scene_stage;wire scene_on,warn_on;
+// Speed (scene parameter item) is a quasi-static SD level: two-stage
+// synchronizer, taken at frame_start.
+(* ASYNC_REG = "TRUE" *) reg [1:0] speed_sync0,speed_sync1;
+reg [1:0] speed_frame;
+always @(posedge video_clk or posedge rst_video)
+ if(rst_video)begin speed_sync0<=0;speed_sync1<=0;speed_frame<=0;end
+ else begin speed_sync0<=speed_src;speed_sync1<=speed_sync0;if(sub_frame_start)speed_frame<=speed_sync1;end
 generate if(HAZARD_TEST_SOURCE) begin:g_hazard_test
  hazard_test_source u_hazard_test_source(.clk(video_clk),.rst(rst_video),.frame_start(sub_frame_start),.media_update(audio_update),
   .image_index(audio_image),.kinds(scene_kinds),.frame_cnt(hazard_frame_cnt),.t_now(hazard_t_now),
@@ -417,15 +438,17 @@ generate if(HAZARD_TEST_SOURCE) begin:g_hazard_test
  assign hazard_enable=1'b1;
  assign fade_mute=1'b0;
  assign scene_stage_done=1'b0;
+ assign scene_stage=2'd0;assign scene_on=1'b0;assign warn_on=1'b0;
 end else begin:g_scenario
  // M4: the stage follows the displayed image; t follows the SD audio file's
- // accepted samples. Speed stays 1x until M5 adds its parameter item.
+ // accepted samples at the parameter-item speed (M5).
  scenario_fsm u_scenario_fsm(.clk(video_clk),.rst(rst_video),.scene_mode_async(scene_mode_sd),
   .frame_start(sub_frame_start),.media_update(audio_update),.image_index(audio_image),.image_valid(audio_enable),
   .kinds(scene_kinds),.sample_tick(bgm_valid && bgm_ready),.audio_running(bgm_active),
-  .transition_active(transition_active),.speed(2'd0),
-  .frame_cnt(hazard_frame_cnt),.t_now(hazard_t_now),.stage(),.hazard(hazard_kind_hazard),.role(hazard_kind_role),
-  .layer_enable(hazard_enable),.fade_mute(fade_mute),.stage_done(scene_stage_done));
+  .transition_active(transition_active),.speed(speed_frame),.warn_async(warn_sd),
+  .frame_cnt(hazard_frame_cnt),.t_now(hazard_t_now),.stage(scene_stage),.hazard(hazard_kind_hazard),.role(hazard_kind_role),
+  .layer_enable(hazard_enable),.fade_mute(fade_mute),.stage_done(scene_stage_done),
+  .scene_on(scene_on),.warn_on(warn_on));
 end endgenerate
 hazard_layer u_hazard_layer(.clk(video_clk),.rst(rst_video),.rgb_in(scene_pixel[31:8]),.t_in(scene_pixel[7:0]),
  .de(scene_de),.frame_start(sub_frame_start),
@@ -525,19 +548,22 @@ end else begin:g_no_audio_vis
  assign ring_bar_height=5'd0;
 end endgenerate
 audio_ring_overlay #(.ENABLE(AUDIO_VIS_ENABLE)) u_audio_ring(
- .clk(video_clk),.rst(rst_video),.hs(adjust_hs),.vs(adjust_vs),.de(adjust_de),.enable(adjust_audio && !adjust_preview),
+ .clk(video_clk),.rst(rst_video),.hs(adjust_hs),.vs(adjust_vs),.de(adjust_de),.enable(adjust_audio && !adjust_preview && !scene_on),
  .pixel_x(adjust_x),.pixel_y(adjust_y),.rgb_in(preview_rgb),.bar_height(ring_bar_height),
  .bar_index(ring_bar_index),.hs_out(ring_hs),.vs_out(ring_vs),.de_out(ring_de),.x_out(ring_x),.rgb_out(ring_rgb));
 
 reg [1:0] preview_after_ring;
 always @(posedge video_clk or posedge rst_video)
  if(rst_video)preview_after_ring<=0;else preview_after_ring<={preview_after_ring[0],adjust_preview};
+// M5 scene mode (not in the thumbnail view): status text off, scene OSD on.
+wire scene_vis=scene_on && !preview_after_ring[1];
 wire [23:0] parameter_rgb;
 wire parameter_glyph_active;
 adjust_osd_overlay #(.ENABLE(OSD_ENABLE)) u_parameter_osd(
- .clk(video_clk),.rst(rst_video),.vs(ring_vs),.de(ring_de),.pixel_x(ring_x),.rgb_in(osd_rgb),
+ .clk(video_clk),.rst(rst_video),.vs(ring_vs),.de(ring_de),.pixel_x(ring_x),.rgb_in(scene_vis ? ring_rgb : osd_rgb),
  .mode(adjust_mode),.selected(adjust_selected),.brightness(brightness_frame),.contrast(contrast_frame),
- .volume_level(volume_frame),.rgb_out(parameter_rgb),.active(parameter_glyph_active));
+ .volume_level(volume_frame),.rgb_out(parameter_rgb),.active(parameter_glyph_active),
+ .speed(speed_frame),.speed_visible(scene_on));
 
 osd_status_cdc u_osd_status_cdc (
     .src_clk(sd_card_clk), .src_rst(rst_sd),
@@ -554,20 +580,38 @@ status_osd_overlay #(.OSD_ENABLE(OSD_ENABLE)) u_status_osd (
     .auto_enabled(osd_auto_pixel), .error_code(osd_error_pixel), .rgb_out(osd_rgb),
     .active(status_glyph_active)
 );
-scroll_text_overlay #(.ENABLE(OSD_ENABLE && SCROLL_ENABLE), .CN_ENABLE(1), .RUNTIME_ENABLE(1)) u_scroll_osd (
+// FONT.BIN/TEXT.BIN BRAMs: written by the scan, read by the subtitle (outside
+// scene mode) and the scene OSD.
+(* ASYNC_REG = "TRUE" *) reg [1:0] font_ok_sync,text_ok_sync;
+always @(posedge video_clk or posedge rst_video)
+ if(rst_video)begin font_ok_sync<=0;text_ok_sync<=0;end
+ else begin font_ok_sync<={font_ok_sync[0],font_loaded_sd};text_ok_sync<={text_ok_sync[0],text_loaded_sd};end
+wire font_ok=font_ok_sync[1],text_ok=text_ok_sync[1];
+wire [10:0] scroll_font_addr,scene_font_addr;wire [11:0] scene_text_addr;
+wire [15:0] font_data;wire [7:0] text_data;
+bin_to_bram_loader u_bin_loader(.wr_clk(sd_card_clk),.bin_wr(bin_wr),.bin_sel(bin_sel),.bin_addr(bin_addr),.bin_data(bin_data),
+ .rd_clk(video_clk),.font_addr(scene_on ? scene_font_addr : scroll_font_addr),.font_data(font_data),
+ .text_addr(scene_text_addr),.text_data(text_data));
+scroll_text_overlay #(.ENABLE(OSD_ENABLE && SCROLL_ENABLE), .CN_ENABLE(1), .RUNTIME_ENABLE(1), .BRAM_FONT(1)) u_scroll_osd (
  .clk(video_clk),.rst(rst_video),.vs(ring_vs),.de(ring_de),.pixel_x(ring_x),.image_valid(audio_enable),
  .rgb_in(parameter_rgb),.rgb_out(scroll_rgb),.active(scroll_glyph_active),
  .runtime_text(sub_text_pixel),.runtime_length(sub_length_pixel),
- .runtime_enable(sub_enable_pixel && !preview_after_ring[1]),.runtime_text_changed(sub_text_changed)
+ .runtime_enable(sub_enable_pixel && !preview_after_ring[1] && !scene_on),.runtime_text_changed(sub_text_changed),
+ .font_addr(scroll_font_addr),.font_data(font_data),.font_valid(font_ok)
 );
 timestamp_osd #(.ENABLE(OSD_ENABLE && TIMESTAMP_ENABLE)) u_timestamp_osd(
  .clk(video_clk),.rst(rst_video),.vs(ring_vs),.de(ring_de),.pixel_x(ring_x),
  .rgb_in(scroll_rgb),.rgb_out(timestamp_rgb),.active(timestamp_glyph_active));
 osd_alpha_band #(.ENABLE(OSD_ENABLE && BAND_ENABLE), .RUNTIME_ENABLE(1)) u_osd_band(
  .clk(video_clk),.rst(rst_video),.vs(ring_vs),.de(ring_de),.pixel_x(ring_x),
- .rgb_in(timestamp_rgb),.glyph_active(parameter_glyph_active || status_glyph_active || scroll_glyph_active || timestamp_glyph_active),
- .rgb_out(band_rgb),.active(),.subtitle_enable(sub_enable_pixel && !preview_after_ring[1] && sub_length_pixel!=0)
+ .rgb_in(timestamp_rgb),.glyph_active(parameter_glyph_active || (status_glyph_active && !scene_vis) || scroll_glyph_active || timestamp_glyph_active),
+ .rgb_out(band_rgb),.active(),.subtitle_enable(sub_enable_pixel && !preview_after_ring[1] && !scene_on && sub_length_pixel!=0)
 );
+wire [23:0] scene_rgb;
+scene_osd u_scene_osd(.clk(video_clk),.rst(rst_video),.vs(ring_vs),.de(ring_de),.pixel_x(ring_x),.lead_x(adjust_x),
+ .rgb_in(band_rgb),.rgb_plain(timestamp_rgb),.scene(scene_vis),.warn(warn_on),.stage(scene_stage),
+ .t_now(hazard_t_now),.frame_cnt(hazard_frame_cnt),.font_ok(font_ok),.text_ok(text_ok),
+ .font_addr(scene_font_addr),.font_data(font_data),.text_addr(scene_text_addr),.text_data(text_data),.rgb_out(scene_rgb));
 wire pcm_valid, pcm_ready, pcm_overflow, hdmi_sequence_error;
 wire signed [15:0] pcm_left, pcm_right;
 pcm_media_tone #(.FIXED_VOLUME(128)) u_pcm_clock (
@@ -591,7 +635,8 @@ pcm_master_volume u_master_volume(.clk(video_clk),.rst(rst_video),.volume_level(
 media_hdmi_audio_bridge u_media_hdmi_audio_bridge (
     .pixel_clk(video_clk), .pixel_rst_n(~rst_video),
     .video_hsync(ring_hs), .video_vsync(ring_vs), .video_de(ring_de),
-    .video_x(ring_x), .video_rgb(band_rgb),
+    .video_x(ring_x), .video_rgb(scene_rgb),
+
     .select_media(1'b1), .test_valid(1'b0), .test_ready(),
     .test_left(16'sd0), .test_right(16'sd0),
     .media_valid(volume_valid), .media_ready(volume_ready),
