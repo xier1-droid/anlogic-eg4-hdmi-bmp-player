@@ -33,3 +33,6 @@ work/
 /diagnostics/output/
 /diagnostics/local_tools/
 __pycache__/
+
+# Scene annotation tool exe, rebuilt by tools/build_annotate_exe.py
+/tools/annotate_scene.exe
