@@ -31,7 +31,7 @@ module tb_fat32_core;
     fat32_volume_scanner #(.MAX_VISITED_CLUSTERS(4)) scanner (
         .clk(clk),.rst_n(!rst),.scan_start(scan_start),.scan_busy(scan_busy),.scan_done(scan_done),.fs_error(scan_error),
         .partition_lba(partition_lba),.sectors_per_cluster(spc),.fat_start_lba(fat_lba),.data_start_lba(data_lba),.max_cluster(max_cluster),
-        .resource_valid(resource_valid),.audio_found(),.audio_cluster(),.audio_size(),.resource0_cluster(clusters[0]),.resource1_cluster(clusters[1]),
+        .resource_valid(resource_valid),.audio_slot(3'd4),.snd_found(),.audio_found(),.audio_cluster(),.audio_size(),.resource0_cluster(clusters[0]),.resource1_cluster(clusters[1]),
         .resource2_cluster(clusters[2]),.resource3_cluster(clusters[3]),
         .resource0_size(sizes[0]),.resource1_size(sizes[1]),.resource2_size(sizes[2]),.resource3_size(sizes[3]),
         .sector_req(scan_req),.sector_lba(scan_lba),.sector_busy(sector_busy),

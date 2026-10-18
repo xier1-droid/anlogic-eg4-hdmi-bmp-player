@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 module tb_preview_keys;
  reg clk=0,rst=1,enable=1,key1=1,key2=1,key4=1;reg [1:0] mode=3;
- wire next_event,previous_event,auto_toggle_event,manual_activity,rescan_event;
+ wire next_event,previous_event,auto_toggle_event,manual_activity,rescan_event,scene_mode;
  mode_key_control #(.CLK_FREQ_HZ(1000),.PREVIEW_ENABLE(1)) dut(.adjust_decrease(),.adjust_increase(),.adjust_restore(),.adjust_select(),.*);
  always #5 clk=~clk;
  integer nexts=0,prevs=0,toggles=0,rescans=0;

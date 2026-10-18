@@ -93,7 +93,7 @@ module tb_preview_system;
   .preview_request(preview_req),.preview_ack(preview_ack),.preview_descriptor(preview_desc),
   .write_finish_toggle(finish_toggle),.display_commit_ack(commit_ack),.display_commit_request(commit_req),
   .write_buf_idx(write_bank),.disp_buf_idx(display_bank),.write_req(req),.write_req_ack(ack),.write_ready(write_ready),.write_en(src_we),.write_data(src_data),
-  .SD_nCS(),.SD_DCLK(),.SD_MOSI(),.SD_MISO(1'b1),.scene_kinds()
+  .SD_nCS(),.SD_DCLK(),.SD_MOSI(),.SD_MISO(1'b1),.scene_kinds(),.scene_mode(),.scene_stage_done(1'b0)
  );
  media_commit_cdc cdc(.src_clk(src_clk),.dst_clk(pix_clk),.src_rst(rst),.dst_rst(rst),
   .src_image(committed_image),.src_valid(committed_valid),.src_ready(committed_ready),

@@ -41,7 +41,7 @@ module tb_m1_reader_alpha;
       .write_req(write_req),.write_req_ack(ack),.write_ready(write_ready),.bmp_data_wr_en(pixel_valid),.bmp_data(pixel_rgb),
       .sd_sec_read(raw_req),.sd_sec_read_addr(raw_lba),.sd_sec_read_data(raw_byte),
       .sd_sec_read_data_valid(raw_valid),.sd_sec_read_end(raw_end),.sd_sec_read_failed(raw_failed),
-      .bmp_alpha(pixel_alpha),.bmp_kind(scene_kind));
+      .bmp_alpha(pixel_alpha),.bmp_kind(scene_kind),.audio_slot(3'd4),.snd_found());
     // SDRAM word as assembled by sd_card_bmp: {R,G,B,T}.
     wire [31:0] write_word={pixel_rgb,pixel_alpha};
     always @(negedge clk)begin

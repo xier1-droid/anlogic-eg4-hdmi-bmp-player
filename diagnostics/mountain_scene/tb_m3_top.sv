@@ -111,7 +111,7 @@ module tb_m3_top;
   force dut.display_valid=valid_picture;force dut.pixel_descriptor=descriptor;force dut.transition_level=5'd16;force dut.transition_wipe=1'b0;
   force dut.audio_enable=1'b1;force dut.audio_image=2'd0;
   force dut.brightness_src=8'd128;force dut.contrast_src=8'd128;force dut.volume_src=4'd10;force dut.selected_src=2'd0;force dut.switch_mode=2'd0;
-  force dut.hazard_t_now=t_now;force dut.hazard_kind_hazard=hz;force dut.hazard_kind_role=role;force dut.hazard_frame_cnt=fc;
+  force dut.hazard_enable=1'b1;force dut.hazard_t_now=t_now;force dut.hazard_kind_hazard=hz;force dut.hazard_kind_role=role;force dut.hazard_frame_cnt=fc;
   repeat(10)@(negedge pix);rst=0;
   frame(8);                                                   // no kind: T ignored
   hz=1;role=4;t_now=150;fc=10'h3a7;frame(24);                 // landslide evacuation

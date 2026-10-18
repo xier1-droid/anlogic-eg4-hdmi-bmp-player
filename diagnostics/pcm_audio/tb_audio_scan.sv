@@ -9,7 +9,7 @@ module tb_audio_scan #(parameter integer GAP=0);
  .partition_lba(),.sectors_per_cluster(),.fat_start_lba(),.data_start_lba(),.max_cluster(),
  .resource_valid(pics),.resource0_cluster(),.resource1_cluster(),.resource2_cluster(),.resource3_cluster(),
  .resource0_size(),.resource1_size(),.resource2_size(),.resource3_size(),
- .audio_found(found),.audio_cluster(cluster),.audio_size(size),
+ .audio_slot(3'd4),.snd_found(),.audio_found(found),.audio_cluster(cluster),.audio_size(size),
  .sector_req(req),.sector_lba(lba),.sector_busy(sbusy),.sector_valid(valid),.sector_byte(byte_data),
  .sector_byte_index(idx),.sector_done(sdone),.sector_error(8'd0));
  always @(negedge clk)begin

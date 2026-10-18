@@ -2,7 +2,7 @@
 module tb_rescan_key;
 reg clk=0,rst=1,enable=1,key1=1,key2=1,key4=1;
 reg [1:0] mode=0;
-wire next_event,rescan_event,previous_event,auto_toggle_event,manual_activity;
+wire next_event,rescan_event,previous_event,auto_toggle_event,manual_activity,scene_mode;
 integer next_count=0, rescan_count=0;
 always #5 clk=~clk;
 mode_key_control #(.CLK_FREQ_HZ(1000)) dut(.adjust_decrease(),.adjust_increase(),.adjust_restore(),.adjust_select(),.*);

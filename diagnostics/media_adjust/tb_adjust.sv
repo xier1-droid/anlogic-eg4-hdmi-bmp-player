@@ -45,7 +45,7 @@ endmodule
 module tb_volume;
  reg clk=0,rst=1;always #5 clk=~clk;
  reg [3:0] level=10;reg iv=0,ready=0;wire ir,ov;reg signed [15:0] l,r;wire signed [15:0] ol,orr;
- pcm_master_volume dut(.clk(clk),.rst(rst),.volume_level(level),.in_valid(iv),.in_ready(ir),.in_left(l),.in_right(r),.out_valid(ov),.out_ready(ready),.out_left(ol),.out_right(orr));
+ pcm_master_volume dut(.clk(clk),.rst(rst),.volume_level(level),.fade_mute(1'b0),.in_valid(iv),.in_ready(ir),.in_left(l),.in_right(r),.out_valid(ov),.out_ready(ready),.out_left(ol),.out_right(orr));
  integer gain=65536,target,next_gain,accepted=0,consumed=0;reg signed [15:0] ql[$],qr[$];reg signed [15:0] el,er;
  reg stalled=0;reg signed [15:0] sl,sr;
  function integer coefficient(input integer v);
@@ -102,7 +102,7 @@ module tb_adjust_keys;
  reg clk=0,rst=1,k1=1,k2=1,k4=1;always #5 clk=~clk;
  reg [1:0] mode=0;wire dec,inc,res,sel,nxt,prev,scan,auto_e,activity;
  mode_key_control #(.CLK_FREQ_HZ(1000)) keys(.clk(clk),.rst(rst),.enable(1'b1),.key1(k1),.key2(k2),.key4(k4),.mode(mode),
- .next_event(nxt),.previous_event(prev),.rescan_event(scan),.auto_toggle_event(auto_e),.manual_activity(activity),
+ .next_event(nxt),.previous_event(prev),.rescan_event(scan),.auto_toggle_event(auto_e),.scene_mode(),.manual_activity(activity),
  .adjust_decrease(dec),.adjust_increase(inc),.adjust_restore(res),.adjust_select(sel));
  wire [7:0] b,c;wire [3:0] v;wire [1:0] selected;
  media_adjust_control ctl(clk,rst,mode,dec,inc,res,sel,b,c,v,selected);
