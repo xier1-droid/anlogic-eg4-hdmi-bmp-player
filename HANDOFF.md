@@ -1,3 +1,25 @@
+# 当前交接：v0.17.0 M4 local.1 已固定，等待板测（2026-10-18）
+
+- 当前任务：v0.17.0 M4 场景模式 + SND1–4 + fade_mute；候选 releases/v0.17.0/m4-local.1，标签 v0.17.0-m4-local.1（本地，未推送），分支 feature/mountain-escape-classroom。
+- 已完成：
+  - 核实拨码四个 mode 都已占用；用户确定：mode 0 长按 KEY4 1 秒进出场景模式，短按 KEY4 改为松手时切 MAN/AUTO；场景模式 KEY2 下一阶段，KEY1 留给 M5 预警模式。写入计划文档 M4 一节和技术实现 §4.1。
+  - scene/scenario_fsm.v 替换 hazard_test_source（参数 HAZARD_TEST_SOURCE 默认 0）：阶段 = 显示的图，t 由 SD 音频样本驱动（1600/步），无文件时每 2 帧；图层只在场景模式打开；进出场景模式与阶段切换保持静音直到新文件开始播放（或 30 帧），期间 t 不走。
+  - 扫描器 SND1–4 槽 + audio_slot；sd_card_bmp 按阶段选 SNDn（缺则 BGM），先停流再换文件；AUTO 等阶段结束；pcm_master_volume fade_mute（步长 14）。
+  - make_scene_pack.py --audio（tools/scene_audio.py，SAPI 中文旁白放在 t×1600）；四张 v3 卡写好旁白，out/sd 已生成 SND1–4（PIC 不变）。
+  - 构建 mountain_attempt30_s3：14740 LUT（75.2%，+629）、BRAM9k 52、26 DSP，Setup +0.101、Hold +0.024 ns，0 ERROR；审计计数同 m3-local.3。
+  - 仿真：run_m4（m4_scene2，7 个测试 + 9 个变异体 + 生产顶层）、run_m3（m4_m3v3_1）、18 项回归（m4r2）、media_adjust/run_unit、fat32/run_core 全部通过。
+- 卡住的问题：无本地阻塞；尚未上板。
+- 下一步计划：用户按 releases/v0.17.0/m4-local.1/BOARD_VALIDATION.md 板测；通过后记录 m4-board.1，推送分支与 m4-local.1/board.1 标签，再进入 M5（FONT/TEXT、OSD 文案与布局、预警模式用 KEY1、速度参数项）。
+- 踩过的坑：
+  - Git Bash 的 `sed -i` 即使没有匹配也会把 CRLF 文件改写成 LF；改 CRLF 文件用 Python 按字节替换（仓库 autocrlf=true，入库不受影响，但工作区会混乱）。
+  - `expect`、`before` 是 SystemVerilog 关键字，不能作任务/变量名。
+  - history/v0.3.0/tb_mode_key_control.sv 用 `.*` 连接，four_bank 回归会因新输出端口 scene_mode 未声明而“Error loading design”（m4r1 因此作废，补声明后整套重跑为 m4r2）。
+  - sd_card_bmp 在 PREVIEW_ENABLE=0、TRANSITION_ENABLE=0 时重扫后 rescan_pending 不清（既有行为，生产不用该配置），之后翻图请求全被挡住；集成测试要用生产配置 PREVIEW_ENABLE=1。
+  - ModelSim `when` 条件探针非常慢（10 分钟未完成），调试改用复制一份测试台加 $display 监视模块。
+  - fat32/run_core.ps1 直接调用 `python`，PowerShell 里找不到时先把 scoop Python 加进 PATH。
+
+## 历史交接
+
 # 当前交接：v0.17.0 M3 board.2 通过，下一步 M4（2026-10-18）
 
 - 当前任务：v0.17.0 山区防灾避险课堂；M3 v3 已验收（v0.17.0-m3-board.2，候选 m3-local.3），分支 feature/mountain-escape-classroom。

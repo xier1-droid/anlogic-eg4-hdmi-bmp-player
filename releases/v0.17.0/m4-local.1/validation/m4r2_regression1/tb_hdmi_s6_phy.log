@@ -1,0 +1,23 @@
+# vsim -c -quiet -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/m4r2_regression1/work tb_hdmi_s6_phy glbl -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\m4r2_regression1/tb_hdmi_s6_phy.log -do "run -all; quit -f" -gMEDIA=1 -gLOCAL_RESET=1 -gSILENCE=0 
+# Start time: 21:31:30 on Oct 18,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# run -all
+# PASS S6 real raster RGB=614400 PCM samples=1631 serialized words=849995, all lanes LSB-first and clock 0000011111
+# PASS S6 reset/restart RGB=307200 PCM samples=863 PHY words=449995
+# ** Note: $finish    : D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/history/v0.3.0/tb_hdmi_s6_phy.sv(136)
+#    Time: 52000400 ns  Iteration: 1  Instance: /tb_hdmi_s6_phy
+# End time: 21:31:40 on Oct 18,2026, Elapsed time: 0:00:10
+# Errors: 0, Warnings: 0

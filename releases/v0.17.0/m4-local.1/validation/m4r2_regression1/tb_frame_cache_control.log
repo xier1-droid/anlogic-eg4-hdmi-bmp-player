@@ -1,0 +1,34 @@
+# vsim -c -quiet -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/m4r2_regression1/work tb_frame_cache_control glbl -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\m4r2_regression1/tb_frame_cache_control.log -do "run -all; quit -f" 
+# Start time: 21:31:59 on Oct 18,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# run -all
+# PASS cache: first display, background fill, concurrent hits, full-cache no reads
+# PASS cache: miss priority, full-cache rescan, old bank released only on commit
+# PASS cache: rescan cancels write, completes pending display/audio, compacted count
+# PASS cache: failed/empty scan keeps picture, non-display bank allocation
+# PASS cache: one retry, failed preload skipped, manual retry recovers
+# PASS cache: first-load retry/fallback, all-bad rescan preserves display
+# PASS cache: timeout retains cache hits, stops reads, rescan recovers
+# PASS cache: offered-start cancellation and active communication fault
+# PASS cache: real player AUTO, next-before-previous, same-direction merge
+# PASS cache: coincident rescan, load success and display acknowledgement
+# PASS cache: acceptance-edge priority, background completion preserves AUTO interval
+# PASS cache: AUTO skips known failures and falls forward after in-flight failure
+# PASS frame cache control: loads=55 commits=44 cache_completions=43 hits=20 request_failures=4 cycles=857
+# ** Note: $finish    : D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/four_bank/tb_frame_cache_control.sv(316)
+#    Time: 8568 ns  Iteration: 0  Instance: /tb_frame_cache_control
+# End time: 21:32:00 on Oct 18,2026, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 0

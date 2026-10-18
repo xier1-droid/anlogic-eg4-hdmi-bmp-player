@@ -1,5 +1,7 @@
 # v0.17.0 开发中（未发布）
 
+- M4 local.1：场景模式（mode 0 长按 KEY4 进出；短按 KEY4 改为松手切 MAN/AUTO；场景模式 KEY2 下一阶段，KEY1 留给预警模式）。scenario_fsm 替换临时 t 源：阶段 = 显示的图，t 由 SD 音频样本驱动，图层只在场景模式打开；扫描器识别 SND1–4，按阶段播放、缺失回退 BGM；pcm_master_volume 加 fade_mute（步长 14，约 100 ms），转场与换文件时静音；场景工具 --audio 生成分阶段旁白 SND1–4。14740 LUT、BRAM9k 52/64、26 DSP，Setup +0.101ns、Hold +0.024ns；run_m4、run_m3 与 18 项回归通过。固定 releases/v0.17.0/m4-local.1，待板测。
+
 - M3 board.2：用户确认 m3-local.3 板测通过（整体反馈），复用原 bit。
 
 - M3 local.3：灾害图层 v3（滑坡、泥石流、山洪、地震四张卡，致因 → 发生 → 后果 → 撤离；两层随机雨、地震水平晃动、撤离图危险区斜线）并去掉串口日志与串口字幕。14111 LUT、BRAM9k 52/64、26 DSP，Setup +0.126ns、Hold +0.024ns；run_m3（含生产顶层）、UART 去除等价测试与 18 项回归通过。固定 releases/v0.17.0/m3-local.3，待板测。
