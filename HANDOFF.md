@@ -1,3 +1,14 @@
+# 当前交接：v0.17.0 M4 board.1 通过，下一步 M5（2026-10-18）
+
+- 当前任务：v0.17.0 山区防灾避险课堂；M4 已验收（v0.17.0-m4-board.1，候选 m4-local.1），分支 feature/mountain-escape-classroom。
+- 已完成：用户反馈“用 m4-local.1 比特文件，测试，功能均正常”（整体反馈），记录 releases/v0.17.0/m4-local.1/BOARD_RESULT.md；复用原 bit（670364 字节）。推送分支及 v0.17.0-m4-local.1、v0.17.0-m4-board.1。
+- 资源现状：14740 LUT（75.2%）、BRAM9k 52/64、26/29 DSP，Setup +0.101ns、Hold +0.024ns；距 85% 目标约 1900 LUT，DSP 只剩 3 个。
+- 卡住的问题：无。
+- 下一步计划：M5——扫描器识别 FONT/TEXT、bin_to_bram_loader 载入 BRAM32k、OSD 文案与已确认布局（右上标题/预警色块/进度条、底部字幕、左下图例，场景模式隐藏左上状态栏、移开音频环）、预警模式（场景模式下 KEY1 切换，stage=3、t=239、SND4 循环、红框、数码管“A”）、推演速度参数项（scenario_fsm 已有 speed 输入）。板测项“速度切换生效”在 M5 验收。
+- 踩过的坑：见下一条历史交接。
+
+## 历史交接
+
 # 当前交接：v0.17.0 M4 local.1 已固定，等待板测（2026-10-18）
 
 - 当前任务：v0.17.0 M4 场景模式 + SND1–4 + fade_mute；候选 releases/v0.17.0/m4-local.1，标签 v0.17.0-m4-local.1（本地，未推送），分支 feature/mountain-escape-classroom。
