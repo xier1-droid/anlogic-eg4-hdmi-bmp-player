@@ -1,3 +1,23 @@
+# 当前交接：v0.17.0 M5 local.1 已固定，等待板测（2026-10-19）
+
+- 当前任务：v0.17.0 M5 卡上字库文本、场景 OSD、预警模式与推演速度；候选 releases/v0.17.0/m5-local.1，标签 v0.17.0-m5-local.1（本地，未推送），分支 feature/mountain-escape-classroom。
+- 已完成：
+  - 约定写入计划文档 M5 一节：TEXT.BIN v1 段号（0 村名、1–4 标题、5–8 字幕、9 预警语、10–13 图例）、字符码（00–7F 字形、E0–E7 图例色块、F0–FF 数字符号）、FONT 布局、OSD 布局、预警模式与速度项按键。
+  - RTL：扫描器 FONT/TEXT 目录项；读卡器在 SCAN_FINISH 子状态中把两文件流入 scene/bin_to_bram_loader.v（两块 BRAM32k，ram_style="bram_32k"），带已载入标志；scene/scene_osd.v（TEXT→FONT 两级查表，地址用提前 2 拍的 adjust_x）；字幕 BRAM_FONT（地址提前一像素）；mode_key_control 预警键；sd_card_bmp 预警跳到最后一张并屏蔽 KEY2/AUTO；media_adjust_control/adjust_osd_overlay 速度项 S；scenario_fsm warn 输入；顶层接线、数码管阶段号/A。
+  - 工具：tools/scene_text.py（make_scene_pack.py --text），原 13 字放前面，其余宋体 16px（与原字库宋体字形逐点相同）；四张 v3 卡写好标题、图例、预警语（村名为占位）。
+  - 构建 mountain_attempt32_s3：15822 LUT（80.7%，+1082）、BRAM9k 52、BRAM32k 2、26 DSP，Setup +0.135、Hold +0.030 ns，0 ERROR；审计仅多一个 BRAM32K 未用输出位的 dangling 节点。
+  - 仿真：run_m5（m5_text4，含 14 个变异体）、run_m4（m5_m4_2）、run_m3（m5_m3v3_1）、run_m1（m5_m1_1）、media_adjust/run_unit（m5_adjust_unit2）、18 项回归（m5r3）全部通过。
+- 卡住的问题：无本地阻塞；尚未上板。
+- 下一步计划：用户按 releases/v0.17.0/m5-local.1/BOARD_VALIDATION.md 板测（各卡先用 --text 生成 FONT.BIN/TEXT.BIN）；通过后记录 m5-board.1，推送分支与 m5-local.1/board.1 标签，再进入 M6。村名与文案可随时改 scene.yaml 重新生成，不需重建 FPGA。
+- 踩过的坑：
+  - 把载入状态加进读卡器主状态（4 位→5 位）后，既有 PIC 候选簇号比较路径 sd_card_clk -0.387 ns（attempt31 s3/s4 相同，s5 -1.517 ns）；改为 SCAN_FINISH 的子状态、保持 4 位主状态后通过。
+  - 新增输出端口后，大量按名连接的旧测试台出现 vopt TFMPC 警告，回归脚本把警告判为失败（m5r1 读卡项全 FAIL、功能 PASS）。改端口时要用脚本扫一遍所有测试台实例。
+  - tb_m4_scene_audio 原“场景模式 KEY1 不响应”与 M5 冲突，移到 tb_m5_scene 检查预警。
+  - td.exe 是 GUI，脚本跑审计要用 td_commands_prompt.exe（td.exe 会挂住）。
+  - BRAM 输出初值为 X 时，`==` 比较派生地址得 X，测试台检查要用 `===`。
+
+## 历史交接
+
 # 当前交接：v0.17.0 M4 board.1 通过，下一步 M5（2026-10-18）
 
 - 当前任务：v0.17.0 山区防灾避险课堂；M4 已验收（v0.17.0-m4-board.1，候选 m4-local.1），分支 feature/mountain-escape-classroom。

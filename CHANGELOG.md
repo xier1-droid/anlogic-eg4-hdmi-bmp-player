@@ -1,5 +1,7 @@
 # v0.17.0 开发中（未发布）
 
+- M5 local.1：扫描器识别 FONT.BIN/TEXT.BIN，扫描时载入两块 BRAM32k；原中文字幕改从 BRAM 字库取字（无文件回退 case 字库）；新增场景 OSD（右上预警色块、阶段标题、进度条，左下图例，底部按阶段滚动字幕，场景模式隐藏左上状态栏与音频环）；预警模式（场景模式 KEY1：跳到阶段 4、SND4 循环、t=239、红框闪烁、村名与预警语、数码管 A）；推演速度参数项 S（1X/2X/4X）；数码管显示阶段号；场景工具 --text 生成 FONT/TEXT 与 OSD 预览。15822 LUT（80.7%）、BRAM9k 52/64、BRAM32k 2/16、26 DSP，Setup +0.135ns、Hold +0.030ns；run_m5、run_m4、run_m3、run_m1 与 18 项回归通过。固定 releases/v0.17.0/m5-local.1，待板测。
+
 - M4 board.1：用户确认 m4-local.1 板测功能均正常（整体反馈），复用原 bit。
 
 - M4 local.1：场景模式（mode 0 长按 KEY4 进出；短按 KEY4 改为松手切 MAN/AUTO；场景模式 KEY2 下一阶段，KEY1 留给预警模式）。scenario_fsm 替换临时 t 源：阶段 = 显示的图，t 由 SD 音频样本驱动，图层只在场景模式打开；扫描器识别 SND1–4，按阶段播放、缺失回退 BGM；pcm_master_volume 加 fade_mute（步长 14，约 100 ms），转场与换文件时静音；场景工具 --audio 生成分阶段旁白 SND1–4。14740 LUT、BRAM9k 52/64、26 DSP，Setup +0.101ns、Hold +0.024ns；run_m4、run_m3 与 18 项回归通过。固定 releases/v0.17.0/m4-local.1，待板测。
