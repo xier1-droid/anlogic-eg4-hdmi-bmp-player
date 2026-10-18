@@ -15,6 +15,8 @@ each stage `hazard` and `role` (written to BMP header bytes 6-7) and each
 source a `region`; T becomes region<<6 | time/4, 255 for no layer. Extra
 source types: polygon (filled), outline (polygon border), mask, all at t0.
 --gif writes one animated preview per stage (every 2nd frame, 8 s loop).
+--audio (M4) also writes SND1-4.PCM from each stage's sound/narration
+(tools/scene_audio.py); --no-tts replaces speech by timing beeps.
 """
 from pathlib import Path
 import argparse, heapq, math, struct, sys
@@ -600,6 +602,8 @@ def main():
     ap.add_argument('scene', help='scene.yaml')
     ap.add_argument('--out', help='output directory (default: scene "output", relative to the yaml)')
     ap.add_argument('--gif', action='store_true', help='format 3: also write gif/PICn.gif previews')
+    ap.add_argument('--audio', action='store_true', help='also write SND1-4.PCM from stage sound/narration')
+    ap.add_argument('--no-tts', action='store_true', help='with --audio: beeps instead of SAPI speech')
     a = ap.parse_args()
     scene_path = Path(a.scene)
     base_dir = scene_path.parent
@@ -662,6 +666,9 @@ def main():
                   f'{int(cov.sum())} hazard px ({tr}), {int((T == T_SPOT).sum())} refuge px')
     overview(rows, out / 'overview.png')
     print(f'{out / "overview.png"}: columns t=0 on, t=120 on, t=239 on, t=239 off, T map')
+    if a.audio:
+        import scene_audio
+        scene_audio.write_stage_audio(cfg, base_dir, out, tts=not a.no_tts)
 
 
 if __name__ == '__main__':

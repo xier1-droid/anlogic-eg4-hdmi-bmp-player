@@ -15,6 +15,9 @@ stages:
     image: pic1.png
     hazard: debris_flow
     role: cause
+    narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
+      - {t: 0, text: 暴雨汇流，沟道里堆满松散土石。}
+      - {t: 110, text: 黄色虚线框出的是泥石流物源区。}
     sources:
       - {type: outline, region: 0, width: 3, points: [[322, 30], [374, 30], [394, 120], [408, 200], [418, 272], [346, 272], [340, 200], [330, 120]]}
 
@@ -24,6 +27,9 @@ stages:
     image: pic2.png
     hazard: debris_flow
     role: onset
+    narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
+      - {t: 0, text: 泥石流沿沟道涌下来了！}
+      - {t: 110, text: 泥浆裹着石块，一阵阵向下游推进。}
     sources:
       - type: mask                          # 沟壁溅泥：龙头经过后出现
         region: 1
@@ -50,6 +56,9 @@ stages:
     image: pic3.png
     hazard: debris_flow
     role: aftermath
+    narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
+      - {t: 0, text: 泥石流冲出沟口，堆积成扇形。}
+      - {t: 120, text: 道路、石桥和沟口房屋被掩埋。}
     sources:
       - {type: mask, region: 1, file: channel_mask.png}          # 沟床填满
       - type: seeds                                               # 堆积扇
@@ -66,6 +75,9 @@ stages:
     image: pic4.png
     hazard: debris_flow
     role: evacuation
+    narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
+      - {t: 0, text: 立即撤离！向沟道两侧的高处转移。}
+      - {t: 120, text: 不要顺着沟跑，不要横穿沟口。}
     sources:
       - {type: mask, region: 1, file: fan_mask.png}
       - {type: mask, region: 1, file: channel_mask.png}

@@ -14,6 +14,9 @@ stages:
     image: pic1.png
     hazard: landslide
     role: cause
+    narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
+      - {t: 0, text: 持续强降雨，山坡吸饱了水。}
+      - {t: 100, text: 黄色虚线框出的是滑坡隐患坡体。}
     sources:
       - {type: outline, region: 0, width: 3, points: [[300, 118], [360, 100], [420, 110], [445, 170], [452, 240], [445, 285], [300, 288], [282, 235], [288, 170]]}
 
@@ -29,6 +32,10 @@ stages:
     image: pic2.png
     hazard: landslide
     role: onset
+    narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
+      - {t: 0, text: 坡顶出现裂缝。}
+      - {t: 65, text: 坡体开始整体下滑！}
+      - {t: 140, text: 坡脚扬起尘土，注意落石！}
     sources:
       - type: dust                          # 坡脚扬尘：t≥196 自坡脚向上扩散
         region: 1
@@ -130,6 +137,9 @@ stages:
     image: pic3.png
     hazard: landslide
     role: aftermath
+    narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
+      - {t: 0, text: 滑坡堆积掩埋了坡脚的房屋和道路。}
+      - {t: 130, text: 坡体仍可能继续垮塌。}
     sources:
       - type: seeds                         # 堆积体：从坡脚中部向下、向两侧扩展
         region: 0
@@ -147,6 +157,9 @@ stages:
     image: pic4.png
     hazard: landslide
     role: evacuation
+    narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
+      - {t: 0, text: 立即撤离！横向离开滑坡区。}
+      - {t: 110, text: 沿绿色路线到东侧避险点，不要过桥。}
     sources:
       - {type: polygon, region: 1, points: [[288, 25], [410, 25], [422, 90], [436, 160], [452, 230], [466, 300], [474, 336], [282, 336], [278, 260], [280, 160]]}
       - type: polyline

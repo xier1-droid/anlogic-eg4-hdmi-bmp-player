@@ -17,6 +17,10 @@ stages:
     image: pic1.png
     hazard: earthquake
     role: cause
+    narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
+      - {t: 0, text: 断层附近开始出现小地震。}
+      - {t: 96, text: 主震发生！地震波向四周扩散。}
+      - {t: 185, text: 余震沿断层陆续发生。}
     sources:
       - {type: distance, region: 3, center: [232, 270], step: 6}       # 地震波：时间 = 到震中的距离
       - type: polyline                                                  # 断层带
@@ -47,6 +51,10 @@ stages:
     image: pic2.png
     hazard: earthquake
     role: onset
+    narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
+      - {t: 0, text: 地震波正在传来。}
+      - {t: 40, text: 强烈晃动！就近躲避。}
+      - {t: 130, text: 墙体开裂，房屋倒塌，注意落石。}
     sources:
       - type: dust                                                      # 倒塌处的尘土
         region: 1
@@ -108,6 +116,9 @@ stages:
     image: pic3.png
     hazard: earthquake
     role: aftermath
+    narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
+      - {t: 0, text: 岩壁崩塌，碎石掩埋了坡脚房屋。}
+      - {t: 120, text: 地面沿断层裂开。}
     sources:
       - type: seeds
         region: 0
@@ -133,6 +144,9 @@ stages:
     image: pic4.png
     hazard: earthquake
     role: evacuation
+    narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
+      - {t: 0, text: 震动停止后，迅速离开建筑和山坡。}
+      - {t: 120, text: 到晒谷场和操场等空旷平地避险。}
     sources:
       - {type: polygon, region: 1, points: [[200, 0], [640, 0], [640, 236], [590, 232], [530, 218], [470, 210], [420, 204], [370, 200], [330, 188], [300, 150], [250, 110]]}
       - type: polyline
