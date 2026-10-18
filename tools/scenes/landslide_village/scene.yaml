@@ -7,6 +7,8 @@ format: 3
 size: [640, 480]
 base: pic1.png
 output: out
+village: 青石坡村                          # M5 OSD：预警模式标题（TEXT 段 0）
+warning: 红色预警！立即横向撤离滑坡区！   # M5 OSD：预警模式字幕（TEXT 段 9）
 
 stages:
   - name: 致因：持续强降雨，坡体饱水
@@ -14,6 +16,8 @@ stages:
     image: pic1.png
     hazard: landslide
     role: cause
+    title: 阶段1 致因：强降雨                # M5 OSD 标题（≤16 格）；字幕默认取旁白
+    legend: [[zone, 滑坡隐患区], [rain, 强降雨]]
     narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
       - {t: 0, text: 持续强降雨，山坡吸饱了水。}
       - {t: 100, text: 黄色虚线框出的是滑坡隐患坡体。}
@@ -32,6 +36,8 @@ stages:
     image: pic2.png
     hazard: landslide
     role: onset
+    title: 阶段2 发生：坡体下滑                # M5 OSD 标题（≤16 格）；字幕默认取旁白
+    legend: [[mud, 滑坡体], [rock, 落石]]
     narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
       - {t: 0, text: 坡顶出现裂缝。}
       - {t: 65, text: 坡体开始整体下滑！}
@@ -137,6 +143,8 @@ stages:
     image: pic3.png
     hazard: landslide
     role: aftermath
+    title: 阶段3 后果：掩埋房屋                # M5 OSD 标题（≤16 格）；字幕默认取旁白
+    legend: [[mud, 堆积掩埋区]]
     narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
       - {t: 0, text: 滑坡堆积掩埋了坡脚的房屋和道路。}
       - {t: 130, text: 坡体仍可能继续垮塌。}
@@ -157,6 +165,8 @@ stages:
     image: pic4.png
     hazard: landslide
     role: evacuation
+    title: 阶段4 撤离：横向离开                # M5 OSD 标题（≤16 格）；字幕默认取旁白
+    legend: [[danger, 危险区], [route, 撤离路线], [refuge, 避险点]]
     narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
       - {t: 0, text: 立即撤离！横向离开滑坡区。}
       - {t: 110, text: 沿绿色路线到东侧避险点，不要过桥。}

@@ -1,0 +1,128 @@
+# 由 tools/annotate_scene.py 保存。坐标为 640x480 像素；各阶段的取舍理由写在 note 里。
+# 生成：py -I tools/make_scene_pack.py tools/scenes/test/scene.yaml --gif
+name: test
+format: 3
+size: [640, 480]
+base: pic1.png
+output: out
+stages:
+- name: 致因：持续强降雨，坡体饱水
+  image: pic1.png
+  hazard: landslide
+  role: cause
+  sources:
+  - type: outline
+    region: 0
+    width: 3
+    t0: 0
+    points: [[309, 134], [344, 122], [392, 111], [424, 127], [460, 151], [526, 154], [570, 166], [574, 208], [558, 225], [528, 224], [493, 232], [444, 228], [400, 236], [371, 233], [330, 228], [309, 222],
+      [274, 217], [259, 196], [253, 166], [286, 151], [310, 134]]
+- name: 发生：坡顶拉裂、坡体下滑、落石
+  image: pic2.png
+  hazard: landslide
+  role: onset
+  sources:
+  - type: polygon
+    region: 2
+    t0: 65
+    points: [[158, 219], [199, 191], [248, 177], [284, 152], [297, 130], [340, 101], [388, 84], [444, 93], [514, 117], [548, 142], [588, 186], [612, 256], [624, 312], [597, 346], [516, 362], [458, 378],
+      [386, 377], [329, 363], [255, 359], [222, 340], [198, 316], [170, 283], [164, 252], [158, 222]]
+    grade: down
+    t1: 135
+    rough: 6
+    seed: 1
+  - type: mask
+    region: 1
+    file: brush_p2_1.png
+    t0: 65
+    grade: down
+    t1: 125
+  - type: polygon
+    region: 1
+    t0: 125
+    points: [[208, 327], [226, 344], [268, 360], [332, 364], [351, 372], [420, 378], [464, 379], [548, 356], [598, 348], [570, 406], [464, 416], [380, 412], [314, 396], [248, 378], [200, 356], [168, 339],
+      [160, 324], [186, 306]]
+    grade: down
+    t1: 160
+    rough: 3
+    seed: 3
+  - type: polyline
+    region: 3
+    width: 4
+    t0: 0
+    t1: 239
+    lines:
+    - [[230, 198], [252, 357]]
+  - type: polyline
+    region: 3
+    width: 4
+    t0: 0
+    t1: 239
+    lines:
+    - [[310, 158], [300, 362]]
+  - type: polyline
+    region: 3
+    width: 4
+    t0: 0
+    t1: 239
+    lines:
+    - [[406, 149], [349, 373]]
+  - type: polyline
+    region: 3
+    width: 4
+    t0: 0
+    t1: 239
+    lines:
+    - [[488, 174], [406, 382]]
+  - type: polyline
+    region: 3
+    width: 4
+    t0: 0
+    t1: 239
+    lines:
+    - [[531, 168], [505, 384]]
+  - type: polyline
+    region: 0
+    width: 3
+    t0: 0
+    t1: 45
+    lines:
+    - [[414, 89], [392, 88], [366, 88], [340, 94], [320, 110], [306, 119]]
+  - type: polyline
+    region: 0
+    width: 3
+    t0: 0
+    t1: 45
+    lines:
+    - [[426, 90], [438, 92], [448, 95], [468, 98]]
+  - type: polyline
+    region: 0
+    width: 3
+    t0: 0
+    t1: 45
+    lines:
+    - [[495, 108], [510, 120], [522, 130]]
+  - type: polyline
+    region: 0
+    width: 3
+    t0: 0
+    t1: 45
+    lines:
+    - [[538, 140], [552, 151], [580, 177]]
+  - type: polyline
+    region: 0
+    width: 3
+    t0: 0
+    t1: 45
+    lines:
+    - [[592, 177], [554, 152], [529, 134], [507, 115], [462, 103], [420, 89], [378, 84], [342, 90], [325, 109], [311, 118]]
+- name: 后果：
+  image: pic3.png
+  hazard: landslide
+  role: aftermath
+  sources: []
+- name: 撤离：
+  image: pic4.png
+  hazard: landslide
+  role: evacuation
+  sources: []

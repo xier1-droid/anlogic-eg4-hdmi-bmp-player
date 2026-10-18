@@ -17,6 +17,8 @@ source types: polygon (filled), outline (polygon border), mask, all at t0.
 --gif writes one animated preview per stage (every 2nd frame, 8 s loop).
 --audio (M4) also writes SND1-4.PCM from each stage's sound/narration
 (tools/scene_audio.py); --no-tts replaces speech by timing beeps.
+--text (M5) also writes FONT.BIN and TEXT.BIN from village/warning and each
+stage's title/subtitle/legend, with OSD previews in osd/ (tools/scene_text.py).
 """
 from pathlib import Path
 import argparse, heapq, math, struct, sys
@@ -604,6 +606,7 @@ def main():
     ap.add_argument('--gif', action='store_true', help='format 3: also write gif/PICn.gif previews')
     ap.add_argument('--audio', action='store_true', help='also write SND1-4.PCM from stage sound/narration')
     ap.add_argument('--no-tts', action='store_true', help='with --audio: beeps instead of SAPI speech')
+    ap.add_argument('--text', action='store_true', help='also write FONT.BIN and TEXT.BIN (scene OSD text)')
     a = ap.parse_args()
     scene_path = Path(a.scene)
     base_dir = scene_path.parent
@@ -669,6 +672,10 @@ def main():
     if a.audio:
         import scene_audio
         scene_audio.write_stage_audio(cfg, base_dir, out, tts=not a.no_tts)
+    if a.text:
+        import scene_text
+        scene_text.write_scene_text(cfg, base_dir, out)
+
 
 
 if __name__ == '__main__':

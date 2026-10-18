@@ -8,6 +8,8 @@ format: 3
 size: [640, 480]
 base: pic1.png
 output: out
+village: 河湾村                          # M5 OSD：预警模式标题（TEXT 段 0）
+warning: 红色预警！立即沿本岸小路上山！   # M5 OSD：预警模式字幕（TEXT 段 9）
 
 stages:
   - name: 致因：上游强降雨，河水上涨
@@ -15,6 +17,8 @@ stages:
     image: pic1.png
     hazard: flood
     role: cause
+    title: 阶段1 致因：河水上涨                # M5 OSD 标题（≤16 格）；字幕默认取旁白
+    legend: [[zone, 可能淹没范围], [rain, 降雨]]
     narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
       - {t: 0, text: 上游强降雨，河水快速上涨。}
       - {t: 110, text: 黄色虚线是洪水可能淹到的范围。}
@@ -30,6 +34,8 @@ stages:
     image: pic2.png
     hazard: flood
     role: onset
+    title: 阶段2 发生：洪峰漫岸                # M5 OSD 标题（≤16 格）；字幕默认取旁白
+    legend: [[mud, 洪水]]
     narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
       - {t: 0, text: 洪峰来了！}
       - {t: 30, text: 河水漫过河堤，冲进农田。}
@@ -68,6 +74,8 @@ stages:
     image: pic3.png
     hazard: flood
     role: aftermath
+    title: 阶段3 后果：低地被淹                # M5 OSD 标题（≤16 格）；字幕默认取旁白
+    legend: [[mud, 淹没区]]
     narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
       - {t: 0, text: 河道和近岸低地被洪水淹没。}
       - {t: 110, text: 离河越近，水越深。}
@@ -85,6 +93,8 @@ stages:
     image: pic4.png
     hazard: flood
     role: evacuation
+    title: 阶段4 撤离：沿小路上山                # M5 OSD 标题（≤16 格）；字幕默认取旁白
+    legend: [[danger, 危险区], [route, 撤离路线], [refuge, 避险点]]
     narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
       - {t: 0, text: 立即撤离！沿本岸小路上山。}
       - {t: 110, text: 不要过桥，不要沿河走。}
