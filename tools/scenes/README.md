@@ -35,7 +35,10 @@ python -I tools/make_scene_pack.py tools/scenes/flood_village/scene.yaml --audio
 
 - 每个阶段可写 `sound:`（任意 ffmpeg 能读的文件，作底音）和/或 `narration:`（旁白句子列表，`{t: 时刻, text: 文字}`，t 用 0–239 时间轴）。两者都没有的阶段不生成 SND 文件，板上该阶段播放 BGM.PCM。
 - 板上推演时间 t 每播放 1600 个样本加 1（1× 速度，48 kHz 下每秒 30），所以一句旁白放在样本 t×1600 处，说话时刻就和画面上 t 对应的效果对齐。句子之间如果重叠，后一句顺延并在输出里注明。音轨至少到 t=239 再加 0.5 秒（8.5 秒），播完后循环。
-- 旁白用 Windows 自带的中文语音（SAPI，Microsoft Huihui），经 PowerShell 合成，去掉前后静音、语速 +2、峰值归一到约 -1 dBFS。没有中文语音或加 `--no-tts` 时，每句换成句首的 0.15 秒提示音，时间关系不变。`sound:` 的转换需要 ffmpeg（与 `make_audio_corpus.py` 相同：48 kHz、单声道、s16le）。
+- 旁白句子可加 `file:`（相对 scene.yaml 的录音或其他 TTS 生成的音频，ffmpeg 能读即可），例如 `{t: 65, text: 坡体开始整体下滑！, file: voice/landslide_s2_t065.wav}`：该句改用这个文件（`--no-tts` 时也一样），`text` 仍作字幕。文件转成 48 kHz 单声道后与 SAPI 语音同样处理：去掉前后静音（保留 20 ms）、峰值归一到约 -1 dBFS，第一个字从 t×1600 样本开始。文件不存在时工具报错退出。
+- 四张 v3 卡的 36 句旁白已换成 MiniMax 生成的配音（2026-10-20，`tools/scenes/*_village/voice/`，文件名为 `卡_s阶段_t时刻.wav`），每句都在下一句开始前说完，没有顺延。
+- 没有 `file:` 的句子用 Windows 自带的中文语音（SAPI，Microsoft Huihui），经 PowerShell 合成，去掉前后静音、语速 +2、峰值归一到约 -1 dBFS。
+没有中文语音或加 `--no-tts` 时，每句换成句首的 0.15 秒提示音，时间关系不变。`sound:` 的转换需要 ffmpeg（与 `make_audio_corpus.py` 相同：48 kHz、单声道、s16le）。
 - 输出：`sd/SND1.PCM`…`SND4.PCM`（拷到卡根目录，与 PIC1–4、BGM.PCM 放在一起）和 `audio/SNDn.wav`（试听用）。语音合成的结果取决于本机语音引擎，不保证逐字节可复现；图像部分不受 `--audio` 影响。
 - 四张 v3 卡（滑坡、泥石流、山洪、地震）的 scene.yaml 已写好旁白，关键词对准图层时刻，例如山洪发生图 t=30“河水漫过河堤”（漫顶 t 20 起、淹田 t 24 起），地震发生图 t=40“强烈晃动”（主震到达 t=40）。
 

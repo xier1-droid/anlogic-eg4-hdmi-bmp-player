@@ -5,13 +5,17 @@ Each stage in scene.yaml may give
   sound: file          any ffmpeg-readable file, used as the base track
   narration:           lines spoken at a time on the 0-239 t scale
     - {t: 0, text: ...}
+    - {t: 65, text: ..., file: voice/line.wav}
 A line starts at sample t*1600: on the board t advances once per 1600 played
 samples at 1x, so the words line up with the picture's time t. A line that
 would overlap the previous one is pushed back (reported). The track lasts at
 least until t=239 plus 0.5 s. Narration uses the Windows SAPI voice for
 zh-CN through PowerShell; without it (or with tts=False) each line becomes a
-short beep at its start, which keeps the timing testable. Speech is trimmed of
-the silence SAPI adds around each line.
+short beep at its start, which keeps the timing testable. A line with `file:`
+(any ffmpeg-readable recording, relative to scene.yaml, e.g. from another TTS
+service) uses that recording instead of SAPI, also with --no-tts; its `text`
+stays the subtitle. Speech and recordings are trimmed to 20 ms around the
+voice and normalised alike, so the first word starts at the line's t.
 A stage with neither gets no SND file: the FPGA plays BGM.PCM for it.
 """
 from pathlib import Path
@@ -65,9 +69,21 @@ def speak(text, work):
         return None
     if r.returncode or not wav.exists():
         return None
-    pcm = read_wav48(wav).astype(np.int32)
-    # SAPI pads each line with silence; keep 20 ms around the speech so the
-    # first word starts at the line's t.
+    return shape(read_wav48(wav).astype(np.int32))
+
+
+def recorded(path, work):
+    """A narration recording (any ffmpeg-readable file) as int16 samples."""
+    if not path.is_file():
+        raise SystemExit(f'narration file not found: {path}')
+    raw = work / 'line.pcm'
+    convert(path, raw, force=True)
+    return shape(np.fromfile(raw, '<i2').astype(np.int32))
+
+
+def shape(pcm):
+    # Speech engines pad each line with silence; keep 20 ms around the voice
+    # so the first word starts at the line's t.
     loud = np.flatnonzero(np.abs(pcm) > 300)
     if loud.size:
         pad = SAMPLE_HZ // 50
@@ -100,8 +116,13 @@ def stage_track(n, stage, base_dir, work, tts):
         t = int(line['t'])
         if not 0 <= t < T_END:
             raise SystemExit(f'stage {n + 1}: narration t={t} outside 0..239')
-        pcm = speak(line['text'], work) if tts else None
+        if line.get('file'):
+            pcm = recorded(base_dir / line['file'], work)
+            notes.append(f't={t} {Path(line["file"]).name}')
+        else:
+            pcm = speak(line['text'], work) if tts else None
         if pcm is None:
+
             pcm = beep()
             notes.append(f't={t} beep')
         start = max(t * SAMPLES_PER_T, end)

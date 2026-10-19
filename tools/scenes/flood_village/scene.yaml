@@ -20,8 +20,8 @@ stages:
     title: 阶段1 致因：河水上涨                # M5 OSD 标题（≤16 格）；字幕默认取旁白
     legend: [[zone, 可能淹没范围], [rain, 降雨]]
     narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
-      - {t: 0, text: 上游强降雨，河水快速上涨。}
-      - {t: 110, text: 黄色虚线是洪水可能淹到的范围。}
+      - {t: 0, text: 上游强降雨，河水快速上涨。, file: voice/flood_s1_t000.wav}
+      - {t: 110, text: 黄色虚线是洪水可能淹到的范围。, file: voice/flood_s1_t110.wav}
     sources:
       - {type: outline, region: 0, width: 3, points: [[116, 108], [214, 196], [300, 270], [356, 318], [382, 390], [440, 479], [639, 479], [639, 330], [520, 252], [400, 212], [290, 172], [200, 118], [140, 88]]}
 
@@ -37,9 +37,9 @@ stages:
     title: 阶段2 发生：洪峰漫岸                # M5 OSD 标题（≤16 格）；字幕默认取旁白
     legend: [[mud, 洪水]]
     narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
-      - {t: 0, text: 洪峰来了！}
-      - {t: 30, text: 河水漫过河堤，冲进农田。}
-      - {t: 150, text: 洪水逼近村子。}
+      - {t: 0, text: 洪峰来了！, file: voice/flood_s2_t000.wav}
+      - {t: 30, text: 河水漫过河堤，冲进农田。, file: voice/flood_s2_t030.wav}
+      - {t: 150, text: 洪水逼近村子。, file: voice/flood_s2_t150.wav}
     sources:
       - type: seeds                         # 淹田：从上游一端的堤后开始
         region: 0
@@ -77,8 +77,8 @@ stages:
     title: 阶段3 后果：低地被淹                # M5 OSD 标题（≤16 格）；字幕默认取旁白
     legend: [[mud, 淹没区]]
     narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
-      - {t: 0, text: 河道和近岸低地被洪水淹没。}
-      - {t: 110, text: 离河越近，水越深。}
+      - {t: 0, text: 河道和近岸低地被洪水淹没。, file: voice/flood_s3_t000.wav}
+      - {t: 110, text: 离河越近，水越深。, file: voice/flood_s3_t110.wav}
     sources:
       - type: seeds
         region: 0
@@ -96,8 +96,8 @@ stages:
     title: 阶段4 撤离：沿小路上山                # M5 OSD 标题（≤16 格）；字幕默认取旁白
     legend: [[danger, 危险区], [route, 撤离路线], [refuge, 避险点]]
     narration:                              # M4 旁白，t 为 0–239 时间轴（1× 下每秒 30）
-      - {t: 0, text: 立即撤离！沿本岸小路上山。}
-      - {t: 110, text: 不要过桥，不要沿河走。}
+      - {t: 0, text: 立即撤离！沿本岸小路上山。, file: voice/flood_s4_t000.wav}
+      - {t: 110, text: 不要过桥，不要沿河走。, file: voice/flood_s4_t110.wav}
     sources:
       - {type: mask, region: 1, file: flood_mask.png}
       - type: polyline
