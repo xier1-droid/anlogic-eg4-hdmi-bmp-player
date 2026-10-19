@@ -33,18 +33,20 @@ module tb_m5_keys;
  reg pix=0;always #2 pix=~pix;
  reg vs=1,de=0,visible=0;reg [9:0] x=0;reg [1:0] osd_selected=0,osd_speed=0;
  wire [23:0] rgb;wire hit;
- adjust_osd_overlay osd(.clk(pix),.rst(rst),.vs(vs),.de(de),.pixel_x(x),.rgb_in(24'h000000),.mode(2'd1),.selected(osd_selected),
+ adjust_osd_overlay osd(.clk(pix),.rst(rst),.vs(vs),.de(de),.pixel_x(x),.rgb_in(24'h808080),.mode(2'd1),.selected(osd_selected),
   .brightness(8'd128),.contrast(8'd128),.volume_level(4'd10),.rgb_out(rgb),.active(hit),.speed(osd_speed),.speed_visible(visible));
- integer s_hits,s_yellow,other;
+ integer s_hits,s_yellow,other,all_hits,dimmed;
  reg [7:0] b0;
 
  task osd_line(input integer line);
  begin
-  s_hits=0;s_yellow=0;other=0;
+  s_hits=0;s_yellow=0;other=0;all_hits=0;dimmed=0;
   @(negedge pix);vs=0;@(negedge pix);vs=1;
   for(integer l=0;l<=line;l++)begin
    for(integer i=0;i<700;i++)begin
     @(negedge pix);x=i;de=i<640;#1;
+    if(l==line && de && rgb==24'h404040)dimmed++;
+    if(l==line && hit)all_hits++;
     if(l==line && hit)begin
      if(i>=8+19*16 && i<8+23*16)begin s_hits++;if(rgb==24'hffff00)s_yellow++;end
      else if(i>=8+18*16)other++;
@@ -87,9 +89,18 @@ module tb_m5_keys;
   mode=2;settle();check(selected==1 && speed==1,"S deselected on the mode change; speed kept");
   press(key4,50);press(key4,50);check(selected==1,"no S outside scene mode");
   // OSD rendering of the S item.
-  visible=0;osd_selected=0;osd_speed=0;osd_line(40);check(s_hits==0 && other==0,"S hidden without speed_visible");
-  visible=1;osd_line(40);check(s_hits>0 && s_yellow==0,"S shown, not selected");
-  osd_selected=3;osd_speed=2;osd_line(40);check(s_hits>0 && s_yellow==s_hits,"S selected in yellow");
+  // Outside scene mode the bar stays at y 32-47; in scene mode it moves to
+  // y 8-23 so it never reaches the scene panel (y 28-59).
+  visible=0;osd_selected=0;osd_speed=0;osd_line(40);check(s_hits==0 && other==0 && all_hits>0,"bar at y 32-47 without speed_visible, no S");
+  osd_line(30);check(dimmed>0,"band on y 30 without speed_visible");
+  osd_line(16);check(all_hits==0 && dimmed==0,"nothing on y 16 without speed_visible");
+  visible=1;osd_line(16);check(s_hits>0 && s_yellow==0 && all_hits>s_hits,"scene mode: bar and S at y 8-23");
+  osd_line(40);check(all_hits==0,"scene mode: nothing on y 40");
+  osd_line(30);check(all_hits==0 && dimmed==0,"scene mode: no band on y 30");
+  osd_line(16);check(dimmed>0,"scene mode: band on y 16");
+
+  osd_selected=3;osd_speed=2;osd_line(16);check(s_hits>0 && s_yellow==s_hits,"S selected in yellow");
+
   $display("PASS M5 keys: %0d checks",checks);$finish;
  end
  initial begin #100000000;$fatal(1,"watchdog");end
