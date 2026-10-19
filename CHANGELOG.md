@@ -1,4 +1,9 @@
+# v0.17.0 之后（main，未发版）
+
+- 场景包工具：旁白句子可用 `file:` 指定录音或其他 TTS 生成的音频，替代 Windows 语音；四张示例卡换成 MiniMax 生成的 36 句配音（tools/scenes/*_village/voice/）。只改 PC 工具和卡上 SND1–4，FPGA 与 v0.17.0 正式 bit 不变。用户板上确认音频效果正常、功能正常（2026-10-20）。
+
 # v0.17.0 正式发布（2026-10-19）
+
 
 - 山区防灾避险课堂：32bpp 到达时刻通路、hazard_layer（滑坡/泥石流/山洪/地震，致因→发生→后果→撤离）、场景模式与 scenario_fsm、SND1–4 分阶段旁白与 fade_mute、FONT/TEXT 卡上字库文本与场景 OSD、预警模式、推演速度参数项；场景包工具 make_scene_pack.py（--audio、--text）与四张示例卡。去掉串口日志与串口字幕。
 - 15840 LUT（80.8%）、BRAM9k 52、BRAM32k 2、26 DSP，Setup +0.143ns、Hold +0.003ns。M6 整机：板测功能均通过，Flash 冷启动 4 秒，连续运行 50 分钟，换卡加复位到首帧约 4 秒。复用 m5-local.2 原 bit（670364 字节），未重建。见 releases/v0.17.0。
