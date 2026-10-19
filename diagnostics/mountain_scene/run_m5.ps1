@@ -130,9 +130,10 @@ try {
  if($LASTEXITCODE){throw 'PLL compile failed'}
  & "$sim/vlog.exe" -work $tlib '+incdir+../user_source/hdl_source/include' @enc *> "$out/top_encrypted.log"
  if($LASTEXITCODE){throw 'Encrypted compile failed'}
- & "$sim/vlog.exe" -sv +define+SIMULATION -work $tlib '+incdir+../user_source/hdl_source/include' @plain "$m/tb_m5_top.sv" "$m/tb_m4_top.sv" *> "$out/top_compile.log"
+ & "$sim/vlog.exe" -sv +define+SIMULATION -work $tlib '+incdir+../user_source/hdl_source/include' @plain "$m/tb_m5_top.sv" "$m/tb_m4_top.sv" "$m/tb_m5_rain_top.sv" *> "$out/top_compile.log"
  if($LASTEXITCODE){throw 'Top compile failed'}
- foreach($t in @(@('tb_m5_top','PASS M5 production top'),@('tb_m4_top','PASS M4 production top'))){
+ foreach($t in @(@('tb_m5_top','PASS M5 production top'),@('tb_m4_top','PASS M4 production top'),@('tb_m5_rain_top','PASS M5 rain via scenario_fsm'))){
+
   & "$sim/vsim.exe" -c -quiet -voptargs=+acc -lib $tlib $t[0] glbl -l "$out/$($t[0]).log" -do 'run -all; quit -f' *> "$out/$($t[0]).console.log"
   $log=Get-Content "$out/$($t[0]).log" -Raw
   if($LASTEXITCODE -or $log -match '\*\* (Fatal|Error):' -or $log -notmatch $t[1]){throw "Top test failed: $out/$($t[0]).log"}

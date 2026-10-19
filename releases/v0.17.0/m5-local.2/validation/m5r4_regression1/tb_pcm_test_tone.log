@@ -1,0 +1,26 @@
+# vsim -c -quiet -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/m5r4_regression1/work tb_pcm_test_tone glbl -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\m5r4_regression1/tb_pcm_test_tone.log -do "run -all; quit -f" 
+# Start time: 22:40:25 on Oct 19,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# run -all
+# PASS 100 ms at 48 kHz, 440 Hz DDS, stereo and +/-12000 amplitude
+# PASS backpressure stability and ordered FIFO recovery
+# PASS full FIFO accepts concurrent pop/push
+# PASS sustained backpressure reports overflow without corrupting queued PCM
+# PASS disable/restart and reset
+# ** Note: $finish    : D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/history/v0.3.0/tb_pcm_test_tone.sv(84)
+#    Time: 100521600 ns  Iteration: 1  Instance: /tb_pcm_test_tone
+# End time: 22:40:27 on Oct 19,2026, Elapsed time: 0:00:02
+# Errors: 0, Warnings: 0

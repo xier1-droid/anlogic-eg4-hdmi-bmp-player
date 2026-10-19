@@ -10,14 +10,14 @@ import subprocess
 
 p = argparse.ArgumentParser()
 p.add_argument('build')
-p.add_argument('--candidate', default='m5-local.1')
+p.add_argument('--candidate', default='m5-local.2')
 p.add_argument('--baseline', default='v0.16.0')
-p.add_argument('--m5', default='m5_text4')
-p.add_argument('--m4', default='m5_m4_2')
-p.add_argument('--m1', default='m5_m1_1')
-p.add_argument('--m3', default='m5_m3v3_1')
-p.add_argument('--adjust', default='m5_adjust_unit2')
-p.add_argument('--prefix', default='m5r3')
+p.add_argument('--m5', default='m5_text5')
+p.add_argument('--m4', default='m5_m4_3')
+p.add_argument('--m1', default='m5q_m1')
+p.add_argument('--m3', default='m5_m3v3_2')
+p.add_argument('--adjust', default='m5_adjust_unit3')
+p.add_argument('--prefix', default='m5r4')
 a = p.parse_args()
 root = Path(__file__).resolve().parents[2]
 output = root / 'diagnostics/output'
@@ -45,6 +45,8 @@ logs = {f'{m5}/check_scene_text.log': 'PASS M5 scene text',
         f'{m5}/tb_m5_scene.log': 'PASS M5 scene',
         f'{m5}/tb_m5_top.log': 'PASS M5 production top',
         f'{m5}/tb_m4_top.log': 'PASS M4 production top',
+        f'{m5}/tb_m5_rain_top.log': 'PASS M5 rain via scenario_fsm',
+
         f'{m4}/tb_m4_fsm.log': 'PASS M4 scenario_fsm',
         f'{m4}/tb_m4_fade.log': 'PASS M4 fade',
         f'{m4}/tb_m4_keys.log': 'PASS M4 keys',
