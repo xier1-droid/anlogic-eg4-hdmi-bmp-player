@@ -1,5 +1,9 @@
 # v0.17.0 开发中（未发布）
 
+- M5 local.2：m5-local.1 板测未通过（雨丝一度不显示，用户复测 m4-local.1 与 m5-local.1 均正常，原因未复现；场景模式拨到 01 时参数条与右上面板重叠）。场景模式下参数条移到左上行；扫描候选簇号/大小寄存一拍以解决 sd_card_clk 最差路径（attempt33 改参数条后 -0.165 ns）；新增 tb_m5_rain_top（scenario_fsm 驱动的雨丝逐像素检查）。15840 LUT（80.8%）、BRAM9k 52/64、BRAM32k 2/16、26 DSP，Setup +0.143ns、Hold +0.003ns；run_m5、run_m4、run_m3、run_m1、读卡 84 例与 18 项回归通过。固定 releases/v0.17.0/m5-local.2，待板测。
+
+- M5 local.1 板测未通过：雨丝一度不显示（随后复测正常），场景模式参数条与右上面板重叠。不建 board 标签。
+
 - M5 local.1：扫描器识别 FONT.BIN/TEXT.BIN，扫描时载入两块 BRAM32k；原中文字幕改从 BRAM 字库取字（无文件回退 case 字库）；新增场景 OSD（右上预警色块、阶段标题、进度条，左下图例，底部按阶段滚动字幕，场景模式隐藏左上状态栏与音频环）；预警模式（场景模式 KEY1：跳到阶段 4、SND4 循环、t=239、红框闪烁、村名与预警语、数码管 A）；推演速度参数项 S（1X/2X/4X）；数码管显示阶段号；场景工具 --text 生成 FONT/TEXT 与 OSD 预览。15822 LUT（80.7%）、BRAM9k 52/64、BRAM32k 2/16、26 DSP，Setup +0.135ns、Hold +0.030ns；run_m5、run_m4、run_m3、run_m1 与 18 项回归通过。固定 releases/v0.17.0/m5-local.1，待板测。
 
 - M4 board.1：用户确认 m4-local.1 板测功能均正常（整体反馈），复用原 bit。

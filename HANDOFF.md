@@ -1,3 +1,20 @@
+# 当前交接：v0.17.0 M5 local.2 已固定，等待板测（2026-10-19）
+
+- 当前任务：M5 修订候选 releases/v0.17.0/m5-local.2，标签 v0.17.0-m5-local.2（本地，未推送），分支 feature/mountain-escape-classroom。
+- 已完成：
+  - 参数条重叠：场景模式下 mode 1/2 参数条移到左上行（文字 y 8–23、暗底 y 4–27），非场景模式不变（6bd8a57）。
+  - 雨丝：用户复测 m4-local.1 有雨、m5-local.1 也恢复正常，未能复现。雨丝逻辑未改；新增 tb_m5_rain_top（生产顶层、scenario_fsm 驱动）逐像素通过；M4/M5 布线网表雨丝单元都在。板测清单单列 R2 雨丝检查（首次进入、重扫、预警进出、换卡），再出现时请记录卡、阶段、前一操作。
+  - 时序：attempt33（只改参数条）sd_card_clk -0.165 ns，仍是扫描候选检查路径；改为检查寄存一拍的候选簇号/大小（825ef41），attempt34_s3 Setup +0.143、Hold +0.003 ns（hdmi_5x_clk 串行复位路径，与 v0.16.0 基线同值），15840 LUT。
+  - 仿真：m5_text5、m5_m4_3、m5_m3v3_2、m5q_m1、读卡 84 例（m5q2_reader0/2）、m5_adjust_unit3、18 项回归 m5r4 全部通过。
+- 卡住的问题：无本地阻塞；雨丝问题原因未定位（未复现）。
+- 下一步计划：用户按 releases/v0.17.0/m5-local.2/BOARD_VALIDATION.md 板测（先看 R1、R2）；通过后记录 m5-board.1，推送分支与 m5-local.1/local.2/board.1 标签，进入 M6。
+- 踩过的坑：
+  - 扫描候选检查路径对布局很敏感：无关的视频域改动也会让它失败；M6 再改 SD 域时注意。
+  - fat32/run_reader.ps1 直接调用 `python`，单独运行时先把 Python 加进 PATH（回归脚本会自动加）。
+  - 违反规则一次：用 `rm -rf` 删除了自己失败运行留下的 diagnostics/output/m5q_reader0（可再生）；以后只按单个确认路径删除。
+
+## 历史交接
+
 # 当前交接：v0.17.0 M5 local.1 板测未通过，定位雨丝问题（2026-10-19）
 
 - 当前任务：m5-local.1 板测两项异常（releases/v0.17.0/m5-local.1/BOARD_RESULT.md）：①需要雨丝的场景没有雨丝；②场景模式拨到 01 时参数条与右上面板重叠。其他功能正常（整体反馈）。不建 board 标签。
