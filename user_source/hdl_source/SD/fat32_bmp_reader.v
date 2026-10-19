@@ -81,9 +81,19 @@ module fat32_bmp_reader #(
  reg header_go;
  reg selected_bad;
  reg [1:0] found_slot[0:3];   // scanner slot of each accepted image
- wire [1:0] select_slot=(LOAD_BY_INDEX && state==IDLE) ? found_slot[load_index] : candidate[1:0];
+ // Loads take the found image's slot; the scan's candidate checks use a
+ // registered copy of the candidate's cluster and size (one cycle later,
+ // marked by cand_slot), keeping the state decode and the 4-way mux out of
+ // the 32-bit range compare.
+ wire [1:0] select_slot=LOAD_BY_INDEX ? found_slot[load_index] : candidate[1:0];
  wire [31:0] selected_cluster=clusters[select_slot];
  wire [31:0] selected_size=sizes[select_slot];
+ reg [31:0] cand_cluster,cand_size;
+ reg [1:0] cand_slot;
+ always @(posedge clk or posedge rst)begin
+  if(rst)begin cand_cluster<=0;cand_size<=0;cand_slot<=0;end
+  else begin cand_cluster<=clusters[candidate[1:0]];cand_size<=sizes[candidate[1:0]];cand_slot<=candidate[1:0];end
+ end
  function [2:0] spc_shift;
  input [7:0] v;
  begin case(v) 2:spc_shift=1;4:spc_shift=2;8:spc_shift=3;16:spc_shift=4;
@@ -235,15 +245,16 @@ reg [2:0] header_shift_count;   // header_lba is shifted one bit per cycle
  end
  SELECT:if(!sector_busy)begin
  if(candidate==4)state<=SCAN_FINISH;
- else begin
- selected_bad<=!mask[candidate[1:0]] || selected_size<54 || selected_cluster<2 || selected_cluster>max_cluster;
+ else if(cand_slot==candidate[1:0])begin
+ selected_bad<=!mask[candidate[1:0]] || cand_size<54 || cand_cluster<2 || cand_cluster>max_cluster;
  state<=SELECT_CHECK;end
  end
  SELECT_CHECK:begin
  if(selected_bad)begin candidate<=candidate+1'b1;state<=SELECT;end
- else begin task_cluster<=selected_cluster;task_size<=selected_size;
- header_lba<=selected_cluster-2;header_shift_count<=header_cluster_shift;state<=HEADER_SHIFT;end
+ else begin task_cluster<=cand_cluster;task_size<=cand_size;
+ header_lba<=cand_cluster-2;header_shift_count<=header_cluster_shift;state<=HEADER_SHIFT;end
  end
+
  HEADER_SHIFT:if(header_shift_count!=0)begin header_lba<={header_lba[30:0],1'b0};header_shift_count<=header_shift_count-1'b1;end
  else state<=HEADER_ADD;
  HEADER_ADD:begin header_lba<=data_lba+header_lba;state<=HEADER_RESET;end
