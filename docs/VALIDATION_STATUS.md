@@ -1,3 +1,9 @@
+# 当前验证：v0.17.0 山区防灾避险课堂（2026-10-19）
+
+最新结论：M1、M3、M4、M5（local.2）板测通过，M6 整机板测功能均通过（Flash 冷启动 4 秒、连续运行 50 分钟、换卡加复位到首帧约 4 秒）；v0.17.0 正式发布，复用 m5-local.2 原 bit。见[最终验证](../releases/v0.17.0/FINAL_VALIDATION.md)及[结项归档](history/2026-10-19/mountain-escape-classroom/README.md)。
+
+## 历史记录
+
 # 当前验证：v0.16.0 LUT 优化（2026-10-14）
 
 最新结论：S1、S2 板测通过（S2 Flash 冷启动运行 40 分钟功能正常），S3 由用户决定不做；v0.16.0 正式发布，复用 s2-local.1 原 bit。见[最终验证](../releases/v0.16.0/FINAL_VALIDATION.md)及[结项归档](history/2026-10-14/lut-optimization/README.md)。

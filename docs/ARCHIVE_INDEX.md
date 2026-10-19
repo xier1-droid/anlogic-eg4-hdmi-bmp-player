@@ -4,6 +4,7 @@
 
 | 日期 | 主要内容 |
 |---|---|
+| 2026-10-19 | [v0.17.0 山区防灾避险课堂结项](history/2026-10-19/mountain-escape-classroom/README.md) |
 | 2026-10-14 | [v0.16.0 LUT 极致优化结项](history/2026-10-14/lut-optimization/README.md) |
 | 2026-10-13 | [v0.15.0 亮度、对比度与总音量调节结项](history/2026-10-13/brightness-contrast-volume/README.md) · [v0.14.0 图片缩放与缩略图结项](history/2026-10-13/image-scaling-thumbnails/README.md) |
 | 2026-10-12 | [v0.13.0 彩色圆形音频可视化结项](history/2026-10-12/circular-audio-visualizer/README.md) |
