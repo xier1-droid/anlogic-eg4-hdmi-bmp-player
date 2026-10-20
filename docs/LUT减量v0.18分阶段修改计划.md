@@ -1,6 +1,6 @@
 # v0.18.0 LUT 减量分阶段计划（可见行为不变）
 
-状态：S0 计划已确认（2026-10-20），基线 main 361d1c5 / v0.17.0（mountain_attempt34_s3，15840 LUT），分支 feature/lut-optimization-v018，标签 v0.18.0-plan.1。S1 board.1 通过（15173 LUT，−667；批3 解码器/SD 字节计数收窄已放弃）。
+状态：S0 计划已确认（2026-10-20），基线 main 361d1c5 / v0.17.0（mountain_attempt34_s3，15840 LUT），分支 feature/lut-optimization-v018，标签 v0.18.0-plan.1。S1 board.1 通过（15173 LUT，−667；批3 解码器/SD 字节计数收窄已放弃）。2026-10-21 S2 批5/6a/7/8 全设计无稳定收益，全部撤回；用户决定按 S1 结项，正式版 v0.18.0 复用 s1-local.1 原 bit，S3 不做；归档 docs/history/2026-10-21/lut-reduction-v018。
 
 ## Context
 
