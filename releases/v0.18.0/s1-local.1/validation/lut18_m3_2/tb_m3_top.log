@@ -1,0 +1,73 @@
+# vsim -c -quiet -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/lut18_m3_2/top_work tb_m3_top glbl -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\lut18_m3_2/tb_m3_top.log -do "run -all; quit -f" 
+# Start time: 20:18:10 on Oct 20,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Warning: ../user_source/ip_source/s3_single_pll/sys_pll_s3.v(89): (vopt-2241) Connection width does not match width of port 'load_reg'. The port definition is at: D:\TD\anlogic\TD6.2.1\sim_release\eg4\eg_phy_pll.v(25).
+# ** Warning: ../user_source/hdl_source/IP/afifo_16_32_256.v(231): (vopt-2685) [TFMPC] - Too few port connections for 'ram_inst'.  Expected 16, found 14.
+# ** Warning: ../user_source/hdl_source/IP/afifo_16_32_256.v(231): (vopt-2718) [TFMPC] - Missing connection for port 'dib'.
+# ** Warning: ../user_source/hdl_source/IP/afifo_16_32_256.v(231): (vopt-2718) [TFMPC] - Missing connection for port 'doa'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2685) [TFMPC] - Too few port connections for 'write_buf'.  Expected 14, found 11.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'aempty'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'afull'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'valid'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2685) [TFMPC] - Too few port connections for 'write_buf'.  Expected 14, found 11.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'aempty'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'afull'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'valid'.
+# ** Warning: ../user_source/hdl_source/IP/afifo_32_16_256.v(231): (vopt-2685) [TFMPC] - Too few port connections for 'ram_inst'.  Expected 16, found 14.
+# ** Warning: ../user_source/hdl_source/IP/afifo_32_16_256.v(231): (vopt-2718) [TFMPC] - Missing connection for port 'dib'.
+# ** Warning: ../user_source/hdl_source/IP/afifo_32_16_256.v(231): (vopt-2718) [TFMPC] - Missing connection for port 'doa'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_reader.v(50): (vopt-2685) [TFMPC] - Too few port connections for 'read_buf'.  Expected 14, found 11.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_reader.v(50): (vopt-2718) [TFMPC] - Missing connection for port 'aempty'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_reader.v(50): (vopt-2718) [TFMPC] - Missing connection for port 'afull'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_reader.v(50): (vopt-2718) [TFMPC] - Missing connection for port 'valid'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2685) [TFMPC] - Too few port connections for 'U3'.  Expected 23, found 14.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_DQ'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_DM'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_ADDR'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_BA'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_WE'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_CAS'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_RAS'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_CKE'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDRAM_CLK'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m3_top.sv(16): (vopt-2685) [TFMPC] - Too few port connections for 'dut'.  Expected 21, found 11.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m3_top.sv(16): (vopt-2718) [TFMPC] - Missing connection for port 'uart_tx'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m3_top.sv(16): (vopt-2718) [TFMPC] - Missing connection for port 'sd_mosi'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m3_top.sv(16): (vopt-2718) [TFMPC] - Missing connection for port 'sd_dclk'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m3_top.sv(16): (vopt-2718) [TFMPC] - Missing connection for port 'sd_ncs'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m3_top.sv(16): (vopt-2718) [TFMPC] - Missing connection for port 'HDMI_DDC_SDA'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m3_top.sv(16): (vopt-2718) [TFMPC] - Missing connection for port 'HDMI_DDC_SCL'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m3_top.sv(16): (vopt-2718) [TFMPC] - Missing connection for port 'HDMI_D0_P'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m3_top.sv(16): (vopt-2718) [TFMPC] - Missing connection for port 'HDMI_D1_P'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m3_top.sv(16): (vopt-2718) [TFMPC] - Missing connection for port 'HDMI_D2_P'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m3_top.sv(16): (vopt-2718) [TFMPC] - Missing connection for port 'HDMI_CLK_P'.
+# ** Warning: (vopt-2121) ../user_source/hdl_source/include/sdr_init_ref.enc.v(207): Illegal concatenation of an unsized constant. Will treat it as a 32-bit value.
+# ** Warning: (vopt-2121) ../user_source/hdl_source/include/sdr_wrrd.enc.v(77): Illegal concatenation of an unsized constant. Will treat it as a 32-bit value.
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# ** Warning: (vsim-3015) ../user_source/ip_source/s3_single_pll/sys_pll_s3.v(89): [PCDPC] - Port size (5) does not match connection size (1) for port 'load_reg'. The port definition is at: D:/TD/anlogic/TD6.2.1/sim_release/eg4/eg_phy_pll.v(25).
+#    Time: 0 fs  Iteration: 0  Instance: /tb_m3_top/dut/sys_pll_m0/pll_inst File: D:/TD/anlogic/TD6.2.1/sim_release/eg4/eg_phy_pll.v
+# run -all
+# ******************** : The Attribute            REFCLK_DIV on pll instance tb_m3_top.dut.sys_pll_m0.pll_inst.para_int_range_chk is set to           1.  Legal values for this attribute are           1 to         128.
+# ******************** : The Attribute             FBCLK_DIV on pll instance tb_m3_top.dut.sys_pll_m0.pll_inst.para_int_range_chk is set to           2.  Legal values for this attribute are           1 to         128.
+# ******************** : The Attribute             CLKC0_DIV on pll instance tb_m3_top.dut.sys_pll_m0.pll_inst.para_int_range_chk is set to          10.  Legal values for this attribute are           1 to         128.
+# ******************** : The Attribute             CLKC1_DIV on pll instance tb_m3_top.dut.sys_pll_m0.pll_inst.para_int_range_chk is set to          25.  Legal values for this attribute are           1 to         128.
+# ******************** : The Attribute             CLKC2_DIV on pll instance tb_m3_top.dut.sys_pll_m0.pll_inst.para_int_range_chk is set to          25.  Legal values for this attribute are           1 to         128.
+# ******************** : The Attribute             CLKC3_DIV on pll instance tb_m3_top.dut.sys_pll_m0.pll_inst.para_int_range_chk is set to          40.  Legal values for this attribute are           1 to         128.
+# ******************** : The Attribute             CLKC4_DIV on pll instance tb_m3_top.dut.sys_pll_m0.pll_inst.para_int_range_chk is set to           8.  Legal values for this attribute are           1 to         128.
+# PASS M3 production top checks=61440 recoloured=27894
+# ** Note: $finish    : D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/mountain_scene/tb_m3_top.sv(124)
+#    Time: 3085120 ns  Iteration: 1  Instance: /tb_m3_top
+# End time: 20:18:34 on Oct 20,2026, Elapsed time: 0:00:24
+# Errors: 0, Warnings: 43

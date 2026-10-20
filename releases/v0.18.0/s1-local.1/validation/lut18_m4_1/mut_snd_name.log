@@ -1,0 +1,23 @@
+# vsim -c -quiet -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/lut18_m4_1/mut_snd_name_work tb_m4_scanner -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\lut18_m4_1/mut_snd_name.log -do "run -all; quit -f" 
+# Start time: 19:08:01 on Oct 20,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# run -all
+# ** Fatal: scan 0: err=00 pics=f snd=0000 expected 1111
+#    Time: 20866 ns  Scope: tb_m4_scanner.scan File: D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/mountain_scene/tb_m4_scanner.sv Line: 56
+# ** Note: $finish    : D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/mountain_scene/tb_m4_scanner.sv(56)
+#    Time: 20866 ns  Iteration: 0  Instance: /tb_m4_scanner
+# End time: 19:08:01 on Oct 20,2026, Elapsed time: 0:00:00
+# Errors: 1, Warnings: 0

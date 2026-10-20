@@ -1,0 +1,214 @@
+# vsim -c -quiet -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/lut18_m3_2/work tb_m3v3_card -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\lut18_m3_2/tb_m3v3_card.log -do "run -all; quit -f" -gVEC_DIR=D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/lut18_m3_2/vectors -gFRAMES=192 
+# Start time: 20:13:48 on Oct 20,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# run -all
+# PASS card_0_PIC1_t000_f3ff.bin hazard=1 role=1 recoloured=2048
+# PASS card_0_PIC1_t000_f000.bin hazard=1 role=1 recoloured=1299
+# PASS card_0_PIC1_t100_f3ff.bin hazard=1 role=1 recoloured=3155
+# PASS card_0_PIC1_t100_f000.bin hazard=1 role=1 recoloured=2447
+# PASS card_0_PIC1_t239_f3ff.bin hazard=1 role=1 recoloured=4877
+# PASS card_0_PIC1_t239_f000.bin hazard=1 role=1 recoloured=4207
+# PASS card_0_PIC2_t000_f3ff.bin hazard=1 role=2 recoloured=1233
+# PASS card_0_PIC2_t000_f000.bin hazard=1 role=2 recoloured=1253
+# PASS card_0_PIC2_t000_f1a5.bin hazard=1 role=2 recoloured=885
+# PASS card_0_PIC2_t000_f2d3.bin hazard=1 role=2 recoloured=1546
+# PASS card_0_PIC2_t000_f0f1.bin hazard=1 role=2 recoloured=1167
+# PASS card_0_PIC2_t050_f3ff.bin hazard=1 role=2 recoloured=1938
+# PASS card_0_PIC2_t050_f000.bin hazard=1 role=2 recoloured=1961
+# PASS card_0_PIC2_t050_f1a5.bin hazard=1 role=2 recoloured=1594
+# PASS card_0_PIC2_t050_f2d3.bin hazard=1 role=2 recoloured=2251
+# PASS card_0_PIC2_t050_f0f1.bin hazard=1 role=2 recoloured=1877
+# PASS card_0_PIC2_t090_f3ff.bin hazard=1 role=2 recoloured=21597
+# PASS card_0_PIC2_t090_f000.bin hazard=1 role=2 recoloured=21643
+# PASS card_0_PIC2_t090_f1a5.bin hazard=1 role=2 recoloured=21388
+# PASS card_0_PIC2_t090_f2d3.bin hazard=1 role=2 recoloured=22147
+# PASS card_0_PIC2_t090_f0f1.bin hazard=1 role=2 recoloured=21700
+# PASS card_0_PIC2_t120_f3ff.bin hazard=1 role=2 recoloured=65950
+# PASS card_0_PIC2_t120_f000.bin hazard=1 role=2 recoloured=65988
+# PASS card_0_PIC2_t120_f1a5.bin hazard=1 role=2 recoloured=65901
+# PASS card_0_PIC2_t120_f2d3.bin hazard=1 role=2 recoloured=66673
+# PASS card_0_PIC2_t120_f0f1.bin hazard=1 role=2 recoloured=66145
+# PASS card_0_PIC2_t150_f3ff.bin hazard=1 role=2 recoloured=82689
+# PASS card_0_PIC2_t150_f000.bin hazard=1 role=2 recoloured=82696
+# PASS card_0_PIC2_t150_f1a5.bin hazard=1 role=2 recoloured=82420
+# PASS card_0_PIC2_t150_f2d3.bin hazard=1 role=2 recoloured=83180
+# PASS card_0_PIC2_t150_f0f1.bin hazard=1 role=2 recoloured=82626
+# PASS card_0_PIC2_t239_f3ff.bin hazard=1 role=2 recoloured=84424
+# PASS card_0_PIC2_t239_f000.bin hazard=1 role=2 recoloured=84434
+# PASS card_0_PIC2_t239_f1a5.bin hazard=1 role=2 recoloured=84159
+# PASS card_0_PIC2_t239_f2d3.bin hazard=1 role=2 recoloured=85001
+# PASS card_0_PIC2_t239_f0f1.bin hazard=1 role=2 recoloured=84381
+# PASS card_0_PIC3_t000_f3ff.bin hazard=1 role=3 recoloured=19250
+# PASS card_0_PIC3_t000_f000.bin hazard=1 role=3 recoloured=19276
+# PASS card_0_PIC3_t120_f3ff.bin hazard=1 role=3 recoloured=36734
+# PASS card_0_PIC3_t120_f000.bin hazard=1 role=3 recoloured=36771
+# PASS card_0_PIC3_t239_f3ff.bin hazard=1 role=3 recoloured=51988
+# PASS card_0_PIC3_t239_f000.bin hazard=1 role=3 recoloured=52007
+# PASS card_0_PIC4_t000_f3ff.bin hazard=1 role=4 recoloured=4946
+# PASS card_0_PIC4_t000_f000.bin hazard=1 role=4 recoloured=4690
+# PASS card_0_PIC4_t120_f3ff.bin hazard=1 role=4 recoloured=5635
+# PASS card_0_PIC4_t120_f000.bin hazard=1 role=4 recoloured=5379
+# PASS card_0_PIC4_t239_f3ff.bin hazard=1 role=4 recoloured=6076
+# PASS card_0_PIC4_t239_f000.bin hazard=1 role=4 recoloured=5820
+# PASS card_1_PIC1_t000_f3ff.bin hazard=2 role=1 recoloured=2179
+# PASS card_1_PIC1_t000_f000.bin hazard=2 role=1 recoloured=1299
+# PASS card_1_PIC1_t100_f3ff.bin hazard=2 role=1 recoloured=3290
+# PASS card_1_PIC1_t100_f000.bin hazard=2 role=1 recoloured=2447
+# PASS card_1_PIC1_t239_f3ff.bin hazard=2 role=1 recoloured=5004
+# PASS card_1_PIC1_t239_f000.bin hazard=2 role=1 recoloured=4207
+# PASS card_1_PIC2_t000_f3ff.bin hazard=2 role=2 recoloured=1190
+# PASS card_1_PIC2_t000_f000.bin hazard=2 role=2 recoloured=1209
+# PASS card_1_PIC2_t000_f1a5.bin hazard=2 role=2 recoloured=841
+# PASS card_1_PIC2_t000_f2d3.bin hazard=2 role=2 recoloured=1502
+# PASS card_1_PIC2_t000_f0f1.bin hazard=2 role=2 recoloured=1123
+# PASS card_1_PIC2_t050_f3ff.bin hazard=2 role=2 recoloured=15163
+# PASS card_1_PIC2_t050_f000.bin hazard=2 role=2 recoloured=15192
+# PASS card_1_PIC2_t050_f1a5.bin hazard=2 role=2 recoloured=14856
+# PASS card_1_PIC2_t050_f2d3.bin hazard=2 role=2 recoloured=15557
+# PASS card_1_PIC2_t050_f0f1.bin hazard=2 role=2 recoloured=15176
+# PASS card_1_PIC2_t090_f3ff.bin hazard=2 role=2 recoloured=33511
+# PASS card_1_PIC2_t090_f000.bin hazard=2 role=2 recoloured=33535
+# PASS card_1_PIC2_t090_f1a5.bin hazard=2 role=2 recoloured=33192
+# PASS card_1_PIC2_t090_f2d3.bin hazard=2 role=2 recoloured=33986
+# PASS card_1_PIC2_t090_f0f1.bin hazard=2 role=2 recoloured=33522
+# PASS card_1_PIC2_t120_f3ff.bin hazard=2 role=2 recoloured=54906
+# PASS card_1_PIC2_t120_f000.bin hazard=2 role=2 recoloured=54944
+# PASS card_1_PIC2_t120_f1a5.bin hazard=2 role=2 recoloured=54591
+# PASS card_1_PIC2_t120_f2d3.bin hazard=2 role=2 recoloured=55409
+# PASS card_1_PIC2_t120_f0f1.bin hazard=2 role=2 recoloured=54876
+# PASS card_1_PIC2_t150_f3ff.bin hazard=2 role=2 recoloured=73249
+# PASS card_1_PIC2_t150_f000.bin hazard=2 role=2 recoloured=73279
+# PASS card_1_PIC2_t150_f1a5.bin hazard=2 role=2 recoloured=72935
+# PASS card_1_PIC2_t150_f2d3.bin hazard=2 role=2 recoloured=73703
+# PASS card_1_PIC2_t150_f0f1.bin hazard=2 role=2 recoloured=73212
+# PASS card_1_PIC2_t239_f3ff.bin hazard=2 role=2 recoloured=76080
+# PASS card_1_PIC2_t239_f000.bin hazard=2 role=2 recoloured=76103
+# PASS card_1_PIC2_t239_f1a5.bin hazard=2 role=2 recoloured=75776
+# PASS card_1_PIC2_t239_f2d3.bin hazard=2 role=2 recoloured=76522
+# PASS card_1_PIC2_t239_f0f1.bin hazard=2 role=2 recoloured=76052
+# PASS card_1_PIC3_t000_f3ff.bin hazard=2 role=3 recoloured=14953
+# PASS card_1_PIC3_t000_f000.bin hazard=2 role=3 recoloured=14986
+# PASS card_1_PIC3_t120_f3ff.bin hazard=2 role=3 recoloured=34211
+# PASS card_1_PIC3_t120_f000.bin hazard=2 role=3 recoloured=34222
+# PASS card_1_PIC3_t239_f3ff.bin hazard=2 role=3 recoloured=50417
+# PASS card_1_PIC3_t239_f000.bin hazard=2 role=3 recoloured=50441
+# PASS card_1_PIC4_t000_f3ff.bin hazard=2 role=4 recoloured=5117
+# PASS card_1_PIC4_t000_f000.bin hazard=2 role=4 recoloured=4605
+# PASS card_1_PIC4_t120_f3ff.bin hazard=2 role=4 recoloured=6350
+# PASS card_1_PIC4_t120_f000.bin hazard=2 role=4 recoloured=5838
+# PASS card_1_PIC4_t239_f3ff.bin hazard=2 role=4 recoloured=7136
+# PASS card_1_PIC4_t239_f000.bin hazard=2 role=4 recoloured=6624
+# PASS card_2_PIC1_t000_f3ff.bin hazard=3 role=1 recoloured=3281
+# PASS card_2_PIC1_t000_f000.bin hazard=3 role=1 recoloured=1299
+# PASS card_2_PIC1_t100_f3ff.bin hazard=3 role=1 recoloured=4382
+# PASS card_2_PIC1_t100_f000.bin hazard=3 role=1 recoloured=2447
+# PASS card_2_PIC1_t239_f3ff.bin hazard=3 role=1 recoloured=6097
+# PASS card_2_PIC1_t239_f000.bin hazard=3 role=1 recoloured=4207
+# PASS card_2_PIC2_t000_f3ff.bin hazard=3 role=2 recoloured=2170
+# PASS card_2_PIC2_t000_f000.bin hazard=3 role=2 recoloured=2177
+# PASS card_2_PIC2_t000_f1a5.bin hazard=3 role=2 recoloured=1823
+# PASS card_2_PIC2_t000_f2d3.bin hazard=3 role=2 recoloured=2478
+# PASS card_2_PIC2_t000_f0f1.bin hazard=3 role=2 recoloured=2105
+# PASS card_2_PIC2_t050_f3ff.bin hazard=3 role=2 recoloured=60972
+# PASS card_2_PIC2_t050_f000.bin hazard=3 role=2 recoloured=60996
+# PASS card_2_PIC2_t050_f1a5.bin hazard=3 role=2 recoloured=60677
+# PASS card_2_PIC2_t050_f2d3.bin hazard=3 role=2 recoloured=61241
+# PASS card_2_PIC2_t050_f0f1.bin hazard=3 role=2 recoloured=60874
+# PASS card_2_PIC2_t090_f3ff.bin hazard=3 role=2 recoloured=129599
+# PASS card_2_PIC2_t090_f000.bin hazard=3 role=2 recoloured=129601
+# PASS card_2_PIC2_t090_f1a5.bin hazard=3 role=2 recoloured=129399
+# PASS card_2_PIC2_t090_f2d3.bin hazard=3 role=2 recoloured=129725
+# PASS card_2_PIC2_t090_f0f1.bin hazard=3 role=2 recoloured=129567
+# PASS card_2_PIC2_t120_f3ff.bin hazard=3 role=2 recoloured=153587
+# PASS card_2_PIC2_t120_f000.bin hazard=3 role=2 recoloured=153589
+# PASS card_2_PIC2_t120_f1a5.bin hazard=3 role=2 recoloured=153377
+# PASS card_2_PIC2_t120_f2d3.bin hazard=3 role=2 recoloured=153615
+# PASS card_2_PIC2_t120_f0f1.bin hazard=3 role=2 recoloured=153499
+# PASS card_2_PIC2_t150_f3ff.bin hazard=3 role=2 recoloured=169334
+# PASS card_2_PIC2_t150_f000.bin hazard=3 role=2 recoloured=169351
+# PASS card_2_PIC2_t150_f1a5.bin hazard=3 role=2 recoloured=169143
+# PASS card_2_PIC2_t150_f2d3.bin hazard=3 role=2 recoloured=169411
+# PASS card_2_PIC2_t150_f0f1.bin hazard=3 role=2 recoloured=169237
+# PASS card_2_PIC2_t239_f3ff.bin hazard=3 role=2 recoloured=207158
+# PASS card_2_PIC2_t239_f000.bin hazard=3 role=2 recoloured=207166
+# PASS card_2_PIC2_t239_f1a5.bin hazard=3 role=2 recoloured=207036
+# PASS card_2_PIC2_t239_f2d3.bin hazard=3 role=2 recoloured=207212
+# PASS card_2_PIC2_t239_f0f1.bin hazard=3 role=2 recoloured=207128
+# PASS card_2_PIC3_t000_f3ff.bin hazard=3 role=3 recoloured=77052
+# PASS card_2_PIC3_t000_f000.bin hazard=3 role=3 recoloured=77081
+# PASS card_2_PIC3_t120_f3ff.bin hazard=3 role=3 recoloured=77052
+# PASS card_2_PIC3_t120_f000.bin hazard=3 role=3 recoloured=77081
+# PASS card_2_PIC3_t239_f3ff.bin hazard=3 role=3 recoloured=77052
+# PASS card_2_PIC3_t239_f000.bin hazard=3 role=3 recoloured=77081
+# PASS card_2_PIC4_t000_f3ff.bin hazard=3 role=4 recoloured=7717
+# PASS card_2_PIC4_t000_f000.bin hazard=3 role=4 recoloured=7205
+# PASS card_2_PIC4_t120_f3ff.bin hazard=3 role=4 recoloured=8482
+# PASS card_2_PIC4_t120_f000.bin hazard=3 role=4 recoloured=7970
+# PASS card_2_PIC4_t239_f3ff.bin hazard=3 role=4 recoloured=8988
+# PASS card_2_PIC4_t239_f000.bin hazard=3 role=4 recoloured=8476
+# PASS card_3_PIC1_t000_f3ff.bin hazard=4 role=1 recoloured=0
+# PASS card_3_PIC1_t000_f000.bin hazard=4 role=1 recoloured=0
+# PASS card_3_PIC1_t100_f3ff.bin hazard=4 role=1 recoloured=3876
+# PASS card_3_PIC1_t100_f000.bin hazard=4 role=1 recoloured=3876
+# PASS card_3_PIC1_t239_f3ff.bin hazard=4 role=1 recoloured=28581
+# PASS card_3_PIC1_t239_f000.bin hazard=4 role=1 recoloured=28581
+# PASS card_3_PIC2_t000_f3ff.bin hazard=4 role=2 recoloured=0
+# PASS card_3_PIC2_t000_f000.bin hazard=4 role=2 recoloured=0
+# PASS card_3_PIC2_t000_f1a5.bin hazard=4 role=2 recoloured=0
+# PASS card_3_PIC2_t000_f2d3.bin hazard=4 role=2 recoloured=0
+# PASS card_3_PIC2_t000_f0f1.bin hazard=4 role=2 recoloured=0
+# PASS card_3_PIC2_t050_f3ff.bin hazard=4 role=2 recoloured=306656
+# PASS card_3_PIC2_t050_f000.bin hazard=4 role=2 recoloured=93
+# PASS card_3_PIC2_t050_f1a5.bin hazard=4 role=2 recoloured=306654
+# PASS card_3_PIC2_t050_f2d3.bin hazard=4 role=2 recoloured=306656
+# PASS card_3_PIC2_t050_f0f1.bin hazard=4 role=2 recoloured=306654
+# PASS card_3_PIC2_t090_f3ff.bin hazard=4 role=2 recoloured=306650
+# PASS card_3_PIC2_t090_f000.bin hazard=4 role=2 recoloured=15924
+# PASS card_3_PIC2_t090_f1a5.bin hazard=4 role=2 recoloured=306612
+# PASS card_3_PIC2_t090_f2d3.bin hazard=4 role=2 recoloured=306650
+# PASS card_3_PIC2_t090_f0f1.bin hazard=4 role=2 recoloured=306612
+# PASS card_3_PIC2_t120_f3ff.bin hazard=4 role=2 recoloured=306612
+# PASS card_3_PIC2_t120_f000.bin hazard=4 role=2 recoloured=19302
+# PASS card_3_PIC2_t120_f1a5.bin hazard=4 role=2 recoloured=306574
+# PASS card_3_PIC2_t120_f2d3.bin hazard=4 role=2 recoloured=306613
+# PASS card_3_PIC2_t120_f0f1.bin hazard=4 role=2 recoloured=306575
+# PASS card_3_PIC2_t150_f3ff.bin hazard=4 role=2 recoloured=306456
+# PASS card_3_PIC2_t150_f000.bin hazard=4 role=2 recoloured=19425
+# PASS card_3_PIC2_t150_f1a5.bin hazard=4 role=2 recoloured=306416
+# PASS card_3_PIC2_t150_f2d3.bin hazard=4 role=2 recoloured=306453
+# PASS card_3_PIC2_t150_f0f1.bin hazard=4 role=2 recoloured=306415
+# PASS card_3_PIC2_t239_f3ff.bin hazard=4 role=2 recoloured=19410
+# PASS card_3_PIC2_t239_f000.bin hazard=4 role=2 recoloured=19425
+# PASS card_3_PIC2_t239_f1a5.bin hazard=4 role=2 recoloured=19308
+# PASS card_3_PIC2_t239_f2d3.bin hazard=4 role=2 recoloured=19410
+# PASS card_3_PIC2_t239_f0f1.bin hazard=4 role=2 recoloured=19321
+# PASS card_3_PIC3_t000_f3ff.bin hazard=4 role=3 recoloured=1410
+# PASS card_3_PIC3_t000_f000.bin hazard=4 role=3 recoloured=1410
+# PASS card_3_PIC3_t120_f3ff.bin hazard=4 role=3 recoloured=17052
+# PASS card_3_PIC3_t120_f000.bin hazard=4 role=3 recoloured=17052
+# PASS card_3_PIC3_t239_f3ff.bin hazard=4 role=3 recoloured=20808
+# PASS card_3_PIC3_t239_f000.bin hazard=4 role=3 recoloured=20808
+# PASS card_3_PIC4_t000_f3ff.bin hazard=4 role=4 recoloured=8554
+# PASS card_3_PIC4_t000_f000.bin hazard=4 role=4 recoloured=8051
+# PASS card_3_PIC4_t120_f3ff.bin hazard=4 role=4 recoloured=9536
+# PASS card_3_PIC4_t120_f000.bin hazard=4 role=4 recoloured=9033
+# PASS card_3_PIC4_t239_f3ff.bin hazard=4 role=4 recoloured=10173
+# PASS card_3_PIC4_t239_f000.bin hazard=4 role=4 recoloured=9670
+# PASS hazard v3 cards frames=192 pixels=58982400
+# ** Note: $finish    : D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/mountain_scene/tb_m3v3_card.sv(63)
+#    Time: 604577310 ns  Iteration: 1  Instance: /tb_m3v3_card
+# End time: 20:15:59 on Oct 20,2026, Elapsed time: 0:02:11
+# Errors: 0, Warnings: 0

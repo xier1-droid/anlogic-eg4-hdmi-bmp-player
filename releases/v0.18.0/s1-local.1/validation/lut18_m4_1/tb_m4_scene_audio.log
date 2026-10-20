@@ -1,0 +1,34 @@
+# vsim -c -quiet -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/lut18_m4_1/scene_work tb_m4_scene_audio -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\lut18_m4_1/tb_m4_scene_audio.log -do "run -all; quit -f" 
+# Start time: 19:08:09 on Oct 20,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# run -all
+#   picture mode plays BGM: file 4, session 1
+#   scene stage 1 SND1: file 0, session 2
+#   stage 2 SND2: file 1, session 3
+#   stage 3 without SND3 falls back to BGM: file 4, session 4
+#   stage 4 SND4: file 3, session 5
+#   AUTO stage 1 SND1: file 0, session 6
+#   stage 2 after AUTO: file 1, session 7
+#   rescan in scene mode SND1: file 0, session 8
+#   exit plays BGM: file 4, session 9
+#   plain card BGM: file 4, session 10
+# PASS M4 scene audio: 10 sessions, 3137 exact samples; BGM/SNDn per stage, SND3 fallback, scene AUTO
+# 
+#  gated by stage end, rescan, exit, plain card
+# ** Note: $finish    : D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/mountain_scene/tb_m4_scene_audio.sv(197)
+#    Time: 71686300 ns  Iteration: 1  Instance: /tb_m4_scene_audio
+# End time: 19:08:14 on Oct 20,2026, Elapsed time: 0:00:05
+# Errors: 0, Warnings: 0

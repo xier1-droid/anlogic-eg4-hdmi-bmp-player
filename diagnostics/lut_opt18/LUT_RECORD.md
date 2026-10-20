@@ -32,3 +32,11 @@
 ## S1 回归
 
 - lut18r1（run_m3_regression，18 项）在批1+2+loop_count 源码上全部通过；lut18_m3_1、lut18_m5_1 通过。批4 之后已重跑按键相关全部测试；S1 最终源码仍需完整重跑。
+
+| lut18_attempt03_s3 | + 解码器 row_payload/row_last 13 位、sd_card_cmd byte_cnt 10 位 | 15209（+36 对 02） | 8512 | 24 | **−0.058** / +0.012 | 放弃：全局无收益（decoder −35、sd_card_cmd −47，被噪声抵消），最差路径 thumb_writer FIFO wr_addr→received.ce（未改模块）。diff 存 output/lut18_attempt03_s3/rejected |
+
+## S1 候选
+
+- releases/v0.18.0/s1-local.1：lut18_attempt02_s3 bit（670364 字节），源码 1148e6e；108 个构建输入逐字节一致，6 个改动输入，171 份通过日志、34 份变异体日志。时序审计（lut18_attempt02_s3/timing_audit）14 类与 v0.17.0 相同，dangling 节点 4（同数，位置不同）。
+- 最终源码验证：lut18r3 18 项回归、lut18_m1_1、lut18_m3_2、lut18_m4_1、lut18_m5_2、lut18_adjust_unit1、lut18_pcm_s2_1、lut18_preview_keys1、lut18_rescan_key1、lut18_hazard_equiv3、lut18_keys1。
+- 批3 未做项：streamer 簇号 28 位（FAT 高 4 位来自卡上数据，不能确认恒为 0；收益在噪声内）、缩放 inside 边沿标志（约 −20）。

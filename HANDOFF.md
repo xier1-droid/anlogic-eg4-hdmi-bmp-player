@@ -1,10 +1,15 @@
-# 当前交接：v0.18.0 LUT 减量，S0 计划已确认（2026-10-20）
+# 当前交接：v0.18.0 S1 local.1 已固定，等待板测（2026-10-20）
 
-- 当前任务：v0.18.0 LUT 减量（可见行为不变），计划 docs/LUT减量v0.18分阶段修改计划.md，分支 feature/lut-optimization-v018，标签 v0.18.0-plan.1。基线 v0.17.0（mountain_attempt34_s3）15840 LUT（80.8%），目标 ≤14000。
-- 已完成：热点分析（scanner 1776、hazard_layer 1574、bridge 自身约 978 实为 OSD 叠加链、streamer×2 1422、header_check×2 937）；用户确认删 case 字库、扫描表数据字段去同步清零并改分布式 RAM、分 3 阶段。
-- 卡住的问题：无。
-- 下一步计划：S1 批1（删 case 字库、合并 osd_pixel_position），冻结旧模块写等价台后完整 TD。
-- 踩过的坑：扫描表同步清零与 parser_rst（sd_card_bmp.v:104，SC_RESET 8 拍）重复，只有 tb_audio_scan:45 依赖它。
+- 当前任务：v0.18.0 LUT 减量 S1；候选 releases/v0.18.0/s1-local.1（lut18_attempt02_s3），标签 v0.18.0-s1-local.1（本地，未推送），分支 feature/lut-optimization-v018。
+- 已完成：批1（删 case 字库、合并位置计数）、批2（hazard 哈希/移位，逐位等价）、loop_count 1 位、批4（按键共用 1 ms 节拍）。15173 LUT（−667）、24 DSP，Setup +0.122、Hold +0.021 ns；最终源码全部回归通过（见 diagnostics/lut_opt18/LUT_RECORD.md）。
+- 卡住的问题：无本地阻塞；尚未上板。
+- 下一步计划：用户按 releases/v0.18.0/s1-local.1/BOARD_VALIDATION.md 板测（重点 K1 按键手感、C1 无字库卡中文空白、R2 雨丝）；通过后记录 s1-board.1、推送分支与 plan.1/s1-local.1/s1-board.1 标签，进入 S2。
+- 踩过的坑：
+  - hazard 等价台只比输出时漏检 hc 的变异（只在部分灾种/阈值下可见），已加 C1 寄存项逐拍比较。
+  - 旧按键计数从 1 起到 N−1 止，比标称短 2 个时钟；改节拍后要补 1–2 个节拍，否则长按/窗口短 2 ms（变异体 mut_no_adjust 证明台能检出）。
+  - lut_opt/run_batch3.ps1 的 fat32_pcm_stream 对 v0.15 参考在 v0.17.0 源码上也报 2103750 个不匹配（v0.16 S2 有意多 1 拍的 CHECK 态），不能再用作该模块的判据。
+  - 批3 其余收窄全局 +36、sd_card_clk −0.058 ns（thumb_writer FIFO 路径），放弃。
+  - 本机 Git Bash 无 python，用 scoop 的 python.exe -I；ModelSim/TD 路径同前。
 
 ## 历史交接
 

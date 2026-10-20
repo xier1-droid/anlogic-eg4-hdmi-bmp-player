@@ -1,0 +1,69 @@
+# vsim -c -quiet -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/lut18r3_regression1/work tb_sd_spi_pins glbl -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\lut18r3_regression1/tb_sd_spi_pins.log -do "run -all; quit -f" 
+# Start time: 20:16:34 on Oct 20,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# run -all
+# CARD command=0 arg=00000000 crc=95
+# CARD command=8 arg=000001aa crc=87
+# CARD command=55 arg=00000000 crc=65
+# CARD command=41 arg=40000000 crc=77
+# CARD command=55 arg=00000000 crc=65
+# CARD command=41 arg=40000000 crc=77
+# CARD command=16 arg=00000200 crc=15
+# CARD command=59 arg=00000001 crc=83
+# CARD command=17 arg=00000000 crc=55
+# CARD command=17 arg=00012345 crc=47
+# CARD command=17 arg=0080000f crc=31
+# CARD command=0 arg=00000000 crc=95
+# CARD command=8 arg=000001aa crc=87
+# CARD command=55 arg=00000000 crc=65
+# CARD command=41 arg=40000000 crc=77
+# CARD command=55 arg=00000000 crc=65
+# CARD command=41 arg=40000000 crc=77
+# CARD command=16 arg=00000200 crc=15
+# CARD command=59 arg=00000001 crc=83
+# CARD command=17 arg=0080000f crc=31
+# CARD command=0 arg=00000000 crc=95
+# CARD command=8 arg=000001aa crc=87
+# CARD command=55 arg=00000000 crc=65
+# CARD command=41 arg=40000000 crc=77
+# CARD command=55 arg=00000000 crc=65
+# CARD command=41 arg=40000000 crc=77
+# CARD command=16 arg=00000200 crc=15
+# CARD command=59 arg=00000001 crc=83
+# CARD command=0 arg=00000000 crc=95
+# CARD command=8 arg=000001aa crc=87
+# CARD command=55 arg=00000000 crc=65
+# CARD command=41 arg=40000000 crc=77
+# CARD command=55 arg=00000000 crc=65
+# CARD command=41 arg=40000000 crc=77
+# CARD command=16 arg=00000200 crc=15
+# CARD command=59 arg=00000001 crc=83
+# CARD command=17 arg=0080000f crc=31
+# CARD command=0 arg=00000000 crc=95
+# CARD command=8 arg=000001aa crc=87
+# CARD command=55 arg=00000000 crc=65
+# CARD command=41 arg=40000000 crc=77
+# CARD command=55 arg=00000000 crc=65
+# CARD command=41 arg=40000000 crc=77
+# CARD command=16 arg=00000200 crc=15
+# CARD command=59 arg=00000001 crc=83
+# CARD command=17 arg=0080000f crc=31
+# PASS initialization completes between ACMD41 polls: CMD55 R1=00 accepted
+# PASS pin-level CRC7, CMD59 readiness/failure/retry, good/bad CRC16 and host-only reset
+# ** Note: $finish    : D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/sd_recovery/tb_sd_spi_pins.sv(173)
+#    Time: 20167820 ns  Iteration: 1  Instance: /tb_sd_spi_pins
+# End time: 20:16:36 on Oct 20,2026, Elapsed time: 0:00:02
+# Errors: 0, Warnings: 0

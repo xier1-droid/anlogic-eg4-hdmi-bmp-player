@@ -1,3 +1,7 @@
+# v0.18.0 开发记录（LUT 减量，可见行为不变）
+
+- S1 local.1：删除 BRAM 字库模式下的 case 字库（无 FONT.BIN 时中文字幕空白）、音频环与字幕共用位置计数、hazard_layer 共享噪声哈希与定值移位（逐位等价）、旁白循环计数改 1 位、全部按键计数共用 1 ms 节拍（时长差 ≤1 ms）。15173 LUT（77.4%，−667）、BRAM9k 52、BRAM32k 2、24 DSP（−2），Setup +0.122ns、Hold +0.021ns，时序审计 14 类与 v0.17.0 相同。等价台、run_m1/m3/m4/m5、按键与 PCM 单元、18 项回归通过。解码器行计数与 SD 字节计数收窄全局无收益且 sd_card_clk −0.058ns，放弃。固定 releases/v0.18.0/s1-local.1，待板测。
+
 # v0.17.0 之后（main，未发版）
 
 - 场景包工具：旁白句子可用 `file:` 指定录音或其他 TTS 生成的音频，替代 Windows 语音；四张示例卡换成 MiniMax 生成的 36 句配音（tools/scenes/*_village/voice/）。只改 PC 工具和卡上 SND1–4，FPGA 与 v0.17.0 正式 bit 不变。用户板上确认音频效果正常、功能正常（2026-10-20）。
