@@ -56,3 +56,10 @@
 - lut18_header2：新 reader 与冻结的 v0.17.0 reader 同输入逐周期比较，42 用例 × 字节间隔 0/2 × 缩放/固定两条路径 + 5 个注入模式 × 2 路径共 178 次全部一致；3 个变异体（选择不切换、偏移用扇区索引、解码字节无效）均由逐周期比较检出。缩放路径上除 case 0 mode 0 外，fixture 的结果契约按固定路径写（4 簇遍历上限、宽度 3），只做逐周期比较（CHECK_CONTRACT=0）。
 - lut18_attempt04_s3：布局后 15118 LUT（仅 −55，估算 −420～−470 未兑现，单个 checker 的大部分逻辑被综合按常数/未用输出裁掉过），布线 PHY-8023 在 x24y19 处 scaler 复位网拥塞，RUN-8102 增量布线失败，无 bit。
 - 按规则放弃，源码恢复 S1；diff 存 output/lut18_attempt04_s3/rejected。等价台与冻结模块保留（diagnostics/lut_opt18/tb_reader_lockstep.sv、run_s2_header.ps1、*_v017.v），供后续 reader 改动复用。
+| lut18_attempt05_s3 | 批6a 扫描表只清 found 标志 | 15153（−20） | 24 | +0.158 / +0.021 | 放弃（用户决定 2026-10-21） |
+
+### 批6a：扫描表去数据字段同步清零（放弃）
+
+- 重扫只清 resource_valid/bgm_found/snd_found/font_found/text_found；tb_audio_scan 去掉“未找到时 cluster/size 为 0”断言，tb_m4_scanner 只在 found 时比较 cluster/size，并新增 mut_flag_clear 变异体（检出）。lut18_pcm_s2_6a、lut18_m4_6b、42 项读取 ByteGap 0/2（lut18_reader0_6a/reader2_6a）通过。
+- lut18_attempt05_s3：15153 LUT（−20，scanner 1718→1690），时序 +0.158 / +0.021 ns。估算“每位约 1 LUT”不成立：TD 已把同步清零并入写使能，几乎不占 LUT。收益在噪声内，且改了测试契约；批6b（分布式 RAM）同样依赖该前提且双读口要复制 RAM，收益不确定。
+- 用户决定撤回 6a、不做 6b，直接做 BRAM 迁移（批7/8）。源码与测试台恢复，diff 存 output/lut18_attempt05_s3/rejected。
