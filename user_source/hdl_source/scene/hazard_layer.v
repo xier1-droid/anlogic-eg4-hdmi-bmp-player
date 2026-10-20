@@ -33,6 +33,12 @@ module hazard_layer #(parameter integer LATENCY=10)(   // fixed; documents the c
   reg [7:0] h;
   begin h=a*8'd73+b*8'd151+(a^b)*8'd37;hash8=h^(h>>4);end
  endfunction
+ // hash8 with a*73+b*151 (mod 256) supplied: the four noise corners share it,
+ // since (a+1)*73=a*73+73 and (b+1)*151=b*151+151 mod 256.
+ function [7:0] hash8s(input [7:0] s,input [7:0] a,input [7:0] b);
+  reg [7:0] h;
+  begin h=s+(a^b)*8'd37;hash8s=h^(h>>4);end
+ endfunction
  // k quarters of colour c: 1 a/2+a/4+c/4, 2 a/2+c/2, 3 a/4+c/2+c/4.
  function [23:0] blend(input [23:0] a,input [23:0] c,input [1:0] k);
   integer i;reg [7:0] p,q;
@@ -249,7 +255,8 @@ module hazard_layer #(parameter integer LATENCY=10)(   // fixed; documents the c
  wire [11:0] xf={2'b00,x}-{2'b00,frame_cnt};
  wire [9:0] yf={1'b0,y}-{1'b0,frame_cnt[9:1]};
  wire [8:0] yg={1'b0,y}+frame_cnt[9:1];
- wire [7:0] hc=hazard==FL ? hash8(xf[8:1],yf[8:1]) : hash8(x[7:0],yg[7:0]);
+ // hazard is a frame term: select the inputs, then hash once.
+ wire [7:0] hc=hash8(hazard==FL ? xf[8:1] : x[7:0],hazard==FL ? yf[8:1] : yg[7:0]);
  // Value-noise parameters for the pixel's region (one set per pixel).
  reg [11:0] nu;reg [9:0] nv;reg [2:0] nsx,nsy;reg [7:0] nsalt;
  wire [11:0] x12={2'b00,x};
@@ -264,10 +271,24 @@ module hazard_layer #(parameter integer LATENCY=10)(   // fixed; documents the c
    endcase
   end else if(hazard==EQ && role==AFTER && region==2'd0)begin nsx=3'd4;nsy=3'd4;nsalt=8'd61;end
  end
- wire [15:0] nu4={nu,4'b0000}>>nsx;
- wire [13:0] nv4={nv,4'b0000}>>nsy;
- wire [7:0] ncx=nu>>nsx;
- wire [7:0] ncy=(nv>>nsy)+nsalt;
+ // nsx takes only 2..5 and nsy only 1, 2 or 4: fixed shifts replace the
+ // barrel shifters. fx/fy are the 4 fraction bits below the cell index.
+ reg [3:0] fx,fy;reg [7:0] ncx,ncy_raw;
+ always @* begin
+  case(nsx)
+   3'd2:begin fx={nu[1:0],2'b00};ncx=nu[9:2];end
+   3'd3:begin fx={nu[2:0],1'b0};ncx=nu[10:3];end
+   3'd4:begin fx=nu[3:0];ncx=nu[11:4];end
+   default:begin fx=nu[4:1];ncx={1'b0,nu[11:5]};end
+  endcase
+  case(nsy)
+   3'd1:begin fy={nv[0],3'b000};ncy_raw=nv[8:1];end
+   3'd4:begin fy=nv[3:0];ncy_raw={2'b00,nv[9:4]};end
+   default:begin fy={nv[1:0],2'b00};ncy_raw=nv[9:2];end
+  endcase
+ end
+ wire [7:0] ncy=ncy_raw+nsalt;
+ wire [7:0] nxy=ncx*8'd73+ncy*8'd151;
  // Rain cells: near (16x64, length 14, 4/16 px per frame), far (8x32, 6, 2/8).
  wire [11:0] ru0=x12+{frame_cnt,2'b00};
  wire [13:0] rv0={5'd0,y}-{frame_cnt,4'b0000};
@@ -284,8 +305,9 @@ module hazard_layer #(parameter integer LATENCY=10)(   // fixed; documents the c
   v1<=de && active_kind;rgb1<=rgb_in;time1<=time_;age1<=age;reg1<=region;
   layer1<=layer;cov1<=covered;zone1<=zone_stripe;hatch1<=hatch;dash1<=dash;surge1<=surge;
   lead1<=lead;puff1<=puff;sunk1<=sunk;wave1<=wave_front;
-  ha1<=ha;hb1<=hb;hc1<=hc;fx1<=nu4[3:0];fy1<=nv4[3:0];
-  h00<=hash8(ncx,ncy);h10<=hash8(ncx+8'd1,ncy);h01<=hash8(ncx,ncy+8'd1);h11<=hash8(ncx+8'd1,ncy+8'd1);
+  ha1<=ha;hb1<=hb;hc1<=hc;fx1<=fx;fy1<=fy;
+  h00<=hash8s(nxy,ncx,ncy);h10<=hash8s(nxy+8'd73,ncx+8'd1,ncy);
+  h01<=hash8s(nxy+8'd151,ncx,ncy+8'd1);h11<=hash8s(nxy+8'd224,ncx+8'd1,ncy+8'd1);
   rk0_1<=rk0;rk1_1<=rk1;rlu0<=ru0[3:0];rlu1<={1'b0,ru1[2:0]};rlv0<=rv0[5:0];rlv1<=rv1[4:0];
  end
 
