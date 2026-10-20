@@ -63,3 +63,24 @@
 - 重扫只清 resource_valid/bgm_found/snd_found/font_found/text_found；tb_audio_scan 去掉“未找到时 cluster/size 为 0”断言，tb_m4_scanner 只在 found 时比较 cluster/size，并新增 mut_flag_clear 变异体（检出）。lut18_pcm_s2_6a、lut18_m4_6b、42 项读取 ByteGap 0/2（lut18_reader0_6a/reader2_6a）通过。
 - lut18_attempt05_s3：15153 LUT（−20，scanner 1718→1690），时序 +0.158 / +0.021 ns。估算“每位约 1 LUT”不成立：TD 已把同步清零并入写使能，几乎不占 LUT。收益在噪声内，且改了测试契约；批6b（分布式 RAM）同样依赖该前提且双读口要复制 RAM，收益不确定。
 - 用户决定撤回 6a、不做 6b，直接做 BRAM 迁移（批7/8）。源码与测试台恢复，diff 存 output/lut18_attempt05_s3/rejected。
+| lut18_attempt06_s3 | 批8 音频环 BRAM（levels 同步读、overlay 提前一像素寻址、ROM 改 BRAM32k） | 15144（−29） | 24 | **−0.141** / +0.019 | 时序失败（decoder pixel_offset→blue.ce，未改模块） |
+| lut18_attempt07_s3 | 批8 + 批7 tterm 改 BRAM | 15113（−60） | 24 | **−0.040** / +0.004 | 时序失败（scanner resource2_size.ce，未改模块） |
+| lut18_attempt08_s5 | 批8，PlacementStrategy 5 | 15195（+22） | 24 | +0.135 / +0.012 | 时序通过但 LUT 高于 S1 |
+| lut18_attempt09_s3pr | 批8，strategy 3 + PostRouteOptimization | 15144（−29） | 24 | **−0.141** / +0.019 | 与 attempt06 相同 |
+
+### 批7：hazard tterm 常数表改 BRAM（放弃）
+
+- et3/bt3 改读 128×24 块 ROM（同步读落在原 C3 寄存器，初值由原 case 表生成，124 项 + 4 项默认 0）。lut18_hazard_b7 对 v0.17.0 逐周期一致（2 种子），lut18_m3_b78 通过。
+- 综合门级 hazard_layer 1440→1438：TD 已把该表化简得很小，改 BRAM 无收益。diff 存 output/lut18_attempt07_s3/rejected。
+
+### 批8：音频环 BRAM（放弃）
+
+- audio_ring_levels SYNC_READ（两块高度 RAM 同步读：更新口用 copy_index 提前一拍，显示口地址寄存）、audio_ring_overlay LEVEL_LATENCY（ROM 按下一像素 pixel_x+1 寻址，几何与 bar_index 提前一拍，延迟仍为 2 拍）、ROM 加 bram_32k。默认参数保持旧行为。
+- lut18_ring1：生产模式对冻结的 v0.17.0 一对逐周期一致（2 种子 2516 万周期、59.6 万环像素），默认模式单元测试 tb_audio_ring/tb_ring_pixels 通过，3 个变异体检出。
+- 综合门级：levels 441→256、ring 344→253（−276），但 bridge 吸收的叠加链 1395→1501、SD 域 +59，全设计综合 14725→14618（−107）。物理：BRAM9k 52→33、BRAM32k 2→10；四次构建要么时序失败（SD 域与改动无关的路径），要么时序通过但 15195（+22）。
+- diff 存 output/lut18_attempt08_s5/rejected；等价台保留（tb_ring_lockstep.sv、run_s2_ring.ps1、audio_ring_*_v017.v）。若后续需要 BRAM9k 余量，可直接复用。
+
+### S2 结论（用户决定 2026-10-21：按 S1 结项）
+
+- 批5/6a/7/8 在模块层面全部逐周期等价，但全设计物理 LUT 均未得到超过噪声的稳定收益：估算基于读码，而 TD 综合已把常数表、同步清零、未用输出化简掉；剩余收益又被布局与跨模块扁平化（bridge 名下 ±100～200）抵消，并多次触发 SD 域无关路径的时序失败。
+- 批6b、批9、S3（批10/11）未做。v0.18.0 正式版复用 s1-local.1 原 bit（15173 LUT）。
