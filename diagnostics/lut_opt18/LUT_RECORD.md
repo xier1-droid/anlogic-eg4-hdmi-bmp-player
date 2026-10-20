@@ -41,3 +41,18 @@
 - 最终源码验证：lut18r3 18 项回归、lut18_m1_1、lut18_m3_2、lut18_m4_1、lut18_m5_2、lut18_adjust_unit1、lut18_pcm_s2_1、lut18_preview_keys1、lut18_rescan_key1、lut18_hazard_equiv3、lut18_keys1。
 - 批3 未做项：streamer 簇号 28 位（FAT 高 4 位来自卡上数据，不能确认恒为 0；收益在噪声内）、缩放 inside 边沿标志（约 −20）。
 - S1 board.1：用户确认 s1-local.1“功能通过，继续下一步”（2026-10-20，整体反馈），标签 v0.18.0-s1-board.1。
+
+## S2
+
+基线 S1 board.1（lut18_attempt02_s3，15173 LUT）。
+
+| 构建 | 内容 | 物理 LUT | DSP | Setup / Hold ns | 结论 |
+|---|---|---:|---:|---|---|
+| lut18_attempt04_s3 | 批5 共用 header checker | 15118（布局后，−55） | — | 布线失败 | 放弃 |
+
+### 批5：共用 header checker（放弃）
+
+- 缩放路径下 preflight 与解码器分时共用一个 bmp_header_check，寄存的 header_load 在 IDLE 的 scan_start/load_start 切换；bmp24_decoder 加 SHARED_HEADER 参数与 229 位结果总线。
+- lut18_header2：新 reader 与冻结的 v0.17.0 reader 同输入逐周期比较，42 用例 × 字节间隔 0/2 × 缩放/固定两条路径 + 5 个注入模式 × 2 路径共 178 次全部一致；3 个变异体（选择不切换、偏移用扇区索引、解码字节无效）均由逐周期比较检出。缩放路径上除 case 0 mode 0 外，fixture 的结果契约按固定路径写（4 簇遍历上限、宽度 3），只做逐周期比较（CHECK_CONTRACT=0）。
+- lut18_attempt04_s3：布局后 15118 LUT（仅 −55，估算 −420～−470 未兑现，单个 checker 的大部分逻辑被综合按常数/未用输出裁掉过），布线 PHY-8023 在 x24y19 处 scaler 复位网拥塞，RUN-8102 增量布线失败，无 bit。
+- 按规则放弃，源码恢复 S1；diff 存 output/lut18_attempt04_s3/rejected。等价台与冻结模块保留（diagnostics/lut_opt18/tb_reader_lockstep.sv、run_s2_header.ps1、*_v017.v），供后续 reader 改动复用。
