@@ -1,3 +1,13 @@
+# 当前交接：v0.18.0 S1 board.1 通过，进入 S2（2026-10-20）
+
+- 当前任务：v0.18.0 S2（结构复用与存储迁移），基线 s1-board.1（15173 LUT）。
+- 已完成：用户确认 s1-local.1“功能通过，继续下一步”（整体反馈，未逐项），记录 releases/v0.18.0/s1-local.1/BOARD_RESULT.md，标签 v0.18.0-s1-board.1；推送分支与 plan.1、s1-local.1、s1-board.1 标签。
+- 卡住的问题：无。
+- 下一步计划：S2 批5 单 header checker，单独 TD。
+- 踩过的坑：见下一条历史交接。
+
+## 历史交接
+
 # 当前交接：v0.18.0 S1 local.1 已固定，等待板测（2026-10-20）
 
 - 当前任务：v0.18.0 LUT 减量 S1；候选 releases/v0.18.0/s1-local.1（lut18_attempt02_s3），标签 v0.18.0-s1-local.1（本地，未推送），分支 feature/lut-optimization-v018。

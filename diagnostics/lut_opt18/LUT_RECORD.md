@@ -40,3 +40,4 @@
 - releases/v0.18.0/s1-local.1：lut18_attempt02_s3 bit（670364 字节），源码 1148e6e；108 个构建输入逐字节一致，6 个改动输入，171 份通过日志、34 份变异体日志。时序审计（lut18_attempt02_s3/timing_audit）14 类与 v0.17.0 相同，dangling 节点 4（同数，位置不同）。
 - 最终源码验证：lut18r3 18 项回归、lut18_m1_1、lut18_m3_2、lut18_m4_1、lut18_m5_2、lut18_adjust_unit1、lut18_pcm_s2_1、lut18_preview_keys1、lut18_rescan_key1、lut18_hazard_equiv3、lut18_keys1。
 - 批3 未做项：streamer 簇号 28 位（FAT 高 4 位来自卡上数据，不能确认恒为 0；收益在噪声内）、缩放 inside 边沿标志（约 −20）。
+- S1 board.1：用户确认 s1-local.1“功能通过，继续下一步”（2026-10-20，整体反馈），标签 v0.18.0-s1-board.1。
