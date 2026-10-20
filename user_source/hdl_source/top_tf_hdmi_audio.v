@@ -164,8 +164,11 @@ wire sub_rx_valid, sub_rx_error, sub_reply_valid, sub_reply_last, sub_reply_read
 wire [119:0] sub_text_src, sub_text_pixel;
 wire [3:0] sub_length_src, sub_length_pixel;
 wire sub_enable_src, sub_enable_pixel, sub_text_changed, sub_frame_start;
+wire [8:0] ring_y;
+// One position counter on the raw vs/de serves the subtitle frame events and
+// the audio ring (ring_y, ring_frame_start).
 osd_pixel_position u_subtitle_position(.clk(video_clk),.rst(rst_video),.vs(vs),.de(de),
- .line_y(),.frame_start(sub_frame_start),.first_active());
+ .line_y(ring_y),.frame_start(sub_frame_start),.first_active());
 generate if(UART_SUBTITLE_ENABLE) begin:g_uart_subtitle
 uart_rx_byte #(.CLKS_PER_BIT((UART_CLK_FREQ_HZ+UART_BAUD_RATE/2)/UART_BAUD_RATE)) u_uart_rx (
  .clk(sd_card_clk),.rst_n(~rst_sd),.rx(uart_rx),.data(sub_rx_data),
@@ -217,7 +220,6 @@ always @(posedge sd_card_clk or posedge rst_sd) begin
 end
 
 wire [1:0] switch_mode;
-wire [8:0] ring_y;
 // Session parameters: SD-domain gestures, atomic mailbox, VS-boundary commit.
 wire adjust_decrease,adjust_increase,adjust_restore,adjust_select;
 wire [7:0] brightness_src,contrast_src;
@@ -538,8 +540,7 @@ wire [23:0] preview_rgb=adjust_preview ? (thumb_border ? 24'hffff00 : thumb_vali
 thumbnail_layout u_thumbnail_layout(.in_de(adjust_de),.pixel_x(adjust_x),.pixel_y(adjust_y),
  .focus_index(adjust_descriptor[16:15]),.image_count(adjust_descriptor[14:12]),.image_complete(adjust_descriptor[11:8]),
  .thumb_de(thumb_valid),.source_index(),.source_x(),.source_y(),.focus_border(thumb_border));
-osd_pixel_position u_ring_position(.clk(video_clk),.rst(rst_video),.vs(vs),.de(de),
- .line_y(ring_y),.frame_start(ring_frame_start),.first_active());
+assign ring_frame_start=sub_frame_start;
 generate if(AUDIO_VIS_ENABLE) begin:g_audio_vis
  audio_ring_levels u_levels(.clk(video_clk),.rst(rst_video),.frame_start(ring_frame_start),
   .pcm_valid(ring_tap_valid),.pcm_left(ring_tap_left),.pcm_right(ring_tap_right),

@@ -1,6 +1,6 @@
 // Fixed text, RGB888 combinational overlay; no video latency or text CDC.
 // BRAM_FONT=1 (M5): Chinese glyphs come from the FONT.BIN BRAM while
-// font_valid, else from the case font. The BRAM has one clock of read
+// font_valid, else blank (v0.18: case font removed in this mode). The BRAM has one clock of read
 // latency, so the character is formed for the next pixel, which addresses
 // the BRAM, and registered for the current one.
 module scroll_text_overlay #(
@@ -102,14 +102,20 @@ module scroll_text_overlay #(
     assign font_addr = {next_char[6:0], dy[3:0]};
     wire [4:0] glyph;
     wire [15:0] cn_glyph, case_glyph;
-    assign cn_glyph = (BRAM_FONT && font_valid) ? font_data : case_glyph;
+    // BRAM_FONT: no case font (FONT.BIN glyphs 0-12 are the same 13 glyphs);
+    // without FONT.BIN, Chinese characters are blank.
+    assign cn_glyph = BRAM_FONT ? (font_valid ? font_data : 16'd0) : case_glyph;
     wire ascii_supported = (character >= "A" && character <= "Z") ||
         (character >= "0" && character <= "9") || character==" " || character==":" ||
         character=="." || character=="," || character=="!" || character=="?" ||
         character=="-" || character=="_" || character=="/";
     wire [7:0] ascii_char = RUNTIME_ENABLE && !ascii_supported ? "?" : character;
     osd_font_5x7 font(.character(ascii_char), .row(dy[3:1]), .pixels(glyph));
-    osd_font_cn_16x16 cn_font(.character(character), .row(dy[3:0]), .pixels(case_glyph));
+    generate if (BRAM_FONT) begin : g_no_case_font
+        assign case_glyph = 16'd0;
+    end else begin : g_case_font
+        osd_font_cn_16x16 cn_font(.character(character), .row(dy[3:0]), .pixels(case_glyph));
+    end endgenerate
 
     wire in_region = ENABLE && subtitle_enabled && started && de && pixel_x >= WINDOW_LEFT && pixel_x < WINDOW_RIGHT &&
                      line_y >= TEXT_Y && line_y < TEXT_Y + 16 && text_x >= 0 && text_x < text_width;

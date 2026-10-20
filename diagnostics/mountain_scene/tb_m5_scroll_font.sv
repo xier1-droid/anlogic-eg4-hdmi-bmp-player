@@ -1,10 +1,12 @@
 `timescale 1ns/1ps
 // M5 subtitle font source: scroll_text_overlay with the case font (BRAM_FONT=0)
 // against BRAM_FONT=1 reading a FONT.BIN from tools/make_scene_pack.py --text
-// (font_valid=1) and BRAM_FONT=1 without a font (font_valid=0, case-font
-// fallback). Runtime text carries all 13 original glyphs 0x80-0x8C and two
-// ASCII letters; the outputs must agree on every pixel at scroll positions
-// covering each glyph at every sub-cell offset, plus the production text.
+// (font_valid=1) and BRAM_FONT=1 without a font (font_valid=0; v0.18: no case
+// font, Chinese glyphs blank). Runtime text carries all 13 original glyphs
+// 0x80-0x8C and two ASCII letters; the outputs must agree on every pixel at
+// scroll positions covering each glyph at every sub-cell offset, plus the
+// production text. Without a font the expected output is the case font with
+// its Chinese pixels removed.
 module tb_m5_scroll_font;
  parameter string FONT_FILE="FONT.BIN";
  reg pix=0,sd=0,rst=1;
@@ -34,11 +36,13 @@ module tb_m5_scroll_font;
  always @(posedge pix)if(!rst)begin
   if(hc==799)begin hc<=0;vc<=vc==524 ? 0 : vc+1;end else hc<=hc+1;
  end
- integer checked=0,hits=0,frames=0;
+ integer checked=0,hits=0,cn_blanked=0,frames=0;
+ wire cn_pixel=case_hit && case_font.is_cn;
+ wire [23:0] no_font_rgb=cn_pixel ? bg : case_rgb;
  always @(negedge pix)if(!rst && de)begin
   if(bram_rgb!==case_rgb || bram_hit!==case_hit)$fatal(1,"BRAM font: frame %0d x=%0d y=%0d %h vs case %h",frames,hc,vc,bram_rgb,case_rgb);
-  if(fallback_rgb!==case_rgb || fallback_hit!==case_hit)$fatal(1,"fallback: frame %0d x=%0d y=%0d %h vs case %h",frames,hc,vc,fallback_rgb,case_rgb);
-  checked++;if(case_hit)hits++;
+  if(fallback_rgb!==no_font_rgb || fallback_hit!==(case_hit && !cn_pixel))$fatal(1,"no font: frame %0d x=%0d y=%0d %h vs %h",frames,hc,vc,fallback_rgb,no_font_rgb);
+  checked++;if(case_hit)hits++;if(cn_pixel)cn_blanked++;
  end
  task show_at(input integer s);
  begin
@@ -64,7 +68,8 @@ module tb_m5_scroll_font;
   text=120'h0000002041475046208c8b8b8a8389;length=12;
   for(integer s=0;s<=816;s+=23)show_at(s);
   if(hits==0)$fatal(1,"no glyph pixels");
-  $display("PASS M5 subtitle font: %0d frames, %0d pixels (%0d glyph), BRAM font and fallback equal the case font (FONT %0d B)",frames,checked,hits,n);
+  if(cn_blanked==0)$fatal(1,"no Chinese pixels blanked");
+  $display("PASS M5 subtitle font: %0d frames, %0d pixels (%0d glyph), BRAM font equals the case font, no font blanks %0d Chinese pixels (FONT %0d B)",frames,checked,hits,cn_blanked,n);
   $finish;
  end
  initial begin #(64'd4000000000);$fatal(1,"watchdog");end
