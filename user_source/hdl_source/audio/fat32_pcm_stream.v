@@ -1,7 +1,9 @@
 // S2 standalone audio file source. Caller holds volume geometry stable until
 // stopped. Dropping enable drains a sector before resetting the FAT walker.
 module fat32_pcm_stream #(
- parameter integer MAX_VISITED_CLUSTERS=8388608
+ parameter integer MAX_VISITED_CLUSTERS=8388608,
+ // LOOP_BITS=1: loop_count is a "played through at least once" flag.
+ parameter integer LOOP_BITS=32
 )(
  input wire clk,rst_n,enable,audio_found,
  input wire [31:0] first_cluster,file_size,
@@ -9,13 +11,14 @@ module fat32_pcm_stream #(
  input wire [31:0] fat_start_lba,data_start_lba,max_cluster,
  input wire sector_permit,player_stopped,player_ready,
  output wire player_enable,output wire file_valid,output wire [7:0] file_byte,
- output wire stopped,output reg [7:0] error_code,output reg [31:0] loop_count,
+ output wire stopped,output reg [7:0] error_code,output reg [LOOP_BITS-1:0] loop_count,
  output wire sector_req,output wire [31:0] sector_lba,
  input wire sector_busy,sector_valid,sector_done,
  input wire [7:0] sector_byte,sector_error,input wire [8:0] sector_index
 );
  localparam IDLE=0,START=1,READ=2,DRAIN=3,FAILED=4,REPLAY_REQ=5,REPLAY_OUT=6,CHECK=7;
  reg [2:0] state;
+ wire [LOOP_BITS-1:0] loop_next=LOOP_BITS==1 ? 1'b1 : loop_count+1'b1;
  reg start;
  reg [31:0] cluster_latched,size_latched;
  // The start checks are registered with the latched file and decided in CHECK,
@@ -71,7 +74,7 @@ module fat32_pcm_stream #(
     READ:if(!enable)state<=DRAIN;
     else if(done)begin
      if(fs_error!=0)begin error_code<=fs_error;state<=DRAIN;end
-     else begin loop_count<=loop_count+1'b1;state<=(size_latched<=512)?REPLAY_REQ:START;end
+     else begin loop_count<=loop_next;state<=(size_latched<=512)?REPLAY_REQ:START;end
     end
     DRAIN:if(!sector_busy && player_stopped)begin
      if(enable)state<=FAILED;else state<=IDLE;
@@ -81,7 +84,7 @@ module fat32_pcm_stream #(
     REPLAY_OUT:if(!enable)state<=DRAIN;
     else if(player_ready)begin
      // Replay is entered only with size_latched<=512, so its upper bits are zero.
-     if({1'b0,replay_offset}+1'b1>=size_latched[9:0])begin replay_offset<=0;loop_count<=loop_count+1'b1;end
+     if({1'b0,replay_offset}+1'b1>=size_latched[9:0])begin replay_offset<=0;loop_count<=loop_next;end
      else replay_offset<=replay_offset+1'b1;
      state<=REPLAY_REQ;
     end

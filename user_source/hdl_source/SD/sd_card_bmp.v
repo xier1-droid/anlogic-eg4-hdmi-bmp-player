@@ -147,7 +147,7 @@ generate if(AUDIO_ENABLE)begin: g_audio
  wire player_enable,file_valid,file_ready,sector_permit,player_stopped;
  wire [7:0] file_byte;
  wire player_low;
- wire [7:0] audio_error;wire [31:0] audio_loops;
+ wire [7:0] audio_error;wire audio_loops;
  // A stage file has been read through once, or cannot be played.
  assign narration_done=play_slot[2] || audio_loops!=0 || audio_error!=0;
  reg urgent_latched;
@@ -155,7 +155,7 @@ generate if(AUDIO_ENABLE)begin: g_audio
   if(rst)urgent_latched<=1;else urgent_latched<=player_low;
  end
  assign a_urgent=urgent_latched;
- fat32_pcm_stream u_stream(
+ fat32_pcm_stream #(.LOOP_BITS(1)) u_stream(
  .clk(clk),.rst_n(!rst),.enable(audio_run),.audio_found(audio_found),
  .first_cluster(audio_cluster),.file_size(audio_size),.sectors_per_cluster(audio_spc),
  .fat_start_lba(audio_fat_lba),.data_start_lba(audio_data_lba),.max_cluster(audio_max_cluster),
