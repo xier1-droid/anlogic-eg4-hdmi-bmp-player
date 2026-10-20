@@ -1,3 +1,13 @@
+# 当前交接：v0.18.0 LUT 减量，S0 计划已确认（2026-10-20）
+
+- 当前任务：v0.18.0 LUT 减量（可见行为不变），计划 docs/LUT减量v0.18分阶段修改计划.md，分支 feature/lut-optimization-v018，标签 v0.18.0-plan.1。基线 v0.17.0（mountain_attempt34_s3）15840 LUT（80.8%），目标 ≤14000。
+- 已完成：热点分析（scanner 1776、hazard_layer 1574、bridge 自身约 978 实为 OSD 叠加链、streamer×2 1422、header_check×2 937）；用户确认删 case 字库、扫描表数据字段去同步清零并改分布式 RAM、分 3 阶段。
+- 卡住的问题：无。
+- 下一步计划：S1 批1（删 case 字库、合并 osd_pixel_position），冻结旧模块写等价台后完整 TD。
+- 踩过的坑：扫描表同步清零与 parser_rst（sd_card_bmp.v:104，SC_RESET 8 拍）重复，只有 tb_audio_scan:45 依赖它。
+
+## 历史交接
+
 # 当前交接：v0.17.0 之后，场景卡换用 MiniMax 配音（2026-10-20）
 
 - 当前任务：无进行中任务。v0.17.0 正式 bit 不变。
