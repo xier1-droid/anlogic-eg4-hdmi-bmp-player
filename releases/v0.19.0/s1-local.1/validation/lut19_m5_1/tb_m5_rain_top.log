@@ -1,0 +1,93 @@
+# vsim -c -quiet -voptargs="+acc" -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/lut19_m5_1/top_work tb_m5_rain_top glbl -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\lut19_m5_1/tb_m5_rain_top.log -do "run -all; quit -f" 
+# Start time: 19:43:05 on Oct 21,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Note: (vopt-143) Recognized 1 FSM in module "bmp_sector_buffer(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "media_adjust_control(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "video_transition_control(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "fat32_volume_scanner(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "sd_card_bmp(fast)".
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2685) [TFMPC] - Too few port connections for 'U3'.  Expected 23, found 14.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_DQ'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_DM'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_ADDR'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_BA'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_WE'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_CAS'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_RAS'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDR_CKE'.
+# ** Warning: ../user_source/hdl_source/top_tf_hdmi_audio.v(507): (vopt-2718) [TFMPC] - Missing connection for port 'SDRAM_CLK'.
+# ** Note: (vopt-143) Recognized 2 FSMs in module "fat32_bmp_reader(fast)".
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m5_rain_top.sv(13): (vopt-2685) [TFMPC] - Too few port connections for 'dut'.  Expected 21, found 11.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m5_rain_top.sv(13): (vopt-2718) [TFMPC] - Missing connection for port 'uart_tx'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m5_rain_top.sv(13): (vopt-2718) [TFMPC] - Missing connection for port 'sd_mosi'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m5_rain_top.sv(13): (vopt-2718) [TFMPC] - Missing connection for port 'sd_dclk'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m5_rain_top.sv(13): (vopt-2718) [TFMPC] - Missing connection for port 'sd_ncs'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m5_rain_top.sv(13): (vopt-2718) [TFMPC] - Missing connection for port 'HDMI_DDC_SDA'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m5_rain_top.sv(13): (vopt-2718) [TFMPC] - Missing connection for port 'HDMI_DDC_SCL'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m5_rain_top.sv(13): (vopt-2718) [TFMPC] - Missing connection for port 'HDMI_D0_P'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m5_rain_top.sv(13): (vopt-2718) [TFMPC] - Missing connection for port 'HDMI_D1_P'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m5_rain_top.sv(13): (vopt-2718) [TFMPC] - Missing connection for port 'HDMI_D2_P'.
+# ** Warning: D:\My_Program\anlogic_program\demo_v_0_0/diagnostics/mountain_scene/tb_m5_rain_top.sv(13): (vopt-2718) [TFMPC] - Missing connection for port 'HDMI_CLK_P'.
+# ** Warning: (vopt-2121) ../user_source/hdl_source/include/sdr_wrrd.enc.v(77): Illegal concatenation of an unsized constant. Will treat it as a 32-bit value.
+# ** Note: (vopt-143) Recognized 1 FSM in module "sd_card_cmd(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "media_frame_cache_control(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "image_scale_nearest(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "fat32_file_streamer(fast__1)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "fat32_file_streamer(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "sd_sector_adapter(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "frame_fifo_read(fast)".
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2685) [TFMPC] - Too few port connections for 'write_buf'.  Expected 14, found 11.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'aempty'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'afull'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'valid'.
+# ** Note: (vopt-143) Recognized 1 FSM in module "media_frame_loader(fast__1)".
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2685) [TFMPC] - Too few port connections for 'write_buf'.  Expected 14, found 11.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'aempty'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'afull'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_loader.v(70): (vopt-2718) [TFMPC] - Missing connection for port 'valid'.
+# ** Note: (vopt-143) Recognized 1 FSM in module "media_frame_loader(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "fat32_pcm_stream(fast)".
+# ** Warning: ../user_source/hdl_source/IP/afifo_16_32_256.v(231): (vopt-2685) [TFMPC] - Too few port connections for 'ram_inst'.  Expected 16, found 14.
+# ** Warning: ../user_source/hdl_source/IP/afifo_16_32_256.v(231): (vopt-2718) [TFMPC] - Missing connection for port 'dib'.
+# ** Warning: ../user_source/hdl_source/IP/afifo_16_32_256.v(231): (vopt-2718) [TFMPC] - Missing connection for port 'doa'.
+# ** Warning: ../user_source/hdl_source/IP/afifo_32_16_256.v(231): (vopt-2685) [TFMPC] - Too few port connections for 'ram_inst'.  Expected 16, found 14.
+# ** Warning: ../user_source/hdl_source/IP/afifo_32_16_256.v(231): (vopt-2718) [TFMPC] - Missing connection for port 'dib'.
+# ** Warning: ../user_source/hdl_source/IP/afifo_32_16_256.v(231): (vopt-2718) [TFMPC] - Missing connection for port 'doa'.
+# ** Note: (vopt-143) Recognized 1 FSM in module "media_frame_load_control(fast)".
+# ** Warning: (vopt-2121) ../user_source/hdl_source/include/sdr_init_ref.enc.v(207): Illegal concatenation of an unsized constant. Will treat it as a 32-bit value.
+# ** Note: (vopt-143) Recognized 1 FSM in module "hdmi_data_island_scheduler(fast)".
+# ** Warning: ../user_source/hdl_source/SD/media_frame_reader.v(50): (vopt-2685) [TFMPC] - Too few port connections for 'read_buf'.  Expected 14, found 11.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_reader.v(50): (vopt-2718) [TFMPC] - Missing connection for port 'aempty'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_reader.v(50): (vopt-2718) [TFMPC] - Missing connection for port 'afull'.
+# ** Warning: ../user_source/hdl_source/SD/media_frame_reader.v(50): (vopt-2718) [TFMPC] - Missing connection for port 'valid'.
+# ** Note: (vopt-143) Recognized 1 FSM in module "hdmi_audio_sample_packetizer(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "spi_master(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "adjust_key_gestures(fast)".
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# ** Warning: (vsim-3015) ../user_source/ip_source/s3_single_pll/sys_pll_s3.v(89): [PCDPC] - Port size (5) does not match connection size (1) for port 'load_reg'. The port definition is at: D:/TD/anlogic/TD6.2.1/sim_release/eg4/eg_phy_pll.v(25).
+#    Time: 0 fs  Iteration: 0  Instance: /tb_m5_rain_top/dut/sys_pll_m0/pll_inst File: D:/TD/anlogic/TD6.2.1/sim_release/eg4/eg_phy_pll.v
+# run -all
+# ******************** : The Attribute            REFCLK_DIV on pll instance tb_m5_rain_top.dut.sys_pll_m0.pll_inst.para_int_range_chk is set to           1.  Legal values for this attribute are           1 to         128.
+# ******************** : The Attribute             FBCLK_DIV on pll instance tb_m5_rain_top.dut.sys_pll_m0.pll_inst.para_int_range_chk is set to           2.  Legal values for this attribute are           1 to         128.
+# ******************** : The Attribute             CLKC0_DIV on pll instance tb_m5_rain_top.dut.sys_pll_m0.pll_inst.para_int_range_chk is set to          10.  Legal values for this attribute are           1 to         128.
+# ******************** : The Attribute             CLKC1_DIV on pll instance tb_m5_rain_top.dut.sys_pll_m0.pll_inst.para_int_range_chk is set to          25.  Legal values for this attribute are           1 to         128.
+# ******************** : The Attribute             CLKC2_DIV on pll instance tb_m5_rain_top.dut.sys_pll_m0.pll_inst.para_int_range_chk is set to          25.  Legal values for this attribute are           1 to         128.
+# ******************** : The Attribute             CLKC3_DIV on pll instance tb_m5_rain_top.dut.sys_pll_m0.pll_inst.para_int_range_chk is set to          40.  Legal values for this attribute are           1 to         128.
+# ******************** : The Attribute             CLKC4_DIV on pll instance tb_m5_rain_top.dut.sys_pll_m0.pll_inst.para_int_range_chk is set to           8.  Legal values for this attribute are           1 to         128.
+# PASS M5 rain via scenario_fsm checks=158720 recoloured=739 rain=739
+# ** Note: $finish    : D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/mountain_scene/tb_m5_rain_top.sv(132)
+#    Time: 7960200 ns  Iteration: 1  Instance: /tb_m5_rain_top
+# End time: 19:44:55 on Oct 21,2026, Elapsed time: 0:01:50
+# Errors: 0, Warnings: 42

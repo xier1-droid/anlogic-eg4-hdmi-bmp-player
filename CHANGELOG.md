@@ -1,3 +1,11 @@
+# v0.19.0 开发记录（功能裁剪：去掉圆形音频可视化）
+
+- S1 local.1：
+  - 改动：`AUDIO_VIS_ENABLE=0`，普通模式右下角不再显示音频环；fat32_pcm_stream 新增寄存的 error_flag 供 narration_done 使用。
+  - 资源与时序：14489 LUT（73.9%，−684），BRAM9k 52→30，BRAM32k 2，24 DSP，Setup +0.155 ns，Hold +0.003 ns。
+  - 验证：error_flag lockstep 对比 v0.18.0、场景套件、单元测试、18 项回归均通过。
+  - 候选固定在 releases/v0.19.0/s1-local.1，待板测。
+
 # v0.18.0 正式发布（2026-10-21）
 
 - LUT 减量（功能不变）：15173 LUT（77.4%，−667）、BRAM9k 52、BRAM32k 2、24 DSP，Setup +0.122ns、Hold +0.021ns。无 FONT.BIN 的卡中文字幕空白；按键计时共用 1 ms 节拍（差 ≤1 ms）。复用 s1-local.1 原 bit（670364 字节），未重建。见 releases/v0.18.0。

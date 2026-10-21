@@ -1,0 +1,22 @@
+# vsim -c -quiet -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/lut19_m3_1/work tb_m3v3_sweep -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\lut19_m3_1/tb_m3v3_sweep.log -do "run -all; quit -f" -gVEC_DIR=D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/lut19_m3_1/vectors 
+# Start time: 19:32:59 on Oct 21,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# run -all
+# PASS hazard v3 sweep vectors=1228800 recoloured=297584
+# ** Note: $finish    : D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/mountain_scene/tb_m3v3_sweep.sv(54)
+#    Time: 13200950 ns  Iteration: 1  Instance: /tb_m3v3_sweep
+# End time: 19:33:07 on Oct 21,2026, Elapsed time: 0:00:08
+# Errors: 0, Warnings: 0

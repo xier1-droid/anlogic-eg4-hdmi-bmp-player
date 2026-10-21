@@ -1,0 +1,26 @@
+# vsim -c -quiet -lib D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/output/lut19_m4_1/mut_no_fallback_work tb_m4_scene_audio -l D:\My_Program\anlogic_program\demo_v_0_0\diagnostics\output\lut19_m4_1/mut_no_fallback.log -do "run -all; quit -f" 
+# Start time: 19:39:19 on Oct 21,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# //  ModelSim SE-64 10.6e Jun 23 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# run -all
+#   picture mode plays BGM: file 4, session 1
+#   scene stage 1 SND1: file 0, session 2
+#   stage 2 SND2: file 1, session 3
+# ** Fatal: stage 3 without SND3 falls back to BGM: no session of file 4 (now file -1, 0 samples)
+#    Time: 100652980 ns  Scope: tb_m4_scene_audio.expect_file File: D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/mountain_scene/tb_m4_scene_audio.sv Line: 147
+# ** Note: $finish    : D:/My_Program/anlogic_program/demo_v_0_0/diagnostics/mountain_scene/tb_m4_scene_audio.sv(147)
+#    Time: 100652980 ns  Iteration: 1  Region: /tb_m4_scene_audio/expect_file
+# End time: 19:39:26 on Oct 21,2026, Elapsed time: 0:00:07
+# Errors: 1, Warnings: 0
