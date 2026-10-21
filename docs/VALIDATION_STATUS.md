@@ -1,3 +1,9 @@
+# 当前验证：v0.19.0 去掉圆形音频可视化（2026-10-21）
+
+最新结论：S1 板测“功能正常”（s1-local.1，整体反馈）；v0.19.0 正式发布，复用 s1-local.1 原 bit，14489 LUT。见[最终验证](../releases/v0.19.0/FINAL_VALIDATION.md)及[结项归档](history/2026-10-21/lut-feature-trim-v019/README.md)。
+
+## 历史记录
+
 # 当前验证：v0.18.0 LUT 减量（2026-10-21）
 
 最新结论：S1 板测通过（s1-local.1，整体反馈）；v0.18.0 正式发布，复用 s1-local.1 原 bit，15173 LUT。S2 各批撤回。见[最终验证](../releases/v0.18.0/FINAL_VALIDATION.md)及[结项归档](history/2026-10-21/lut-reduction-v018/README.md)。
