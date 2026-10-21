@@ -12,6 +12,8 @@ module fat32_pcm_stream #(
  input wire sector_permit,player_stopped,player_ready,
  output wire player_enable,output wire file_valid,output wire [7:0] file_byte,
  output wire stopped,output reg [7:0] error_code,output reg [LOOP_BITS-1:0] loop_count,
+ // error_flag tracks error_code!=0 in the same cycle, as a single register.
+ output reg error_flag,
  output wire sector_req,output wire [31:0] sector_lba,
  input wire sector_busy,sector_valid,sector_done,
  input wire [7:0] sector_byte,sector_error,input wire [8:0] sector_index
@@ -55,25 +57,25 @@ module fat32_pcm_stream #(
  .sector_req(req),.sector_lba(sector_lba),.sector_busy(sector_busy),.sector_valid(sector_valid),
  .sector_byte(sector_byte),.sector_byte_index(sector_index),.sector_done(sector_done),.sector_error(sector_error));
  always @(posedge clk or negedge rst_n)begin
-  if(!rst_n)begin state<=IDLE;start<=0;error_code<=0;loop_count<=0;cluster_latched<=0;size_latched<=0;found_latched<=0;start_bad<=0;cache_write<=0;replay_offset<=0;end
+  if(!rst_n)begin state<=IDLE;start<=0;error_code<=0;error_flag<=0;loop_count<=0;cluster_latched<=0;size_latched<=0;found_latched<=0;start_bad<=0;cache_write<=0;replay_offset<=0;end
   else begin
    start<=0;
    if(state==READ && valid)cache_write<=cache_write+1'b1;
    case(state)
     IDLE:if(enable && player_stopped && !sector_busy)begin
-     error_code<=0;loop_count<=0;cache_write<=0;replay_offset<=0;
+     error_code<=0;error_flag<=0;loop_count<=0;cache_write<=0;replay_offset<=0;
      cluster_latched<=first_cluster;size_latched<=file_size;found_latched<=audio_found;
      start_bad<=file_size==0 || file_size[0] || first_cluster<2 || first_cluster>max_cluster;
      state<=CHECK;
     end
     CHECK:if(!found_latched)state<=FAILED;
-    else if(start_bad)begin error_code<=8'h30;state<=FAILED;end
+    else if(start_bad)begin error_code<=8'h30;error_flag<=1;state<=FAILED;end
     else state<=START;
     START:if(!enable)state<=DRAIN;
     else if(!busy)begin start<=1;state<=READ;end
     READ:if(!enable)state<=DRAIN;
     else if(done)begin
-     if(fs_error!=0)begin error_code<=fs_error;state<=DRAIN;end
+     if(fs_error!=0)begin error_code<=fs_error;error_flag<=1;state<=DRAIN;end
      else begin loop_count<=loop_next;state<=(size_latched<=512)?REPLAY_REQ:START;end
     end
     DRAIN:if(!sector_busy && player_stopped)begin

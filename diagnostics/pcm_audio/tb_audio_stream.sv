@@ -11,7 +11,7 @@ module tb_audio_stream;
  fat32_pcm_stream source(.clk(clk),.rst_n(!rst),.enable(enable),.audio_found(found),.first_cluster(32'd10),.file_size(size),
  .sectors_per_cluster(8'd1),.fat_start_lba(32'd1),.data_start_lba(32'd100),.max_cluster(32'd100),
  .sector_permit(permit),.player_stopped(player_stop),.player_ready(fr),.player_enable(pen),.file_valid(byte_valid),.file_byte(byte_data),
- .stopped(stop),.error_code(err),.loop_count(loops),.sector_req(ar),.sector_lba(al),.sector_busy(ab),.sector_valid(av),
+ .stopped(stop),.error_code(err),.error_flag(),.loop_count(loops),.sector_req(ar),.sector_lba(al),.sector_busy(ab),.sector_valid(av),
  .sector_done(ad),.sector_byte(data),.sector_error(ae),.sector_index(idx));
  pcm_stream_player #(.ADDR_WIDTH(9),.CLOCK_HZ(1000000),.SAMPLE_HZ(48000),.PREFILL(256),.LOW_WATER(128),.HIGH_WATER(384)) player(
  .wr_clk(clk),.wr_rst_n(!rst),.play_enable(pen),.file_valid(byte_valid),.file_byte(byte_data),.file_ready(fr),

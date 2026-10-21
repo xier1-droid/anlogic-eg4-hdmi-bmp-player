@@ -93,7 +93,7 @@ module tb_batch3_equiv;
   .error_code(P``_err),.loop_count(P``_loop),.sector_req(P``_sreq),.sector_lba(P``_lba),.sector_busy(f_busy),.sector_valid(f_sv), \
   .sector_done(f_sdone),.sector_byte(f_sbyte),.sector_error(f_serr),.sector_index(f_sidx)
  fat32_pcm_stream_v015 str_ref(`STREAM_PORTS(rf));
- fat32_pcm_stream str_new(`STREAM_PORTS(nf));
+ fat32_pcm_stream str_new(`STREAM_PORTS(nf),.error_flag());
  always @(negedge clk) check({rf_pen,rf_fv,rf_stop,rf_sreq,rf_byte,rf_err,rf_loop,rf_lba}==={nf_pen,nf_fv,nf_stop,nf_sreq,nf_byte,nf_err,nf_loop,nf_lba},"fat32_pcm_stream");
  always @(posedge clk) begin
   if(!rst && str_ref.state==str_ref.REPLAY_OUT && f_prdy) replays=replays+1;

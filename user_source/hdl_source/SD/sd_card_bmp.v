@@ -147,9 +147,9 @@ generate if(AUDIO_ENABLE)begin: g_audio
  wire player_enable,file_valid,file_ready,sector_permit,player_stopped;
  wire [7:0] file_byte;
  wire player_low;
- wire [7:0] audio_error;wire audio_loops;
+ wire [7:0] audio_error;wire audio_error_flag,audio_loops;
  // A stage file has been read through once, or cannot be played.
- assign narration_done=play_slot[2] || audio_loops!=0 || audio_error!=0;
+ assign narration_done=play_slot[2] || audio_loops!=0 || audio_error_flag;
  reg urgent_latched;
  always @(posedge clk or posedge rst)begin
   if(rst)urgent_latched<=1;else urgent_latched<=player_low;
@@ -161,7 +161,7 @@ generate if(AUDIO_ENABLE)begin: g_audio
  .fat_start_lba(audio_fat_lba),.data_start_lba(audio_data_lba),.max_cluster(audio_max_cluster),
  .sector_permit(sector_permit),.player_stopped(player_stopped),.player_ready(file_ready),
  .player_enable(player_enable),.file_valid(file_valid),.file_byte(file_byte),
- .stopped(audio_stopped),.error_code(audio_error),.loop_count(audio_loops),
+ .stopped(audio_stopped),.error_code(audio_error),.error_flag(audio_error_flag),.loop_count(audio_loops),
  .sector_req(a_req),.sector_lba(a_lba),.sector_busy(a_busy),.sector_valid(a_valid),
  .sector_done(a_done),.sector_byte(a_byte),.sector_error(a_error),.sector_index(a_index));
  pcm_stream_player u_player(
