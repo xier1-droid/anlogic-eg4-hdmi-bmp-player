@@ -1,4 +1,4 @@
-# 当前交接：v0.19.0 S1 local.1 已固定，等待板测（2026-10-21）
+# 当前交接：v0.19.0 S1 board.1 通过，待发布（2026-10-21）
 
 - 当前任务：v0.19.0 功能裁剪，去掉圆形音频可视化。
   - 候选 releases/v0.19.0/s1-local.1（lut19_attempt01_s5），标签 v0.19.0-s1-local.1，本地，未推送。
@@ -9,7 +9,8 @@
   - 结果：14489 LUT（73.9%，−684），BRAM9k 52→30，24 DSP，Setup +0.155 ns，Hold +0.003 ns（ext_mem_clk，与 v0.17.0 相同）。时序审计 14 类与 v0.18.0 相同。
   - 通过的验证：error_flag lockstep 对比 v0.18.0（含变异体）、run_m1/m3/m4/m5、adjust、PCM S2、hazard 等价、按键节拍、preview keys、18 项回归。
   - 18 项回归分两次跑完：lut19r1 跑了 15 项；preview、system、video_delay 在 lut19r1 里被截断，用 lut19r2 重跑后通过。
-- 卡住的问题：无本地阻塞，尚未上板。
+- 板测：用户反馈 s1-local.1“功能正常”（整体反馈，未逐项），记录 releases/v0.19.0/s1-local.1/BOARD_RESULT.md，标签 v0.19.0-s1-board.1。
+- 卡住的问题：无。
 - 下一步计划：
   - 用户按 releases/v0.19.0/s1-local.1/BOARD_VALIDATION.md 板测，重点是 C1 圆环区域、K4 旁白播完后 AUTO 前进。
   - 板测通过后：记录 s1-board.1，推送分支和 plan.1/s1-local.1/s1-board.1 标签，复用原 bit 发布 v0.19.0，更新方案书第 104、168 行（加分项 5 失效）。
